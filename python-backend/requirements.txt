@@ -1,0 +1,15 @@
+# API & Data Validation
+fastapi==0.110.0
+uvicorn==0.28.0
+pydantic==2.6.4
+
+# Data Science / NLP (Gelockert für Python 3.11 Kompatibilität)
+pandas<3.0
+numpy<2.0
+scikit-learn<1.6
+spacy<3.9
+python-multipart==0.0.9
+
+# Dokumenten-Parsing
+pypdf==4.1.0           # Für PDF-Parsing
+python-docx==1.1.0

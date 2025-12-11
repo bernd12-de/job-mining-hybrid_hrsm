@@ -1,0 +1,39 @@
+version: '3.9'
+services:
+  # 1. Kotlin API Gateway
+  kotlin-api:
+    build:
+      context: ./kotlin-api
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080" # Erreichbar unter http://localhost:8080
+    environment:
+      # Verlinkung zur Datenbank und zum Python-Service
+      SPRING_DATASOURCE_URL: jdbc:postgresql://jobmining-db:5432/jobmining_db
+      PYTHON_API_URL: http://python-backend:8000
+    depends_on:
+      - jobmining-db
+      - python-backend
+
+  # 2. Python Analysis Engine
+  python-backend:
+    build: ./python-backend
+    ports:
+      - "8000:8000"
+    # Wichtig: Bindet den lokalen Datenordner in den Container ein (für ESCO-Dateien)
+    volumes:
+      - ./data:/app/data
+
+  # 3. PostgreSQL Database
+  jobmining-db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: jobmining_db
+      POSTGRES_USER: jobmining_user
+      POSTGRES_PASSWORD: secret_password
+    volumes:
+      - jobmining-data:/var/lib/postgresql/data
+
+volumes:
+  jobmining-data:
