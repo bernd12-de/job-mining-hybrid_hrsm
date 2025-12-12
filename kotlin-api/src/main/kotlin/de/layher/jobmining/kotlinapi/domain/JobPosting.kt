@@ -1,4 +1,4 @@
-package de.layher.jobmining.kotlinapi
+package de.layher.jobmining.kotlinapi.domain
 
 import jakarta.persistence.*
 import java.time.LocalDate
@@ -15,6 +15,10 @@ data class JobPosting(
     @Column(columnDefinition = "TEXT")
     val rawTextHash: String, // Für Idempotenz-Prüfung
 
+    // NEU: Speichert den gesamten extrahierten Text
+    @Column(columnDefinition = "TEXT")
+    val rawText: String,
+
     val postingDate: LocalDate,
     val region: String,
     val industry: String,
@@ -25,14 +29,14 @@ data class JobPosting(
     val competences: List<Competence> = emptyList()
 )
 
-@Entity
-data class Competence(
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
-
-    val originalTerm: String,
-    val escoLabel: String,
-    val escoUri: String,
-    val confidenceScore: Double
-)
+//@Entity
+//data class Competence(
+//    @Id
+//    @GeneratedValue(strategy = GenerationType.IDENTITY)
+//    val id: Long? = null,
+//
+//    val originalTerm: String,
+//    val escoLabel: String,
+//    val escoUri: String,
+//    val confidenceScore: Double
+//)

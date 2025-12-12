@@ -30,5 +30,6 @@ class JobMiningWorkflowManager(IJobMiningWorkflowManager):
             industry="Placeholder",
             posting_date="2024-12-01",
             raw_text_hash=raw_text_hash,
+            raw_text=raw_text, # <--- WICHTIG: MUSS HIER ZURÜCKGEGEBEN WERDEN
             competences=competences
         )

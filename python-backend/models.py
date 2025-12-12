@@ -15,4 +15,5 @@ class AnalysisResultDTO(BaseModel):
     industry: str
     posting_date: str
     raw_text_hash: str # Für Idempotenz-Prüfung im Kotlin-Backend
+    raw_text: str
     competences: List[CompetenceDTO]
