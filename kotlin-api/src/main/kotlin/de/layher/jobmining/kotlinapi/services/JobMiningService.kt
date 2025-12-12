@@ -1,12 +1,18 @@
 package de.layher.jobmining.kotlinapi.services
 
+// HINZUFÜGEN DES FEHLENDEN IMPORTS Rwport:
 import de.layher.jobmining.kotlinapi.adapters.PythonAnalysisClient
-import de.layher.jobmining.kotlinapi.domain.JobPosting
 import de.layher.jobmining.kotlinapi.domain.Competence
+import de.layher.jobmining.kotlinapi.domain.JobPosting
 import de.layher.jobmining.kotlinapi.infrastructure.JobPostingRepository
+import de.layher.jobmining.kotlinapi.presentation.CompetenceReportDTO
+//import org.springframework.data.jpa.repository.JpaRepository
+//import org.springframework.stereotype.Repository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+
+
 
 @Service
 class JobMiningService(
@@ -52,4 +58,24 @@ class JobMiningService(
         // 4. Speicherung in der PostgreSQL-Datenbank
         return repository.save(jobPosting)
     }
+
+    /**
+     * Aggregiert die Top-N der am häufigsten in allen gespeicherten Stellenanzeigen
+     * gefundenen Kompetenzen.
+     */
+    @Transactional(readOnly = true)
+    fun getTopCompetenceTrends(limit: Int = 5): List<CompetenceReportDTO> {
+
+        // Direkter Aufruf der Repository-Methode zur Aggregation
+        val results = repository.findTopCompetencesByCount(limit)
+
+        // Mapping des Ergebnis-Typs auf das saubere DTO
+        return results.map { array ->
+            CompetenceReportDTO(
+                competenceLabel = array[0] as String, // Das ist das ESCO-Label
+                count = array[1] as Long             // Das ist der Count
+            )
+        }
+    }
 }
+

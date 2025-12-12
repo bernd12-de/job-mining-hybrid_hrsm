@@ -10,7 +10,8 @@ import org.springframework.web.multipart.MultipartFile
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Schema
-
+// Importieren Sie das neue DTO
+import de.layher.jobmining.kotlinapi.presentation.CompetenceReportDTO
 @RestController
 @RequestMapping("/api/v1/jobs")
 class JobController(
@@ -18,8 +19,8 @@ class JobController(
 ) {
 
     @Operation(
-        summary = "Upload einer Stellenanzeige",
-        description = "Nimmt eine PDF oder DOCX-Datei entgegen und startet den Analyse-Workflow."
+        summary = "Kompetenz-Trendbericht",
+        description = "Gibt die Top N der am häufigsten in allen Stellenanzeigen gefundenen Kompetenzen zurück."
     )
     @PostMapping(
         "/upload",
@@ -43,6 +44,13 @@ class JobController(
             file.bytes,
             file.originalFilename ?: "unbekannt"
         )
+    }
+
+    @GetMapping("/reports/competence-trends")
+    fun getCompetenceTrends(
+        @RequestParam(defaultValue = "5") limit: Int
+    ): List<CompetenceReportDTO> {
+        return jobMiningService.getTopCompetenceTrends(limit)
     }
 }
 
