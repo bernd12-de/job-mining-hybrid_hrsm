@@ -14,6 +14,9 @@ class JobMiningWorkflowManager(IJobMiningWorkflowManager):
         # 1. Parsing (PDF/DOCX)
         raw_text = self.text_extractor.extract_text(file_stream, filename)
 
+        # NEUER FIX: Entferne Null-Bytes, die PostgreSQL nicht mag
+        cleaned_raw_text = raw_text.replace('\x00', '')
+
         # Generiere Hash
         raw_text_hash = str(hash(raw_text))
 
@@ -30,6 +33,6 @@ class JobMiningWorkflowManager(IJobMiningWorkflowManager):
             industry="Placeholder",
             posting_date="2024-12-01",
             raw_text_hash=raw_text_hash,
-            raw_text=raw_text, # <--- WICHTIG: MUSS HIER ZURÜCKGEGEBEN WERDEN
+            raw_text=cleaned_raw_text, # <--- WICHTIG: MUSS HIER GESÄUBERT ZURÜCKGEGEBEN WERDEN
             competences=competences
         )

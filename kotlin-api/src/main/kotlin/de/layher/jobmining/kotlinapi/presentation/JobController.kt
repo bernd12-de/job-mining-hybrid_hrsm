@@ -19,6 +19,17 @@ class JobController(
 ) {
 
     @Operation(
+        summary = "Batch-Analyse lokaler Dateien",
+        description = "Verarbeitet alle Stellenanzeigen-Dateien aus dem Python 'data/jobs' Ordner und speichert die Ergebnisse in der Datenbank."
+    )
+    @PostMapping("/batch-analyze")
+    fun analyzeLocalDirectory(): List<JobPosting> {
+        // Löst den Workflow aus und gibt alle gespeicherten Entitäten zurück
+        return jobMiningService.processJobDirectoryBatch()
+    }
+
+
+    @Operation(
         summary = "Kompetenz-Trendbericht",
         description = "Gibt die Top N der am häufigsten in allen Stellenanzeigen gefundenen Kompetenzen zurück."
     )

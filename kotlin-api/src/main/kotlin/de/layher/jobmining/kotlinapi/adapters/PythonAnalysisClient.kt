@@ -8,7 +8,8 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.RestTemplate
-
+import org.springframework.core.ParameterizedTypeReference
+import org.springframework.http.HttpMethod
 // Importiert das DTO, das wir auch im Code haben
 
 @Component
@@ -54,5 +55,27 @@ class PythonAnalysisClient(
 
         return response.body
             ?: throw IllegalStateException("Analyse-Ergebnis vom Python-Service war leer.")
+    }
+
+    /**
+     * Löst die Batch-Analyse aller lokalen Dateien im Python-Backend aus.
+     * Gibt eine Liste von Analyseergebnissen zurück.
+     */
+    fun processLocalJobDirectory(): List<AnalysisResultDTO> {
+        val url = "$pythonApiBaseUrl/batch-process"
+
+        // RestTemplate führt GET/POST aus. Wir erwarten eine Liste von DTOs.
+        val responseType = object : ParameterizedTypeReference<List<AnalysisResultDTO>>() {}
+
+        // Führt den POST Request durch (da es eine schreibende Operation ist) und mappt die Liste
+        val response = restTemplate.exchange(
+            url,
+            HttpMethod.POST, // Wir nutzen POST, da es eine verarbeitende Aktion auslöst
+            null, // Kein Request Body nötig
+            responseType
+        )
+
+        return response.body
+            ?: throw IllegalStateException("Batch-Analyse-Ergebnis vom Python-Service war leer.")
     }
 }

@@ -59,6 +59,40 @@ class JobMiningService(
         return repository.save(jobPosting)
     }
 
+    @Transactional
+    fun processJobDirectoryBatch(): List<JobPosting> {
+        // 1. Auslösen der Analyse im Python-Backend
+        val resultsDto = pythonClient.processLocalJobDirectory()
+
+        // 2. Mapping und Speicherung jedes DTOs
+        val jobPostingsToSave = resultsDto.map { resultDto ->
+            // Hier nutzen wir die gleiche Mapping-Logik wie in processJobAd
+            val competences = resultDto.competences.map { dto ->
+                Competence(
+                    originalTerm = dto.originalTerm,
+                    escoLabel = dto.escoLabel,
+                    escoUri = dto.escoUri,
+                    confidenceScore = dto.confidenceScore,
+                    escoGroupCode = dto.escoGroupCode
+                )
+            }
+
+            JobPosting(
+                title = resultDto.title,
+                jobRole = resultDto.jobRole,
+                rawTextHash = resultDto.rawTextHash,
+                rawText = resultDto.rawText,
+                postingDate = LocalDate.parse(resultDto.postingDate),
+                region = resultDto.region,
+                industry = resultDto.industry,
+                competences = competences
+            )
+        }
+
+        // 3. Batch-Speicherung aller Entitäten in einer Transaktion
+        return repository.saveAll(jobPostingsToSave)
+    }
+
     /**
      * Aggregiert die Top-N der am häufigsten in allen gespeicherten Stellenanzeigen
      * gefundenen Kompetenzen.
