@@ -10,8 +10,8 @@ import org.springframework.stereotype.Repository
 @Repository
 interface JobPostingRepository : JpaRepository<JobPosting, Long> {
 
-    fun findByRawTextHash(rawTextHash: String): JobPosting?
-
+    // KORREKTUR: Muss eine Liste zurückgeben (NonUniqueResultException Fix)
+    fun findByRawTextHash(rawTextHash: String): List<JobPosting>
     /**
      * Aggregiert die Kompetenzen und zählt, wie oft jedes ESCO-Label vorkommt.
      * Gibt die Top-Ergebnisse zurück (z.B. die 5 häufigsten Skills).
