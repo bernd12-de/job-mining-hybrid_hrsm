@@ -180,3 +180,88 @@ INFO:     127.0.0.1:51019 - "GET /openapi.json HTTP/1.1" 200 OK
 
 Kotlin Spring
 http://localhost:8080/swagger-ui/index.html
+
+
+
+
+GIT:
+✅ 1. Prüfen: Bist du im richtigen Branch?
+
+In IntelliJ links unten → Git → siehst du:
+
+Local
+
+main
+
+feature
+
+kotlin-analyse
+
+develop
+
+→ Aber dein neuer Branch feature/batch-prozess fehlt lokal!
+
+GitHub zeigt ihn zwar unter "Your branches", aber IntelliJ hat ihn lokal nicht, deshalb kannst du nicht pushen.
+
+✅ 2. So holst du den Branch in IntelliJ
+Option A — Branch existiert nur Remote
+
+Falls GitHub den Branch LISTET, aber IntelliJ ihn nicht sieht:
+
+👉 Menü oben: Git → Pull…
+oder im Branch-Fenster:
+
+origin/feature/batch-prozess → Checkout
+
+
+Damit wird er lokal angelegt:
+
+git checkout -b feature/batch-prozess origin/feature/batch-prozess
+
+✅ 3. Falls der Branch NOCH GAR NICHT existiert
+
+Dann machst du ihn lokal:
+
+git checkout -b feature/batch-prozess
+
+✅ 4. Änderungen committen
+
+In IntelliJ links oben im "Commit"-Fenster:
+
+1️⃣ Dateien anhaken
+2️⃣ Commit-Message eingeben
+3️⃣ Klick: Commit oder Commit and Push
+
+Oder via Terminal:
+
+git add .
+git commit -m "Batch-Prozess hinzugefügt"
+
+✅ 5. Branch zu GitHub pushen
+
+Wenn du im Branch bist:
+
+git push -u origin feature/batch-prozess
+
+
+-u sorgt dafür, dass Git den Branch „verknüpft“ → zukünftige Pushs gehen automatisch.
+
+⭐ So sollte es danach aussehen (wie auf GitHub)
+
+✔ Branch erscheint unter "Your branches"
+✔ IntelliJ zeigt ihn unter:
+
+Local → feature → batch-prozess
+
+Remote → origin → feature/batch-prozess
+
+🚦 Wenn du willst: Ich überprüfe deinen Stand LIVE
+
+Bitte sende mir:
+
+👉 den Output von:
+
+git branch -a
+
+
+Dann sehe ich, welche Branches lokal und remote existieren — und sage dir exakt, welchen Befehl DU jetzt brauchst.
