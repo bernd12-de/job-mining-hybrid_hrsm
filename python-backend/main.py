@@ -5,6 +5,7 @@ from fuzzy_competence_extractor import FuzzyCompetenceExtractor
 from interfaces import IJobMiningWorkflowManager, ITextExtractor, ICompetenceExtractor
 from job_mining_workflow_manager import JobMiningWorkflowManager
 from repositories.hybrid_competence_repository import HybridCompetenceRepository
+from job_directory_processor import JobDirectoryProcessor
 
 app = FastAPI()
 
@@ -23,6 +24,18 @@ def get_workflow_manager() -> IJobMiningWorkflowManager:
         text_extractor=text_extractor,
         competence_extractor=competence_extractor
     )
+
+@app.post("/batch-process")
+async def batch_process_local_jobs(
+        manager: IJobMiningWorkflowManager = Depends(get_workflow_manager)
+):
+    """Verarbeitet alle Dateien im jobs-Ordner."""
+    processor = JobDirectoryProcessor(manager=manager)
+    results = processor.process_all_jobs()
+
+    # Rückgabe einer Liste von DTOs
+    return results
+
 @app.post("/analyse")
 async def analyse_job_ad(
         file: UploadFile = File(...),
