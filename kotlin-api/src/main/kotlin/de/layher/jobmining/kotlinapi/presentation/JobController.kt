@@ -49,6 +49,15 @@ class JobController(
         return jobMiningService.processJobDirectoryBatch()
     }
 
+    @Operation(
+        summary = "ADMIN: Datenbank bereinigen",
+        description = "Löscht ALLE gespeicherten Stellenanzeigen und zugehörigen Kompetenzen."
+    )
+    @DeleteMapping("/admin/clear-all-data")
+    fun clearAllData(): Map<String, Any> {
+        val count = jobMiningService.deleteAllPostings()
+        return mapOf("status" to "OK", "message" to "Datenbank erfolgreich bereinigt.", "deleted_count" to count)
+    }
 
     @Operation(
         summary = "Upload einer Stellenanzeige",

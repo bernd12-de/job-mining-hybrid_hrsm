@@ -9,6 +9,7 @@ numpy<2.0
 scikit-learn<1.6
 spacy<3.9
 python-multipart==0.0.9
+rapidfuzz # <--- WURDE HINZUGEFÜGT (Für Fuzzy Matching)
 
 # Dokumenten-Parsing
 pypdf==4.1.0           # Für PDF-Parsing

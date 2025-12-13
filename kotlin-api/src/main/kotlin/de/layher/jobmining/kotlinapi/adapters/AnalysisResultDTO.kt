@@ -31,13 +31,17 @@ data class CompetenceDTO @JsonCreator constructor(
  * DTO für das gesamte Analyseergebnis (Entspricht Python models.AnalysisResultDTO)
  */
 data class AnalysisResultDTO @JsonCreator constructor(
-    // Alle Properties müssen im primären Konstruktor stehen.
+    // KORREKTUR: Alle Felder im Konstruktor müssen explizit mit @JsonProperty annotiert werden.
+    @JsonProperty("title")
     val title: String,
 
     @JsonProperty("job_role")
     val jobRole: String,
 
+    @JsonProperty("region")
     val region: String,
+
+    @JsonProperty("industry")
     val industry: String,
 
     @JsonProperty("posting_date")
@@ -49,6 +53,6 @@ data class AnalysisResultDTO @JsonCreator constructor(
     @JsonProperty("raw_text")
     val rawText: String,
 
-    // Composite: Liste von Kompetenzen
+    @JsonProperty("competences") // Das Feld war bereits korrekt annotiert
     val competences: List<CompetenceDTO>
 )

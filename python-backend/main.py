@@ -2,11 +2,12 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 
 # --- INFRASTRUKTUR & DOMAIN IMPORTS ---
 from advanced_text_extractor import AdvancedTextExtractor
-from fuzzy_competence_extractor import FuzzyCompetenceExtractor
+
 from interfaces import IJobMiningWorkflowManager, ITextExtractor, ICompetenceExtractor
 from job_mining_workflow_manager import JobMiningWorkflowManager
 from repositories.hybrid_competence_repository import HybridCompetenceRepository
-
+from infrastructure.extractor.spacy_competence_extractor import SpaCyCompetenceExtractor
+from infrastructure.extractor.spacy_competence_extractor import SpaCyCompetenceExtractor
 # --- NEU: MODULARE ENDPUNKTE IMPORTIEREN ---
 from api_endpoints import scrape_and_analyze_url, analyse_job_ad, batch_process_local_jobs, URLInput
 
@@ -15,22 +16,21 @@ app = FastAPI()
 # --- DEPENDENCY INJECTION (DI) ---
 # Definiert, wie FastAPI den Workflow Manager erzeugt (Dependency Injection)
 def get_workflow_manager() -> IJobMiningWorkflowManager:
-    # 1. ESCO-Wissensbasis laden (DI-Chain startet hier)
-    # Das Logging passiert jetzt IN DIESEM KONSTRUKTOR
+    # 1. ESCO-Wissensbasis laden
     competence_repo = HybridCompetenceRepository()
-
-    # DIE MANUELLEN LOGGING-ZEILEN SIND HIER ENTFERNT WORDEN
 
     # 2. Extraktoren: Die konkreten Implementierungen erstellen
     text_extractor: ITextExtractor = AdvancedTextExtractor()
-    competence_extractor: ICompetenceExtractor = FuzzyCompetenceExtractor(repository=competence_repo)
+
+    # 🚨 KERN-FIX: Übergib das Repository an den SpaCyExtractor, damit dieser es als Attribut speichern kann!
+
+    competence_extractor: ICompetenceExtractor = SpaCyCompetenceExtractor(repository=competence_repo) # <--- ÄNDERUNG HIER
 
     # 3. Den Workflow Manager injizieren (DI-Prinzip)
     return JobMiningWorkflowManager(
         text_extractor=text_extractor,
         competence_extractor=competence_extractor
     )
-
 # --- ENDPUNKT-REGISTRIERUNG ---
 
 # Dateiupload

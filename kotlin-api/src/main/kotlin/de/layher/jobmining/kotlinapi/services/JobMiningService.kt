@@ -102,6 +102,18 @@ class JobMiningService(
         return repository.save(jobPosting)
     }
 
+    /**
+     * Löscht alle gespeicherten JobPostings (und kaskadierend alle Kompetenzen).
+     * Administrative Funktion zur Bereinigung.
+     */
+    @Transactional
+    fun deleteAllPostings(): Long {
+        val count = repository.count()
+        // KERN-FIX: Wechsle zu deleteAll() (beachtet JPA Kaskadierung)
+        repository.deleteAll()
+        println("--- ⚠️ ADMIN: Datenbank bereinigt. $count Einträge gelöscht.")
+        return count
+    }
 
     /**
      * Batch-Analyse aller lokalen Dateien mit Idempotenz-Prüfung.

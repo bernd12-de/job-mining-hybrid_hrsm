@@ -28,4 +28,7 @@ interface JobPostingRepository : JpaRepository<JobPosting, Long> {
     """
     )
     fun findTopCompetencesByCount(limit: Int): List<Array<Any>>
+
+    // NEU: Methode zum schnellen Löschen aller Einträge
+    //fun deleteAllInBatch()
 }

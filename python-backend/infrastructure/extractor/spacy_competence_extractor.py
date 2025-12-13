@@ -1,14 +1,30 @@
-import spacy
-from spacy.matcher import PhraseMatcher # NEU: Der Kern der Lösung
-from rapidfuzz import process, fuzz # Wird jetzt weniger genutzt
+# spacy_competence_extractor.py - FINALE VERSION
+
 from typing import List, Optional, Tuple
-from core.entities.job_posting import Competence # (Annahme: Korrekter Importpfad)
-from core.competence_extraction_interface import CompetenceExtractorInterface
-from infrastructure.data.esco_skills import get_esco_mapping, get_esco_target_labels # Datenquelle
+
+import spacy
+from rapidfuzz import process, fuzz
+from spacy.matcher import PhraseMatcher
+
+from infrastructure.data.esco_skills import get_esco_mapping, get_esco_target_labels, \
+    get_esco_uri_and_id  # NEU: URI-Funktion importiert
+from interfaces import ICompetenceExtractor as CompetenceExtractorInterface
+from models import CompetenceDTO
+from repositories.hybrid_competence_repository import HybridCompetenceRepository  # NEU: Import für DI
+
+# --- KERN-FIX 1: DEFINITION DER BLACKLIST ---
+GENERIC_SKILLS_BLACKLIST = {
+    "kenntnisse", "fähigkeiten", "kommunikation", "deutsch", "englisch",
+    "r", "bau", "ski", "sport", "medien", "wissenschaft", "erfahrung",
+    "agil", "strategie", "prozess", "management", "analyse", "projektleitung",
+    "kunden", "lösung", "team", "technik", "bereich", "verantwortung übernehmen",
+    "beratung", "dienstleistungen", "informatik", "digitalisierung",
+    "prägen", "datenschutz", "ethik", "gesundheit", "kommunizieren", "agiles"
+}
+# ----------------------------------------
 
 # --- Lade das deutsche spaCy Modell einmalig ---
 try:
-    # Laden des größeren, präziseren Modells, falls verfügbar, sonst small
     NLP = spacy.load("de_core_news_md")
 except OSError:
     try:
@@ -19,11 +35,9 @@ except OSError:
 
 
 # --------------------------------------------------------------------
-# A. Hilfsfunktionen (Optimiert)
+# A. Hilfsfunktionen
 # --------------------------------------------------------------------
-
-# Der Lexikalische Matcher ist jetzt nur noch für die Nachbearbeitung von Aliassen zuständig
-CONFIDENCE_THRESHOLD_P1 = 95  # Erhöhte Schwelle für Lexikalisches Matching
+CONFIDENCE_THRESHOLD_P1 = 95
 
 def _lexical_esco_match(skill: str, esco_labels: List[str]) -> Tuple[Optional[str], float]:
     """ Lexikalisches (Fuzzy) Matching als Fallback für Abkürzungen/Synonyme """
@@ -37,26 +51,26 @@ def _lexical_esco_match(skill: str, esco_labels: List[str]) -> Tuple[Optional[st
         return best_match[0], best_match[1]
     return None, 0.0
 
-# Semantisches Matching wird entfernt, da es teuer ist und die lexikalische Lösung das Problem behebt
-# _semantic_esco_match(..) ENTFÄLLT HIER
-
 # --------------------------------------------------------------------
-# B. Haupt-Extractor-Klasse (Korrekt implementierter Matcher)
+# B. Haupt-Extractor-Klasse
 # --------------------------------------------------------------------
 
 class SpaCyCompetenceExtractor(CompetenceExtractorInterface):
 
-    def __init__(self):
+    # KORRIGIERT: Nimmt das Repository für den Health Check an
+    def __init__(self, repository: HybridCompetenceRepository):
+        self.repository = repository  # Nötig für den /health/esco-count Endpunkt
         self.nlp = NLP
+
+        # Datencaches werden geladen, um sie später im Lookup zu nutzen
         self.esco_map = get_esco_mapping()
         self.esco_target_labels = get_esco_target_labels()
 
-        # KERN-FIX: Initialisierung des PhraseMatchers
+        # KERN-FIX 2: Initialisierung des PhraseMatchers
         self.matcher = None
         if self.nlp:
+            # Stellt sicher, dass nur die offiziellen Labels gematcht werden
             self.matcher = PhraseMatcher(self.nlp.vocab, attr="LOWER")
-
-            # WICHTIG: Erstellen Sie spaCy Doc-Muster aus den ESCO-Labels (14.569 Phrasen)
             patterns = [self.nlp.make_doc(text) for text in self.esco_target_labels if text]
             self.matcher.add("ESCO_SKILLS", patterns)
             print(f"*** ✅ PhraseMatcher initialisiert mit {len(patterns)} ESCO-Patterns. ***")
@@ -64,26 +78,21 @@ class SpaCyCompetenceExtractor(CompetenceExtractorInterface):
 
     def map_to_esco(self, skill: str) -> str:
         """
-        Führt das ESCO-Mapping aus. Wird jetzt primär für Mappings von
-        Custom-Keywords und Fallbacks genutzt.
+        Führt das ESCO-Mapping aus (unverändert)
         """
-
-        # 1. Direkter Match (Fast Lane: z.B. SQL -> Datenbanken verwalten)
         normalized_skill = skill.lower().strip()
         if normalized_skill in self.esco_map:
             return self.esco_map[normalized_skill]
 
-        # 2. Lexikalisches Matching (Fall-back für Synonyme/Ähnliches)
         esco_match_p1, score_p1 = _lexical_esco_match(skill, self.esco_target_labels)
         if esco_match_p1:
             return esco_match_p1
 
-        # 3. Kein Match: Gibt den Originalterm als Platzhalter zurück
         return skill
 
+    def extract_competences(self, raw_text: str) -> List[CompetenceDTO]:
+        """ KERN-LOGIK: Analysiert den Rohtext und extrahiert Kompetenzen. """
 
-    def extract_competences(self, raw_text: str) -> List[Competence]:
-        """ KERN-LOGIK: Analysiert den Rohtext und extrahiert Kompetenzen mit PhraseMatcher. """
         if not self.nlp or not raw_text or len(raw_text) < 50:
             return []
         if not self.matcher:
@@ -91,37 +100,67 @@ class SpaCyCompetenceExtractor(CompetenceExtractorInterface):
             return []
 
         doc = self.nlp(raw_text)
-        competences: List[Competence] = []
+        competences: List[CompetenceDTO] = []
         found_skills = set()
+        normalized_text = raw_text.lower()
 
-        # --- KERN-FIX: Wenden Sie den PhraseMatcher auf das gesamte Dokument an ---
+        # --- PASS 1: PHRASE MATCHER (HIGH PRECISION ESCO PHRASEN) ---
         matches = self.matcher(doc)
 
         for match_id, start, end in matches:
             span = doc[start:end]
             original_skill = span.text.strip()
+            normalized_check = original_skill.lower()
 
-            # Verhindert Duplikate
+            # Blacklist-Filter (Unverändert und funktioniert)
+            if normalized_check in GENERIC_SKILLS_BLACKLIST or \
+                    (span.text.split()[0].lower() if span.text else "") in GENERIC_SKILLS_BLACKLIST:
+                continue
+
             if original_skill in found_skills:
                 continue
 
-            # Da die Matcher-Patterns aus ESCO-Labels erstellt wurden, ist der Match selbst das Label
+            # Hole die ESCO URI und ID
             esco_label = original_skill
+            esco_uri, esco_id = get_esco_uri_and_id(esco_label)
 
             competences.append(
-                Competence(
+                CompetenceDTO(
+                    id=esco_id,
                     original_term=original_skill,
                     esco_label=esco_label,
-                    # Die URI muss hier aus dem Repositorium geholt werden (Wird im nächsten Schritt oft hinzugefügt)
-                    # Für den Test nutzen wir das ESCO-Label als URI-Marker, bis die Logik angepasst ist
-                    esco_uri=f"esco/skill/MATCHED_{esco_label.replace(' ', '_')}",
+                    esco_uri=esco_uri or f"esco/skill/FALLBACK_{esco_label.replace(' ', '_')}",
                     confidence_score=1.0,
                     esco_group_code=None
                 )
             )
             found_skills.add(original_skill)
 
-        # HINWEIS: Die alte generische Regellogik (UX/Data) wurde entfernt,
-        # da der Matcher diese Ergebnisse präziser liefert.
+        # --- PASS 2: FALLBACK FÜR CUSTOM KEYWORDS/MAPPINGS (JIRA, SCRUM, etc.) ---
 
+        # Durchsuche die Keys unserer Custom Mappings
+        for original_term, esco_label in self.esco_map.items():
+            if original_term.lower() in normalized_text:
+
+                # Vermeide Duplikate und Blacklist-Treffer
+                if original_term in found_skills or original_term.lower() in GENERIC_SKILLS_BLACKLIST:
+                    continue
+
+                # Hole die URI und ID für das Ziel-Label (z.B. "Project-Management-Software benutzen")
+                esco_uri, esco_id = get_esco_uri_and_id(esco_label)
+
+                competences.append(
+                    CompetenceDTO(
+                        id=esco_id,
+                        original_term=original_term,  # z.B. "jira"
+                        esco_label=esco_label,  # z.B. "Project-Management-Software benutzen"
+                        esco_uri=esco_uri or f"esco/skill/CUSTOM_{esco_label.replace(' ', '_')}",
+                        confidence_score=1.0,
+                        esco_group_code=None
+                    )
+                )
+                found_skills.add(original_term)
+
+        # FINALER RETURN der Methode
         return competences
+
