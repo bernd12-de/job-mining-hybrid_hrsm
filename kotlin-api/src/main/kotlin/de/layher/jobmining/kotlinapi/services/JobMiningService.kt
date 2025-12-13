@@ -105,6 +105,12 @@ class JobMiningService(
 
     /**
      * Batch-Analyse aller lokalen Dateien mit Idempotenz-Prüfung.
+     *
+     *  // In JobMiningService.kt
+     *     @Transactional
+     *     fun processJobDirectoryBatch(): List<JobPosting> {
+     *         return pythonClient.processLocalJobDirectory()
+     *     }
      */
     @Transactional
     fun processJobDirectoryBatch(): List<JobPosting> {
@@ -162,4 +168,6 @@ class JobMiningService(
             )
         }
     }
+
+
 }

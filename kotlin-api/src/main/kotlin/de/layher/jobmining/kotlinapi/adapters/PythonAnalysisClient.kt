@@ -29,18 +29,25 @@ class PythonAnalysisClient(
 
     /**
      * Führt den Datei-Upload und den Analyse-Aufruf an das Python-Backend (/analyse) durch.
+     * FIX: Korrekte Verwendung von HttpHeaders und ByteArrayResource.
      */
     fun sendDocumentForAnalysis(bytes: ByteArray, filename: String): AnalysisResultDTO {
 
         try {
             val headers = HttpHeaders().apply {
-                contentType = MediaType.MULTIPART_FORM_DATA
+                contentType = MediaType.MULTIPART_FORM_DATA // Wichtig: Multipart
             }
-            val body = LinkedMultiValueMap<String, Any>()
+
+            // Definiere die Datei als Resource
             val fileResource = object : ByteArrayResource(bytes) {
                 override fun getFilename(): String = filename
             }
-            body.add("file", fileResource)
+
+            // Erstelle den Body mit dem Dateiteil
+            val body = LinkedMultiValueMap<String, Any>().apply {
+                add("file", fileResource) // Name muss 'file' sein (wie in FastAPI erwartet)
+            }
+
             val requestEntity = HttpEntity(body, headers)
             val url = "$pythonApiBaseUrl/analyse"
 
@@ -49,8 +56,10 @@ class PythonAnalysisClient(
             return response.body
                 ?: throw IllegalStateException("Analyse-Ergebnis vom Python-Service war leer.")
         } catch (e: HttpStatusCodeException) {
-            // Saubere Fehlerbehandlung für 4xx/5xx Status-Codes
-            throw RuntimeException("Fehler bei Dateianalyse im Python-Backend (${e.statusCode.value()}): ${e.responseBodyAsString}")
+            val pythonErrorDetail = e.responseBodyAsString.substringAfter("{\"detail\":\"").substringBeforeLast("\"}")
+            throw RuntimeException("Fehler bei Dateianalyse im Python-Backend (${e.statusCode.value()}): $pythonErrorDetail")
+        } catch (e: ResourceAccessException) {
+            throw RuntimeException("Verbindungsfehler zum Python-Backend: Ist der Service gestartet? Fehler: ${e.message}")
         }
     }
 
@@ -64,14 +73,17 @@ class PythonAnalysisClient(
         try {
             val response = restTemplate.exchange(
                 url,
-                HttpMethod.POST,
-                null,
+                HttpMethod.POST, // Es ist ein POST
+                HttpEntity.EMPTY, // WICHTIG: Senden KEINEN Body, sondern ein leeres Entity
                 responseType
             )
             return response.body
                 ?: throw IllegalStateException("Batch-Analyse-Ergebnis vom Python-Service war leer.")
         } catch (e: HttpStatusCodeException) {
-            throw RuntimeException("Batch-Fehler im Python-Backend (${e.statusCode.value()}): ${e.responseBodyAsString}")
+            val pythonErrorDetail = e.responseBodyAsString.substringAfter("{\"detail\":\"").substringBeforeLast("\"}")
+            throw RuntimeException("Batch-Fehler im Python-Backend (${e.statusCode.value()}): $pythonErrorDetail")
+        } catch (e: ResourceAccessException) {
+            throw RuntimeException("Verbindungsfehler zum Python-Backend: Ist der Service gestartet? Fehler: ${e.message}")
         }
     }
 

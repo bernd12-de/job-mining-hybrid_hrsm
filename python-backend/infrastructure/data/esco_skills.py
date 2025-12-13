@@ -17,8 +17,8 @@ ESCO_SOURCE_FILES = [
     "greenSkillsCollection_de.csv",     # Green Skills (für Umweltthemen)
 ]
 
-# Der Pfad, in dem die Dateien im Unterordner 'esco/' liegen sollen
-ESCO_DATA_PATH = os.path.join(os.path.dirname(__file__), 'esco')
+# FIX: Muss ZWEI Ebenen höher, um den 'data/esco' Ordner im Hauptverzeichnis zu finden
+ESCO_DATA_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'esco')
 
 # --- B. Direkte Zuordnung (Phase 1: Exakter Match) ---
 # Für hochfrequente Abkürzungen/Synonyme (schnellste Zuordnung)
@@ -43,7 +43,8 @@ ESCO_TARGET_LABELS_CACHE = None
 
 def _load_esco_labels_from_csv() -> List[str]:
     """
-    Lädt alle relevanten ESCO-Labels aus allen Quell-CSVs in den Cache.
+    Lädt alle ESCO-Labels aus den konfigurierten CSVs.
+    FIX: Robustere Spaltenauswahl für Hierarchie-Dateien.
     """
     global ESCO_TARGET_LABELS_CACHE
     if ESCO_TARGET_LABELS_CACHE is not None:
@@ -52,45 +53,43 @@ def _load_esco_labels_from_csv() -> List[str]:
     all_labels = set()
 
     for filename in ESCO_SOURCE_FILES:
-        # Pfad: .../python-backend/infrastructure/data/esco/DATEINAME.csv
-        file_path = os.path.join(ESCO_DATA_PATH, filename)
+        full_path = os.path.join(ESCO_DATA_PATH, filename)
 
         try:
-            # Versuche Semikolon-Trenner (ESCO-Standard)
-            try:
-                df = pd.read_csv(file_path, delimiter=';')
-            except Exception:
-                df = pd.read_csv(file_path, delimiter=',')
+            # Lese die CSV
+            df = pd.read_csv(full_path, delimiter=',')
 
-            # Extrahiere Labels basierend auf dem Dateityp
-            if 'Level 3 preferred term' in df.columns:
-                # Hierarchie-Datei: Nutze spezifische Level 3/2 Begriffe
-                label_cols = ['Level 3 preferred term', 'Level 2 preferred term']
-                for col in label_cols:
-                    if col in df.columns:
-                        all_labels.update(df[col].dropna().unique().tolist())
+            # --- ROBUSTER LADE-LOGIK FIX ---
+
+            # 1. Haupt-Hierarchie-Datei: Alle Spalten, die 'preferred term' enthalten (Level 1, 2, 3)
+            preferred_term_cols = [col for col in df.columns if 'preferred term' in col]
+
+            if preferred_term_cols:
+                # Dies erfasst alle Labels aus der Hierarchie-Datei (sollte 13k+ liefern)
+                for col in preferred_term_cols:
+                    all_labels.update(df[col].dropna().unique().tolist())
+
+            # 2. Collections-Dateien: Nutzen 'preferredLabel' (sollte die restlichen ~2k liefern)
             elif 'preferredLabel' in df.columns:
-                # Collections-Dateien: Nutze das Haupt-Label
                 all_labels.update(df['preferredLabel'].dropna().unique().tolist())
 
+            # --- ENDE ROBUST LADE-LOGIK FIX ---
+
         except FileNotFoundError:
-            # DIESER LOG MUSS JETZT FEHLEN!
-            print(f"⚠️ FEHLER: ESCO-Datei nicht gefunden: {filename}")
+            # Sollte jetzt nicht mehr erreicht werden
+            pass
         except Exception as e:
-            print(f"FEHLER beim Laden von {filename}: {e}")
+            # Fängt Fehler beim Parsen ab
+            print(f"❌ FEHLER beim Laden von {filename}: {e}")
 
     # Füge die manuellen Ziel-Labels hinzu und bereinige
     all_labels.update(ESCO_MAPPING_DATA.values())
 
-
-    # NEUER ZÄHLER FÜR SICHERHEIT:
     final_labels = sorted(list(all_labels))
     print(f"*** ESCO-Integration erfolgreich: {len(final_labels)} Labels aus CSVs geladen ***")
 
     ESCO_TARGET_LABELS_CACHE = final_labels
     return ESCO_TARGET_LABELS_CACHE
-
-
 
 
 def get_esco_target_labels() -> List[str]:
