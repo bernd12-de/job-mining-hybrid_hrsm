@@ -1,5 +1,6 @@
 package de.layher.jobmining.kotlinapi.adapters
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.HttpEntity
@@ -10,11 +11,16 @@ import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.RestTemplate
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpMethod
-// Importiert das DTO, das wir auch im Code haben
+
+// NEUE IMPORTS FÜR ROBUSTES FEHLERHANDLING
+import org.springframework.web.client.HttpStatusCodeException
+import org.springframework.web.client.ResourceAccessException
+
+// Input-Modell für die URL (muss dem Python-Modell entsprechen)
+data class URLInput(val url: String, @JsonProperty("render_js") val renderJs: Boolean = false)
 
 @Component
 class PythonAnalysisClient(
-    // Verwendung des Wertes aus application.properties (oder default: localhost:8000)
     @Value("\${python.api.base-url:http://localhost:8000}")
     private val pythonApiBaseUrl: String
 ) {
@@ -26,56 +32,78 @@ class PythonAnalysisClient(
      */
     fun sendDocumentForAnalysis(bytes: ByteArray, filename: String): AnalysisResultDTO {
 
-        // 1. Header vorbereiten
-        val headers = HttpHeaders().apply {
-            // Wichtig: Setze ContentType nur auf MULTIPART_FORM_DATA,
-            // die Boundary wird von RestTemplate automatisch gesetzt.
-            contentType = MediaType.MULTIPART_FORM_DATA
+        try {
+            val headers = HttpHeaders().apply {
+                contentType = MediaType.MULTIPART_FORM_DATA
+            }
+            val body = LinkedMultiValueMap<String, Any>()
+            val fileResource = object : ByteArrayResource(bytes) {
+                override fun getFilename(): String = filename
+            }
+            body.add("file", fileResource)
+            val requestEntity = HttpEntity(body, headers)
+            val url = "$pythonApiBaseUrl/analyse"
+
+            val response = restTemplate.postForEntity(url, requestEntity, AnalysisResultDTO::class.java)
+
+            return response.body
+                ?: throw IllegalStateException("Analyse-Ergebnis vom Python-Service war leer.")
+        } catch (e: HttpStatusCodeException) {
+            // Saubere Fehlerbehandlung für 4xx/5xx Status-Codes
+            throw RuntimeException("Fehler bei Dateianalyse im Python-Backend (${e.statusCode.value()}): ${e.responseBodyAsString}")
         }
-
-        // 2. Multipart-Body bauen (Verwendet LinkedMultiValueMap, um reaktive Abhängigkeiten zu vermeiden)
-        val body = LinkedMultiValueMap<String, Any>()
-
-        // Datei als ByteArrayResource verpacken, um sie als "file" zu senden
-        val fileResource = object : ByteArrayResource(bytes) {
-            override fun getFilename(): String = filename
-        }
-
-        // "file" muss exakt zum @File(...)-Parameter im Python-Backend passen
-        body.add("file", fileResource)
-
-        // 3. Request-Entität erstellen
-        val requestEntity = HttpEntity(body, headers)
-
-        // 4. POST Request senden und JSON in unser DTO mappen
-        val url = "$pythonApiBaseUrl/analyse"
-
-        // Führt den Post-Request durch und mappt das Ergebnis
-        val response = restTemplate.postForEntity(url, requestEntity, AnalysisResultDTO::class.java)
-
-        return response.body
-            ?: throw IllegalStateException("Analyse-Ergebnis vom Python-Service war leer.")
     }
 
     /**
      * Löst die Batch-Analyse aller lokalen Dateien im Python-Backend aus.
-     * Gibt eine Liste von Analyseergebnissen zurück.
      */
     fun processLocalJobDirectory(): List<AnalysisResultDTO> {
         val url = "$pythonApiBaseUrl/batch-process"
-
-        // RestTemplate führt GET/POST aus. Wir erwarten eine Liste von DTOs.
         val responseType = object : ParameterizedTypeReference<List<AnalysisResultDTO>>() {}
 
-        // Führt den POST Request durch (da es eine schreibende Operation ist) und mappt die Liste
-        val response = restTemplate.exchange(
-            url,
-            HttpMethod.POST, // Wir nutzen POST, da es eine verarbeitende Aktion auslöst
-            null, // Kein Request Body nötig
-            responseType
-        )
+        try {
+            val response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                null,
+                responseType
+            )
+            return response.body
+                ?: throw IllegalStateException("Batch-Analyse-Ergebnis vom Python-Service war leer.")
+        } catch (e: HttpStatusCodeException) {
+            throw RuntimeException("Batch-Fehler im Python-Backend (${e.statusCode.value()}): ${e.responseBodyAsString}")
+        }
+    }
 
-        return response.body
-            ?: throw IllegalStateException("Batch-Analyse-Ergebnis vom Python-Service war leer.")
+    /**
+     * Ruft den Scraper-Endpunkt im Python-Backend auf, um eine URL zu analysieren.
+     * NEU: Fängt HTTP-Fehler ab, um die Jackson-Deserialisierungs-Warnung zu vermeiden.
+     */
+    fun scrapeAndAnalyzeUrl(url: String, renderJs: Boolean = false): AnalysisResultDTO {
+        val requestUrl = "$pythonApiBaseUrl/scrape-url"
+        val requestBody = URLInput(url, renderJs)
+
+        try {
+            // Führt den POST Request durch und mappt das Ergebnis
+            val response = restTemplate.postForEntity(
+                requestUrl,
+                requestBody,
+                AnalysisResultDTO::class.java
+            )
+
+            return response.body
+                ?: throw IllegalStateException("Scraping-Analyse-Ergebnis vom Python-Service war leer.")
+
+        } catch (e: HttpStatusCodeException) {
+            // --- FIX FÜR JACKSON-WARNING ---
+            // Fängt 4xx/5xx (inkl. 501 Not Implemented) und wirft eine saubere RuntimeException.
+            // Dies verhindert, dass Spring den Fehler-Body in das DTO mappen muss.
+            val pythonErrorDetail = e.responseBodyAsString.substringAfter("{\"detail\":\"").substringBeforeLast("\"}")
+
+            throw RuntimeException("Web-Scraping-Fehler (${e.statusCode.value()}): $pythonErrorDetail")
+
+        } catch (e: ResourceAccessException) {
+            throw RuntimeException("Verbindungsfehler zum Python-Backend: Ist der Service gestartet? Fehler: ${e.message}")
+        }
     }
 }

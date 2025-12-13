@@ -14,10 +14,13 @@ class JobDirectoryProcessor:
     def process_all_jobs(self) -> List[AnalysisResultDTO]:
         """Iteriert über alle Dateien und führt die Analyse aus."""
         results: List[AnalysisResultDTO] = []
-        full_directory_path = os.path.join(os.getcwd(), self.base_path)
+        # WICHTIG: Pfad muss relativ zur Ausführung in python-backend sein
+        full_directory_path = os.path.join(os.path.dirname(__file__), self.base_path)
 
-        if not os.path.isdir(full_directory_path):
-            raise FileNotFoundError(f"Das Verzeichnis {full_directory_path} existiert nicht.")
+        # Sicherstellen, dass das Verzeichnis existiert
+        if not os.path.isdir(self.base_path):
+            # Prüfen, ob der Pfad existiert, sonst Fehler
+            raise FileNotFoundError(f"Das Job-Verzeichnis '{self.base_path}' existiert nicht.")
 
         for filename in os.listdir(full_directory_path):
             if filename.endswith(('.pdf', '.docx')):
