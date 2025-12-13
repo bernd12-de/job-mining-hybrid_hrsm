@@ -47,3 +47,19 @@ async def handle_scrape(url_input: URLInput, manager: IJobMiningWorkflowManager 
 @app.post("/batch-process")
 async def handle_batch(manager: IJobMiningWorkflowManager = Depends(get_workflow_manager)):
     return batch_process_local_jobs(manager=manager)
+
+# Endpoint 4: ESCO Health Check (Erfüllt den Wunsch nach einem schnellen Test)
+@app.get("/health/esco-count")
+async def get_esco_count(manager: IJobMiningWorkflowManager = Depends(get_workflow_manager)):
+    """
+    Gibt die geladene ESCO-Kompetenzanzahl zurück.
+    Dieser Aufruf zwingt das HybridCompetenceRepository, die Daten zu laden und den Zähler in der Konsole auszugeben.
+    """
+    repo = manager.competence_extractor.repository
+    return {
+        "status": "OK",
+        "esco_label_count": len(repo.get_esco_only()),
+        "custom_label_count": len(repo.get_custom_only()),
+        "total_competences": len(repo.get_all_skills()),
+        "loading_source": "JSON Cache oder CSV Fallback"
+    }
