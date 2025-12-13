@@ -34,3 +34,4 @@ python-backend/venv/
 
 # docker
 *.pid
+/dataSources.xml
