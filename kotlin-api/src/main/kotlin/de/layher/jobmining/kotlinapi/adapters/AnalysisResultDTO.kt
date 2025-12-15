@@ -10,6 +10,10 @@ import java.time.LocalDate
 data class CompetenceDTO @JsonCreator constructor(
     // Achtung: Wenn @JsonCreator genutzt wird, müssen alle Properties explizit im Konstruktor stehen.
     // Die @JsonProperty-Annotationen sind korrekt gesetzt.
+    // 🚨 FIX 2: id muss String/Optional sein, da Python ESCO-ID (String) sendet
+//    @JsonProperty("id")
+//    val id: String?,
+
     @JsonProperty("original_term")
     val originalTerm: String,
 

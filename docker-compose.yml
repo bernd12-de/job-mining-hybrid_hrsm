@@ -26,7 +26,7 @@ services:
 
   # 3. PostgreSQL Database
   jobmining-db:
-    image: postgres:16-alpine
+    image: postgres:15-alpine
     restart: always
     environment:
       POSTGRES_DB: jobmining_db
@@ -37,6 +37,10 @@ services:
       # HIER WIRD DER PORT ZUM HOST-SYSTEM GEÖFFNET
     ports:
         - "5432:5432"
+#  (.venv) layher-ad@MacBookPro job-mining-kotlin-python % docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' job-mining-kotlin-python-jobmining-db-1
+#  172.18.0.2
+#NAME                                      IMAGE                COMMAND                  SERVICE        CREATED          STATUS          PORTS
+#job-mining-kotlin-python-jobmining-db-1   postgres:16-alpine   "docker-entrypoint.s…"   jobmining-db   52 seconds ago   Up 52 seconds   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp
 
 volumes:
   jobmining-data:

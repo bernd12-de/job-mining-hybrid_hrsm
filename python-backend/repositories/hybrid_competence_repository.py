@@ -4,8 +4,9 @@ from typing import List, Dict, Set
 
 from infrastructure.data.esco_skills import get_esco_target_labels, get_esco_mapping
 from interfaces import ICompetenceRepository # Importiert ICompetenceRepository
-from models import Competence # FIX: Importiert Competence aus models.py
 
+from models import Competence # FIX: Importiert Competence aus models.py
+from infrastructure.clients.kotlin_rule_client import KotlinRuleClient
 
 # --- Hybrid Repository Implementierung ---
 class HybridCompetenceRepository(ICompetenceRepository):
@@ -15,11 +16,15 @@ class HybridCompetenceRepository(ICompetenceRepository):
         os.path.dirname(__file__), '..', 'data', 'custom_skills_extended.json'
     )
 
-    def __init__(self):
+    def __init__(self, rule_client: KotlinRuleClient):
         self._esco_labels: Set[str] = set()
         self._custom_labels: Set[str] = set()
         self._all_competences: List[Competence] = []
         self._esco_mapping: Dict[str, str] = get_esco_mapping()
+        self._blacklist: Set[str] = set()
+
+        # 🚨 FIX: Speichert den injizierten Client
+        self.rule_client = rule_client
 
         self._load_data()
 
@@ -44,7 +49,7 @@ class HybridCompetenceRepository(ICompetenceRepository):
             self._all_competences.append(Competence(preferred_label=label, esco_uri=f"esco/skill/TEMP_{label}"))
 
 
-        # --- Custom Skills Laden ---
+        # --- Custom Skills Laden --- optional skills
         try:
             with open(self.CUSTOM_JSON_PATH, 'r', encoding='utf-8') as f:
                 data = json.load(f)
@@ -58,12 +63,34 @@ class HybridCompetenceRepository(ICompetenceRepository):
                 )
                 self._custom_labels.add(comp.preferred_label)
                 self._all_competences.append(comp)
+                # --- NEU: Blacklist laden (Vom Domain Layer gesteuert) ---
+                #self._blacklist.update(self._get_default_blacklist())
 
         except FileNotFoundError:
             pass
         except Exception as e:
             print(f"❌ Fehler beim Laden der Custom Skills: {e}")
 
+        # 3. Obligatorische Domänen-Regeln laden (MUSS IMMER AUSGEFÜHRT WERDEN)
+        # Die Blacklist ist Teil des Domain-Wissens und MUSS existieren.
+        self._blacklist.update(self._get_default_blacklist())
+
+    # NEU: HILFSFUNKTION - VERSCHIEBUNG DER STATISCHEN LISTE VOM EXTRAKTOR HIERHER
+    def _get_default_blacklist(self) -> Set[str]:
+        # Dies ist der Inhalt, der aus spacy_competence_extractor.py verschoben wird.
+        return {
+            "kenntnisse", "fähigkeiten", "kommunikation", "deutsch", "englisch",
+            "r", "bau", "ski", "sport", "medien", "wissenschaft", "erfahrung",
+            "agil", "strategie", "prozess", "management", "analyse", "projektleitung",
+            "kunden", "lösung", "team", "technik", "bereich", "verantwortung übernehmen",
+            "beratung", "dienstleistungen", "informatik", "digitalisierung",
+            "prägen", "datenschutz", "ethik", "gesundheit", "kommunizieren", "agiles"
+        }
+
+    # NEU: Methode für den sauberen Zugriff des Extractor (ICompetenceExtractor)
+    def get_blacklist(self) -> Set[str]:
+        """Gibt die Blacklist von generischen Begriffen zurück (SSoT)."""
+        return self._blacklist
 
     # --- Methoden des ICompetenceRepository Interfaces ---
     def get_all_skills(self) -> Set[str]:

@@ -3,40 +3,46 @@ package de.layher.jobmining.kotlinapi.domain
 import jakarta.persistence.*
 import java.time.LocalDate
 
+// 🚨 FIX 1: Wechsel von data class zu class
 @Entity
-data class JobPosting(
+@Table(name = "job_posting")
+class JobPosting(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
+    @Column(length = 1024)
     val title: String,
+    @Column(length = 512)
     val jobRole: String,
 
-    @Column(columnDefinition = "TEXT")
-    val rawTextHash: String, // Für Idempotenz-Prüfung
+    @Column(columnDefinition = "TEXT", unique = true)
+    val rawTextHash: String, // <- Wichtig für Idempotenz und Hashcode
 
-    // NEU: Speichert den gesamten extrahierten Text
     @Column(columnDefinition = "TEXT")
     val rawText: String,
 
     val postingDate: LocalDate,
     val region: String,
-    val industry: String,
+    @Column(length = 512)
+    val industry: String
+) {
+    // 🚨 FIX 2: Die bidirektionale Beziehung (ToMany) bleibt im Body.
+    @OneToMany(mappedBy = "jobPosting", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    var competences: MutableSet<Competence> = mutableSetOf()
 
-    // Liste der gefundenen Kompetenzen
-    @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
-    @JoinColumn(name = "job_id")
-    val competences: List<Competence> = emptyList()
-)
+    // 🚨 FIX 3: Manuelle Implementierung von equals und hashCode (ohne competences!)
+    // Wir verwenden rawTextHash als Business-Key, da es UNIQUE ist (Idempotenz).
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is JobPosting) return false
 
-//@Entity
-//data class Competence(
-//    @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
-//    val id: Long? = null,
-//
-//    val originalTerm: String,
-//    val escoLabel: String,
-//    val escoUri: String,
-//    val confidenceScore: Double
-//)
+        // Wir nutzen den Hash des Textes zur Identifizierung, falls die ID noch null ist
+        return rawTextHash == other.rawTextHash
+    }
+
+    override fun hashCode(): Int {
+        // Wir nutzen den Hash des Textes zur Identifizierung
+        return rawTextHash.hashCode()
+    }
+}

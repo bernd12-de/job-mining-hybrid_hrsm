@@ -59,7 +59,8 @@ def scrape_and_analyze_url(url_input: URLInput, manager: IJobMiningWorkflowManag
             raise HTTPException(status_code=400, detail="Scraping erfolgreich, aber zu wenig Text gefunden. Seite ist JavaScript-gerendert. Versuche 'render_js=True'.")
 
         cleaned_raw_text = raw_text.replace('\x00', '')
-        analysis_result = manager._run_analysis_from_text(cleaned_raw_text, url)
+        # 🚨 KERN-FIX: Ruft die NEUE, dedizierte Methode des Managers auf
+        analysis_result = manager.run_analysis_from_scraped_text(cleaned_raw_text, url)
 
         return analysis_result
 

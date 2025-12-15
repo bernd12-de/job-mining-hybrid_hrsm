@@ -23,7 +23,6 @@ class JobMiningService(
         val resultDto = pythonClient.sendDocumentForAnalysis(fileContent, filename)
 
         // --- IDEMPOTENZ-PRÜFUNG FÜR EINZELDOKUMENT ---
-        // Nutzt firstOrNull() für den Fall, dass durch einen Fehler Duplikate existieren.
         val existingJob = repository.findByRawTextHash(resultDto.rawTextHash).firstOrNull()
 
         if (existingJob != null) {
@@ -42,6 +41,10 @@ class JobMiningService(
             )
         }
 
+        // Konvertierung zu einem Set VOR der JobPosting-Erstellung
+        val competenceSet = competences.toMutableSet()
+
+        // 🚨 FINALER FIX: Das fehlerhafte Argument wurde entfernt und das Komma nach industry gelöscht.
         val jobPosting = JobPosting(
             title = resultDto.title,
             jobRole = resultDto.jobRole,
@@ -49,26 +52,31 @@ class JobMiningService(
             rawText = resultDto.rawText,
             postingDate = LocalDate.parse(resultDto.postingDate),
             region = resultDto.region,
-            industry = resultDto.industry,
-            competences = competences
+            industry = resultDto.industry // ⬅️ KRITISCH: KEIN KOMMA HIER!
         )
+
+        // Setzen der Kompetenzen auf das erstellte Objekt
+        jobPosting.competences = competenceSet
+
+        // WICHTIGER FIX: Setze die bidirektionale Gegenreferenz (Competence -> JobPosting)
+        jobPosting.competences.forEach { competence ->
+            competence.jobPosting = jobPosting
+        }
+
 
         return repository.save(jobPosting)
     }
 
     /**
      * Führt den Scraper-Workflow aus (Web-URL).
-     * Enthält Idempotenz-Prüfung.
-     * KORRIGIERT: Akzeptiert jetzt den renderJs Parameter.
      */
     @Transactional
-    fun processScrapedUrl(url: String, renderJs: Boolean): JobPosting { // <--- KORRIGIERT
+    fun processScrapedUrl(url: String, renderJs: Boolean): JobPosting {
 
         // 1. Aufruf des Python-Scraper-Microservice
-        val resultDto = pythonClient.scrapeAndAnalyzeUrl(url, renderJs) // <--- WICHTIG: ÜBERGIBT renderJs
+        val resultDto = pythonClient.scrapeAndAnalyzeUrl(url, renderJs)
 
         // --- IDEMPOTENZ-PRÜFUNG ---
-        // Prüft, ob der Hash des extrahierten Texts (rawTextHash) bereits existiert.
         val existingJob = repository.findByRawTextHash(resultDto.rawTextHash).firstOrNull()
 
         if (existingJob != null) {
@@ -88,28 +96,36 @@ class JobMiningService(
             )
         }
 
+        // Konvertierung zu einem Set VOR der JobPosting-Erstellung
+        val competenceSet = competences.toMutableSet()
+
         val jobPosting = JobPosting(
-            title = resultDto.title, // Titel ist hier die URL
+            title = resultDto.title,
             jobRole = resultDto.jobRole,
             rawTextHash = resultDto.rawTextHash,
             rawText = resultDto.rawText,
             postingDate = LocalDate.parse(resultDto.postingDate),
             region = resultDto.region,
-            industry = resultDto.industry,
-            competences = competences
+            industry = resultDto.industry // KEIN KOMMA HIER!
         )
+
+        // Setzen der Kompetenzen auf das erstellte Objekt
+        jobPosting.competences = competenceSet
+
+        // WICHTIGER FIX: Setze die bidirektionale Gegenreferenz (Competence -> JobPosting)
+        jobPosting.competences.forEach { competence ->
+            competence.jobPosting = jobPosting
+        }
 
         return repository.save(jobPosting)
     }
 
     /**
-     * Löscht alle gespeicherten JobPostings (und kaskadierend alle Kompetenzen).
-     * Administrative Funktion zur Bereinigung.
+     * Löscht alle gespeicherten JobPostings.
      */
     @Transactional
     fun deleteAllPostings(): Long {
         val count = repository.count()
-        // KERN-FIX: Wechsle zu deleteAll() (beachtet JPA Kaskadierung)
         repository.deleteAll()
         println("--- ⚠️ ADMIN: Datenbank bereinigt. $count Einträge gelöscht.")
         return count
@@ -117,12 +133,6 @@ class JobMiningService(
 
     /**
      * Batch-Analyse aller lokalen Dateien mit Idempotenz-Prüfung.
-     *
-     *  // In JobMiningService.kt
-     *     @Transactional
-     *     fun processJobDirectoryBatch(): List<JobPosting> {
-     *         return pythonClient.processLocalJobDirectory()
-     *     }
      */
     @Transactional
     fun processJobDirectoryBatch(): List<JobPosting> {
@@ -133,7 +143,6 @@ class JobMiningService(
 
         resultsDto.forEach { resultDto ->
             // --- IDEMPOTENZ-PRÜFUNG FÜR BATCH ---
-            // Nutzt firstOrNull() für den robusten Check.
             if (repository.findByRawTextHash(resultDto.rawTextHash).firstOrNull() == null) {
 
                 // Mapping nur für neue Einträge
@@ -147,6 +156,9 @@ class JobMiningService(
                     )
                 }
 
+                // Konvertierung zu einem Set VOR der JobPosting-Erstellung
+                val competenceSet = competences.toMutableSet()
+
                 val jobPosting = JobPosting(
                     title = resultDto.title,
                     jobRole = resultDto.jobRole,
@@ -154,9 +166,17 @@ class JobMiningService(
                     rawText = resultDto.rawText,
                     postingDate = LocalDate.parse(resultDto.postingDate),
                     region = resultDto.region,
-                    industry = resultDto.industry,
-                    competences = competences
+                    industry = resultDto.industry // KEIN KOMMA HIER!
                 )
+
+                // Setzen der Kompetenzen auf das erstellte Objekt
+                jobPosting.competences = competenceSet
+
+                // WICHTIGER FIX: Setze die bidirektionale Gegenreferenz
+                jobPosting.competences.forEach { competence ->
+                    competence.jobPosting = jobPosting
+                }
+
                 jobPostingsToSave.add(jobPosting)
             } else {
                 countIgnored++
@@ -180,6 +200,4 @@ class JobMiningService(
             )
         }
     }
-
-
 }

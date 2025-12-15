@@ -27,6 +27,12 @@ dependencies {
     implementation("tools.jackson.module:jackson-module-kotlin")
     // NEU: Hinzufügen der OpenAPI (Swagger) Abhängigkeiten
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
+    // NEU: FLYWAY-ABHÄNGIGKEIT (Der Fix für die Resilienz)
+    // 🚨 KRITISCHER FIX: Ersetze flyway-core durch den Spring Boot Starter
+    implementation("org.springframework.boot:spring-boot-starter-flyway") // <--- DIES IST DER SCHLÜSSEL
+    // 🚨 KRITISCHER FIX 1: Flyway-Modul für PostgreSQL hinzufügen (behebt 'Unsupported Database')
+    // Dies muss hinzugefügt werden, da Flyway es nicht mehr automatisch erkennt.
+    runtimeOnly("org.flywaydb:flyway-database-postgresql")
     runtimeOnly("org.postgresql:postgresql")
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
@@ -49,3 +55,5 @@ allOpen {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
+
+
