@@ -52,7 +52,8 @@ class JobMiningService(
             rawText = resultDto.rawText,
             postingDate = LocalDate.parse(resultDto.postingDate),
             region = resultDto.region,
-            industry = resultDto.industry
+            industry = resultDto.industry,
+            isSegmented = resultDto.is_segmented
         )
 
         // Setzen der Kompetenzen auf das erstellte Objekt
@@ -106,7 +107,8 @@ class JobMiningService(
             rawText = resultDto.rawText,
             postingDate = LocalDate.parse(resultDto.postingDate),
             region = resultDto.region,
-            industry = resultDto.industry // KEIN KOMMA HIER!
+            industry = resultDto.industry,
+            isSegmented = resultDto.is_segmented
         )
 
         // Setzen der Kompetenzen auf das erstellte Objekt
@@ -137,15 +139,20 @@ class JobMiningService(
     @Transactional
     fun processJobDirectoryBatch(): List<JobPosting> {
         val resultsDto = pythonClient.processLocalJobDirectory()
-
         val jobPostingsToSave = mutableListOf<JobPosting>()
+
+        // 🛡️ Set zur Verfolgung von Hashes innerhalb DIESES Batch-Laufs
+        val seenHashesInBatch = mutableSetOf<String>()
         var countIgnored = 0
 
         resultsDto.forEach { resultDto ->
-            // --- IDEMPOTENZ-PRÜFUNG FÜR BATCH ---
-            if (repository.findByRawTextHash(resultDto.rawTextHash).firstOrNull() == null) {
+            val hash = resultDto.rawTextHash
 
-                // Mapping nur für neue Einträge
+            // 1. Check gegen DB UND 2. Check gegen aktuelle Batch-Liste
+            if (repository.findByRawTextHash(hash).firstOrNull() == null && !seenHashesInBatch.contains(hash)) {
+
+                seenHashesInBatch.add(hash) // Hash registrieren
+
                 val competences = resultDto.competences.map { dto ->
                     Competence(
                         originalTerm = dto.originalTerm,
@@ -154,37 +161,34 @@ class JobMiningService(
                         confidenceScore = dto.confidenceScore,
                         escoGroupCode = dto.escoGroupCode
                     )
-                }
-
-                // Konvertierung zu einem Set VOR der JobPosting-Erstellung
-                val competenceSet = competences.toMutableSet()
+                }.toMutableSet()
 
                 val jobPosting = JobPosting(
-                    title = resultDto.title,
+                    title = resultDto.title.take(1000),
                     jobRole = resultDto.jobRole,
                     rawTextHash = resultDto.rawTextHash,
                     rawText = resultDto.rawText,
                     postingDate = LocalDate.parse(resultDto.postingDate),
                     region = resultDto.region,
-                    industry = resultDto.industry // KEIN KOMMA HIER!
+                    industry = resultDto.industry.take(500),
+                    isSegmented = resultDto.is_segmented
                 )
 
-                // Setzen der Kompetenzen auf das erstellte Objekt
-                jobPosting.competences = competenceSet
-
-                // WICHTIGER FIX: Setze die bidirektionale Gegenreferenz
-                jobPosting.competences.forEach { competence ->
-                    competence.jobPosting = jobPosting
-                }
-
+                jobPosting.competences = competences
+                jobPosting.competences.forEach { it.jobPosting = jobPosting }
                 jobPostingsToSave.add(jobPosting)
             } else {
                 countIgnored++
             }
         }
 
-        println("--- 🛡️ BATCH: $countIgnored Einträge ignoriert (bereits vorhanden). ${jobPostingsToSave.size} neue Einträge gespeichert.")
+        println("--- 🛡️ BATCH: $countIgnored Einträge ignoriert. ${jobPostingsToSave.size} neue Einträge werden gespeichert.")
         return repository.saveAll(jobPostingsToSave)
+    }
+    // In JobMiningService.kt hinzufügen
+    @Transactional(readOnly = true)
+    fun getAllStoredJobs(): List<JobPosting> {
+        return repository.findAll()
     }
 
     /**

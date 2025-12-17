@@ -25,6 +25,10 @@ class JobPosting(
     @Column(name = "posting_date", nullable = false)
     val postingDate: LocalDate,
 
+    // In JobPosting.kt hinzufügen
+    @Column(name = "is_segmented", nullable = false)
+    var isSegmented: Boolean = false,
+
     @Column(nullable = false, length = 255)
     val region: String,
     @Column(nullable = false, length = 512)
@@ -32,6 +36,7 @@ class JobPosting(
 ) {
     // 🚨 FIX 2: Die bidirektionale Beziehung (ToMany) bleibt im Body.
     @OneToMany(mappedBy = "jobPosting", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @com.fasterxml.jackson.annotation.JsonManagedReference // 👈 Das ist die "Hauptseite"
     var competences: MutableSet<Competence> = mutableSetOf()
 
     // 🚨 FIX 3: Manuelle Implementierung von equals und hashCode (ohne competences!)

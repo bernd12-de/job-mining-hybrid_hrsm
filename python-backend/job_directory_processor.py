@@ -23,7 +23,7 @@ class JobDirectoryProcessor:
             raise FileNotFoundError(f"Das Job-Verzeichnis '{self.base_path}' existiert nicht.")
 
         for filename in os.listdir(full_directory_path):
-            if filename.endswith(('.pdf', '.docx')):
+            if filename.endswith(('.pdf', '.docx', '.txt')):
                 full_path = os.path.join(full_directory_path, filename)
                 print(f"-> Verarbeite Datei: {filename}")
 

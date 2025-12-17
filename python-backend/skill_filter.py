@@ -21,8 +21,8 @@ def extract_skills(text: str):
     """ Extrahiert Skills mit Aliasing und Eliminiert ESCO-Rauschen. """
     if not text: return []
     aliases = load_esco_alias()
-    # Tokenisiert den Text, sucht nach Begriffen mit mind. 2 Zeichen
-    tokens = re.findall(r"[A-Za-zÄÖÜäöüß+.#\\-]{2,}", text.lower())
+    # KERN-FIX: Mindestens 3 Zeichen, um 's', 'öl', 'r' zu vermeiden
+    tokens = re.findall(r"[A-Za-zÄÖÜäöüß+.#\-]{3,}", text.lower())
 
     out = []
     for t in tokens:

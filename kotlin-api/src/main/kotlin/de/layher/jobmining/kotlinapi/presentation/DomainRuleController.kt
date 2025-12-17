@@ -53,7 +53,19 @@ class DomainRuleController(
         return ResponseEntity.ok(allSkills)
     }
 
+    // In DomainRuleController.kt
 
+    @RestController
+    @RequestMapping("/api/v1/rules")
+    class DomainRuleController(private val domainRuleService: DomainRuleService) {
+
+        @Operation(summary = "SSoT-Statistik abrufen", description = "Liefert Mengen und Qualitäts-Metriken.")
+        @GetMapping("/stats")
+        fun getStats(): ResponseEntity<Map<String, Any>> {
+            // Der Controller delegiert die Arbeit an den Service
+            return ResponseEntity.ok(domainRuleService.getKnowledgeBaseStats())
+        }
+    }
     // Zukünftige Endpunkte (z.B. POST /rules/blacklist zum Hinzufügen über Admin-UI)
     // ...
 }

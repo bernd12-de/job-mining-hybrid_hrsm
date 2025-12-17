@@ -29,6 +29,7 @@ class Competence(
     // Bidirektionale Beziehung im Body (Standard-JPA-Fix für StackOverflow)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "job_posting_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonBackReference  // 🚨 Einseitige Serialisierung, datentransport mapping: block JsonIgnore
     var jobPosting: JobPosting? = null
 
     // Manuelle equals/hashCode (StackOverflow-Fix)

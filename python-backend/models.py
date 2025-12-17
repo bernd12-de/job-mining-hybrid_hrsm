@@ -27,4 +27,5 @@ class AnalysisResultDTO(BaseModel):
     posting_date: str
     raw_text_hash: str # Für Idempotenz-Prüfung im Kotlin-Backend
     raw_text: str
+    is_segmented: bool = False #qualitätflag
     competences: List[CompetenceDTO]

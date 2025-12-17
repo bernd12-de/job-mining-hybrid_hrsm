@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Schema
 // Importieren Sie das neue DTO
 import de.layher.jobmining.kotlinapi.presentation.CompetenceReportDTO
+import org.springframework.http.ResponseEntity
 
 // Modell für den URL-Input vom Frontend
 data class URLRequest(val url: String)
@@ -92,5 +93,16 @@ class JobController(
         @RequestParam(defaultValue = "5") limit: Int
     ): List<CompetenceReportDTO> {
         return jobMiningService.getTopCompetenceTrends(limit)
+    }
+
+    // In JobController.kt hinzufügen
+    @Operation(
+        summary = "Alle analysierten Stellenanzeigen abrufen",
+        description = "Gibt eine Liste aller in der Datenbank gespeicherten Jobs inklusive der extrahierten Kompetenzen zurück."
+    )
+    @GetMapping
+    fun getAllJobs(): ResponseEntity<List<JobPosting>> {
+        val jobs = jobMiningService.getAllStoredJobs()
+        return ResponseEntity.ok(jobs)
     }
 }

@@ -5,6 +5,12 @@ from typing import Dict, List, Optional, Tuple
 
 # Import der Hilfsfunktionen, die Sie wahrscheinlich in einer 'normalize.py' haben
 from normalize import parse_date
+# Annahme: parse_date existiert in deiner normalize.py
+try:
+    from normalize import parse_date
+except ImportError:
+    def parse_date(text): return (None, None, None)
+
 
 class MetadataExtractor:
     """
@@ -21,8 +27,21 @@ class MetadataExtractor:
             "Finanzen & Controlling": r"(finanz|accounting|controlling|bilanz|wirtschaftsprüf|buchhalter|ifr)",
             "Assistenz & Office": r"(assistenz|sekretariat|büro|office|administration|sachbearbeiter)",
         }
+
+
+
+
         # Muster für die wahrscheinlichsten Orte (Annahme: Gängige Großstädte)
         self.location_patterns = r"(berlin|hamburg|münchen|köln|frankfurt|stuttgart|düsseldorf|gummersbach|mainz|augsburg)"
+
+        # KERN-FIX: Erweiterte Muster für englische Sektionen (AVIV, NTT, Sopra)
+        TASK_SECTION_PATTERN = re.compile(
+        r'(?:DEINE AUFGABEN|TÄTIGKEITEN|WAS DU BEI UNS MACHST|YOUR TASKS|TASKS|RESPONSIBILITIES|WHAT YOU WILL DO)[\s\r\n:.]+(.*?)(?=\n\s*(?:DEIN PROFIL|PROFIL|WIR BIETEN|KONTAKT|STANDORT|GEHALT|WEITERE INFOS|$))',
+        re.DOTALL | re.IGNORECASE | re.MULTILINE)
+
+        REQUIREMENTS_SECTION_PATTERN = re.compile(
+        r'(?:PROFIL|DEIN PROFIL|YOUR PROFILE|ANFORDERUNGEN|VORAUSSETZUNGEN|MUST-HAVES|NICE-TO-HAVE|QUALIFICATIONS|REQUIREMENTS|SKILLSET)[\s\r\n:.]+(.*?)(?=\n\s*(?:DEINE AUFGABEN|WIR BIETEN|KONTAKT|STANDORT|GEHALT|WEITERE INFOS|$))',
+        re.DOTALL | re.IGNORECASE | re.MULTILINE)
 
     def _extract_title(self, text: str, filename: str) -> str:
         """Versucht, den Jobtitel zu extrahieren, meist aus der ersten Zeile."""
@@ -74,9 +93,11 @@ class MetadataExtractor:
         iso_date, _, _ = parse_date(text)
         tasks_match = self.TASK_SECTION_PATTERN.search(text)
         requirements_match = self.REQUIREMENTS_SECTION_PATTERN.search(text)
+        is_segmented = bool(tasks_match or requirements_match)
 
         return {
             "job_title": self._extract_title(text, filename),
+            "is_segmented": is_segmented,
             "organization": self._extract_organization(text),
             "location": self._extract_location(text),
             "job_category": self._extract_job_category(text),

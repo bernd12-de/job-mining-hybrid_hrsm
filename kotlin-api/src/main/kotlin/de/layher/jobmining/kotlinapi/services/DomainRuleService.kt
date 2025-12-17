@@ -5,6 +5,7 @@ import de.layher.jobmining.kotlinapi.domain.DomainRule
 import de.layher.jobmining.kotlinapi.domain.EscoSkill
 import de.layher.jobmining.kotlinapi.infrastructure.DomainRuleRepository
 import de.layher.jobmining.kotlinapi.infrastructure.EscoDataRepository
+import de.layher.jobmining.kotlinapi.infrastructure.JobPostingRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -14,7 +15,8 @@ const val RULE_TYPE_INDUSTRY_MAPPING = "INDUSTRY_MAPPING"
 @Service
 class DomainRuleService(
     private val repository: DomainRuleRepository,
-    private val escoDataRepository: EscoDataRepository
+    private val escoDataRepository: EscoDataRepository,
+    private val jobRepository: JobPostingRepository
 ) {
     // Statische Konstanten für die Regeltypen (SSoT für Typen)
     companion object {
@@ -33,7 +35,25 @@ class DomainRuleService(
             .map { it.ruleKey }
     }
 
+    // In DomainRuleService.kt / DomainRuleController.kt
+    fun getKnowledgeBaseStats(): Map<String, Any> {
+        val jobs = jobRepository.findAll()
+        val segmentedCount = jobs.count { it.isSegmented }
+        val totalJobs = jobs.size
+        val allSkills = escoDataRepository.findAllLoadedSkills()
 
+        val successRate = if (totalJobs > 0) (segmentedCount.toDouble() / totalJobs * 100) else 100.0
+
+        return mapOf(
+            "total_skills" to escoDataRepository.findAllLoadedSkills().size,
+            "analysis_quality" to mapOf(
+                "total_analyzed_jobs" to totalJobs,
+                "segmentation_success_rate" to if (totalJobs > 0) (segmentedCount.toDouble() / totalJobs * 100) else 100.0,
+                "warning" to if (segmentedCount < totalJobs) "Achtung: Einige Analysen nutzen Rohtext-Fallback (Precision-Risiko)" else "Optimal"
+            ),
+            "ssot_skills_total" to escoDataRepository.findAllLoadedSkills().size
+        )
+    }
 
     /**
      * Gibt alle aktiven Branchen-Mappings als Map<Branche, Regex-Muster> zurück.

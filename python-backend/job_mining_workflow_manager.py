@@ -10,6 +10,8 @@ from domain.services.role_service import RoleService
 
 from interfaces import IJobMiningWorkflowManager, ITextExtractor, ICompetenceExtractor
 from models import AnalysisResultDTO
+from pathlib import Path
+from typing import List
 
 
 class JobMiningWorkflowManager(IJobMiningWorkflowManager):
@@ -62,6 +64,9 @@ class JobMiningWorkflowManager(IJobMiningWorkflowManager):
         iso_date, _, _ = parse_date(raw_text)
         posting_date = iso_date or "2024-12-01"
 
+        # KERN-FIX: Das Flag aus dem MetadataExtractor übernehmen
+        is_segmented = metadata.get('is_segmented', False)
+
         # 5. Zusammenbau des Resultats
         return AnalysisResultDTO(
             title=metadata.get('job_title') or source_name,
@@ -71,6 +76,7 @@ class JobMiningWorkflowManager(IJobMiningWorkflowManager):
             posting_date=posting_date,
             raw_text_hash=raw_text_hash,
             raw_text=raw_text,
+            is_segmented=is_segmented,
             competences=competences
         )
 
@@ -83,3 +89,32 @@ class JobMiningWorkflowManager(IJobMiningWorkflowManager):
     def run_analysis_from_scraped_text(self, cleaned_text: str, source_name: str) -> AnalysisResultDTO:
         """Verarbeitet Text von URLs."""
         return self._run_analysis_from_text(cleaned_text, source_name)
+
+    def process_local_directory(self) -> List[AnalysisResultDTO]:
+        """
+        Ebene: Batch-Verarbeitung.
+        Scannt den Ordner 'data/job_ads' und analysiert jede .txt Datei.
+        """
+        results = []
+        # Pfad zu deinem lokalen Test-Ordner
+        job_dir = Path("data/job_ads")
+
+        if not job_dir.exists():
+            print(f"⚠️ Batch-Fehler: Verzeichnis {job_dir.absolute()} existiert nicht.")
+            return []
+
+        # Wir suchen alle Textdateien
+        files = list(job_dir.glob("*.txt"))
+        print(f"🚀 Starte Batch-Analyse für {len(files)} Dateien...")
+
+        for file_path in files:
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                    # Nutzt deine bereits vorhandene Logik für die Analyse
+                    analysis = self._run_analysis_from_text(content, source_name=file_path.name)
+                    results.append(analysis)
+            except Exception as e:
+                print(f"❌ Fehler bei Datei {file_path.name}: {e}")
+
+        return results
