@@ -11,21 +11,24 @@ class JobPosting(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
-    @Column(length = 1024)
+    @Column(nullable = false,length = 1024)
     val title: String,
-    @Column(length = 512)
+    @Column(name = "job_role", nullable = false,length = 512)
     val jobRole: String,
 
-    @Column(columnDefinition = "TEXT", unique = true)
+    @Column(name = "raw_text_hash",nullable = false,columnDefinition = "TEXT",unique = true)
     val rawTextHash: String, // <- Wichtig für Idempotenz und Hashcode
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "raw_text", nullable = false, columnDefinition = "TEXT")
     val rawText: String,
 
+    @Column(name = "posting_date", nullable = false)
     val postingDate: LocalDate,
+
+    @Column(nullable = false, length = 255)
     val region: String,
-    @Column(length = 512)
-    val industry: String
+    @Column(nullable = false, length = 512)
+    val industry: String,
 ) {
     // 🚨 FIX 2: Die bidirektionale Beziehung (ToMany) bleibt im Body.
     @OneToMany(mappedBy = "jobPosting", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)

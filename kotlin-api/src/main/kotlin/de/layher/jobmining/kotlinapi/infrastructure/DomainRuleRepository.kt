@@ -16,4 +16,9 @@ interface DomainRuleRepository : JpaRepository<DomainRule, Long> {
      * Sucht eine Regel anhand ihres Schlüssels (z.B. der Blacklist-Begriff)
      */
     fun findByRuleKey(ruleKey: String): DomainRule?
+
+    // 🚨 FIX: Diese Methode fehlte und verursachte den 'Unresolved reference' Fehler
+    fun findByRuleTypeAndRuleKey(ruleType: String, ruleKey: String): List<DomainRule>
+
+
 }

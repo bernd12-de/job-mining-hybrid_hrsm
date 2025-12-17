@@ -10,6 +10,10 @@ ESCO_DATA_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'es
 ESCO_CACHE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'esco_labels_cache.json')
 # NEU: Pfad für den erweiterten Cache, der URIs und IDs speichert
 ESCO_URI_CACHE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'esco_uri_map_cache.json')
+# Ermittle das Projekt-Verzeichnis (python-backend)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ESCO_DATA_PATH = os.path.join(BASE_DIR, "data", "esco")
+
 
 # --- B. Direkte Zuordnung ---
 ESCO_MAPPING_DATA = {
@@ -30,6 +34,12 @@ ESCO_MAPPING_CACHE: Optional[Dict[str, str]] = None
 # NEU: Cache für das Mapping von Label -> (ID, URI)
 ESCO_URI_MAP_CACHE: Optional[Dict[str, Tuple[str, str]]] = None
 
+
+# =========================================================
+# NEU: Data Integrity Threshold
+# Vollständige ESCO v1.2.0 hat ca. 14.000 Skills. Wir setzen das absolute Minimum.
+MIN_REQUIRED_ESCO_LABELS = 10000
+# =========================================================
 
 def _load_esco_labels_from_csv_to_cache() -> Tuple[List[str], Dict[str, Tuple[str, str]]]:
     """
@@ -95,6 +105,22 @@ def _load_esco_labels_from_csv_to_cache() -> Tuple[List[str], Dict[str, Tuple[st
 
     final_labels = sorted(list(all_labels))
 
+    # =========================================================================
+    # 🚨 KRITISCHER DATA INTEGRITY CHECK (QUANTITÄT)
+    # =========================================================================
+    if len(final_labels) < MIN_REQUIRED_ESCO_LABELS:
+        error_message = (
+            f"\n\n========================= 🚨 KRITISCHER DATA INTEGRITY ERROR 🚨 =========================\n"
+            f"FEHLER: Es wurden nur {len(final_labels)} ESCO-Kompetenzen geladen (erwartet: mindestens {MIN_REQUIRED_ESCO_LABELS}).\n"
+            f"Der Prozess wird aufgrund unvollständiger Daten gestoppt.\n"
+            f"BITTE PRÜFEN SIE DEN ORDNER/DIE CSVs: '{ESCO_DATA_PATH}'\n"
+            f"========================================================================================\n"
+        )
+        print(error_message)
+        # Stoppt die weitere Ausführung des gesamten Systems
+        raise ValueError(error_message)
+
+
     # 1. Schreibe den Label-Cache
     try:
         with open(ESCO_CACHE_PATH, 'w', encoding='utf-8') as f:
@@ -142,6 +168,20 @@ def _load_esco_data_from_cache() -> Tuple[List[str], Dict[str, Tuple[str, str]]]
 
             ESCO_TARGET_LABELS_CACHE = labels
             ESCO_URI_MAP_CACHE = uri_map
+
+            # =========================================================================
+            # 🚨 KRITISCHER DATA INTEGRITY CHECK FÜR DEN CACHE (QUANTITÄT)
+            # =========================================================================
+            if len(labels) < MIN_REQUIRED_ESCO_LABELS:
+                error_message = (
+                    f"\n\n========================= 🚨 KRITISCHER DATA INTEGRITY ERROR (CACHE) 🚨 =========================\n"
+                    f"FEHLER: Der ESCO-Cache enthält nur {len(labels)} Einträge (erwartet: mindestens {MIN_REQUIRED_ESCO_LABELS}).\n"
+                    f"Der Cache ist unvollständig. Starte Neuaufbau aus CSVs, um dies zu korrigieren.\n"
+                    f"================================================================================================\n"
+                )
+                print(error_message)
+                # Fällt zu Schritt 2 zurück (Neuaufbau)
+                raise ValueError("Cache ist unvollständig, versuche Neuaufbau.")
 
             print(f"*** ✅ ESCO-Caches geladen: {len(labels)} Labels. ***")
             return labels, uri_map

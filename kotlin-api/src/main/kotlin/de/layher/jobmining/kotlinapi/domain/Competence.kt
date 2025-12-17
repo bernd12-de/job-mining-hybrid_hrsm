@@ -10,19 +10,20 @@ class Competence(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
-    @Column(length = 512)
+    @Column(name = "original_term",nullable = false,length = 512)
     val originalTerm: String,
 
-    @Column(length = 512)
+    @Column(name = "esco_label",nullable = false,length = 512)
     val escoLabel: String,
 
-    @Column(length = 512)
+    @Column(name = "esco_uri", nullable = false,length = 512)
     val escoUri: String,
 
+    @Column(name = "confidence_score", nullable = false)
     val confidenceScore: Double,
 
     // ESCO-Gruppencode
-    @Column(nullable = true)
+    @Column(name = "esco_group_code", length = 255)
     val escoGroupCode: String? = null // KEIN KOMMA HIER, da dies das letzte Element ist
 ) {
     // Bidirektionale Beziehung im Body (Standard-JPA-Fix für StackOverflow)

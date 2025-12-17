@@ -7,6 +7,7 @@
 
 INSERT INTO domain_rule (rule_type, rule_key, rule_value) VALUES
                                                               ('ROLE_MAPPING', 'Software-Entwicklung', 'Entwickler|Developer|Programmierer|Coding|Frontend|Backend|Full-Stack|DevOps'),
+                                                              ('ROLE_MAPPING', 'UX & Design', 'UX|User Experience|Usability|UI|Interaction Design|Designer|Researcher|Usability Expert|UX Specialist'),
                                                               ('ROLE_MAPPING', 'Data & Analytics', 'Data Scientist|Analyst|BI|Business Intelligence|Statistik|KI|Machine Learning'),
                                                               ('ROLE_MAPPING', 'Projektmanagement', 'Projektleiter|Projektmanager|PMO|Scrum Master|Product Owner|Agile Coach'),
                                                               ('ROLE_MAPPING', 'Führungskraft/Management', 'Leiter|Manager|Head of|Geschäftsführer|CFO|CTO'),

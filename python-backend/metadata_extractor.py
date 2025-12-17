@@ -59,6 +59,12 @@ class MetadataExtractor:
 
         return "Sonstige Fachgebiete"
 
+    # Muster zur Isolation der Aufgaben-Sektion
+    TASK_SECTION_PATTERN = re.compile(r'(?:DEINE AUFGABEN|TÄTIGKEITEN|WAS DU BEI UNS MACHST|YOUR TASKS)[\s\r\n:.]+(.*?)(?=\n\s*(?:DEIN PROFIL|PROFIL|WIR BIETEN|KONTAKT|STANDORT|GEHALT|WEITERE INFOS|$))', re.DOTALL | re.IGNORECASE | re.MULTILINE)
+
+    # Muster zur Isolation der Profil/Anforderungs-Sektion
+    REQUIREMENTS_SECTION_PATTERN = re.compile(r'(?:PROFIL|DEIN PROFIL|YOUR PROFILE|ANFORDERUNGEN|VORAUSSETZUNGEN|MUST-HAVES|NICE-TO-HAVE)[\s\r\n:.]+(.*?)(?=\n\s*(?:DEINE AUFGABEN|WIR BIETEN|KONTAKT|STANDORT|GEHALT|WEITERE INFOS|$))', re.DOTALL | re.IGNORECASE | re.MULTILINE)
+
 
     def extract_all(self, text: str, filename: str) -> Dict[str, str]:
         """Führt alle Extraktionen aus und gibt ein konsolidiertes Dictionary zurück."""
@@ -66,11 +72,17 @@ class MetadataExtractor:
         # Datums-Parsing (nutzt parse_date aus normalize.py)
         # Wenn parse_date verfügbar ist, liefert es ein ISO-Format oder None
         iso_date, _, _ = parse_date(text)
+        tasks_match = self.TASK_SECTION_PATTERN.search(text)
+        requirements_match = self.REQUIREMENTS_SECTION_PATTERN.search(text)
 
         return {
             "job_title": self._extract_title(text, filename),
             "organization": self._extract_organization(text),
             "location": self._extract_location(text),
             "job_category": self._extract_job_category(text),
-            "posting_date": iso_date # Wird im Workflow Manager weiter verarbeitet
+            "posting_date": iso_date, # Wird im Workflow Manager weiter verarbeitet
+            "raw_text": text,
+            # KERN-FIX: Füge saubere Segmente hinzu
+            "tasks_clean": tasks_match.group(1).strip() if tasks_match else "",
+            "requirements_clean": requirements_match.group(1).strip() if requirements_match else "",
         }

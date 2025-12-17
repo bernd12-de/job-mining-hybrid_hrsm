@@ -11,9 +11,14 @@ services:
       # Verlinkung zur Datenbank und zum Python-Service
       SPRING_DATASOURCE_URL: jdbc:postgresql://jobmining-db:5432/jobmining_db
       PYTHON_API_URL: http://python-backend:8000
+        - ESCO_DATA_PATH=/app/data/esco
     depends_on:
       - jobmining-db
       - python-backend
+    volumes:
+        - ./data:/app/data  # 🚨 WICHTIG: Auch Kotlin muss die CSVs für den Integritätscheck sehen!
+
+
 
   # 2. Python Analysis Engine
   python-backend:
@@ -44,3 +49,4 @@ services:
 
 volumes:
   jobmining-data:
+

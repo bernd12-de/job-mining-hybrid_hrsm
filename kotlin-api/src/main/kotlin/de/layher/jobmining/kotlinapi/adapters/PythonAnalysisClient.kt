@@ -63,6 +63,12 @@ class PythonAnalysisClient(
         }
     }
 
+    // In de.layher.jobmining.kotlinapi.infrastructure.bridge.PythonNlpBridge
+    fun analyze(text: String): List<String> {
+        // Hier kommt dein REST-Call an Python (Port 8000) rein
+        return emptyList()
+    }
+
     /**
      * Löst die Batch-Analyse aller lokalen Dateien im Python-Backend aus.
      */

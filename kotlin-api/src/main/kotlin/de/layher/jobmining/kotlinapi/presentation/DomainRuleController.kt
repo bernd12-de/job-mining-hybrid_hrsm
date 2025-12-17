@@ -1,5 +1,6 @@
 package de.layher.jobmining.kotlinapi.presentation
 
+import de.layher.jobmining.kotlinapi.adapters.CompetenceDTO
 import de.layher.jobmining.kotlinapi.services.DomainRuleService
 import org.springframework.web.bind.annotation.*
 import io.swagger.v3.oas.annotations.Operation
@@ -44,6 +45,13 @@ class DomainRuleController(
         return ResponseEntity.ok(mappings)
     }
 
+    @Operation(summary = "Vollständige ESCO-Wissensbasis abrufen")
+    @GetMapping("/esco-full")
+    fun getFullEscoKnowledgeBase(): ResponseEntity<List<CompetenceDTO>> {
+        // Holt alle 31.655 Begriffe aus dem Service
+        val allSkills = domainRuleService.getAllCompetences()
+        return ResponseEntity.ok(allSkills)
+    }
 
 
     // Zukünftige Endpunkte (z.B. POST /rules/blacklist zum Hinzufügen über Admin-UI)

@@ -31,3 +31,7 @@ class IJobMiningWorkflowManager(object):
     """Interface zur Steuerung der gesamten Analyse-Pipeline."""
     def run_full_analysis(self, file_stream: BinaryIO, filename: str) -> AnalysisResultDTO:
         raise NotImplementedError
+
+    # DIESE METHODE FEHLT IM INTERFACE:
+    def run_analysis_from_scraped_text(self, cleaned_text: str, source_name: str) -> AnalysisResultDTO:
+        raise NotImplementedError

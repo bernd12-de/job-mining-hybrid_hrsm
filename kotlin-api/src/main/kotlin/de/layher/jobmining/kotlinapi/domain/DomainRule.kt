@@ -11,19 +11,20 @@ data class DomainRule(
     val id: Long? = null,
 
     // Typ der Regel: 'BLACKLIST', 'INDUSTRY_MAPPING', 'ROLE_PATTERN'
-    @Column(length = 50, nullable = false)
+    @Column(name = "rule_type", nullable = false, length = 50)
     val ruleType: String,
 
     // Der Schlüsselbegriff (z.B. "kenntnisse" für Blacklist)
-    @Column(length = 512, nullable = false, unique = true)
+    @Column(name = "rule_key", nullable = false, unique = true, length = 512)
     val ruleKey: String,
 
     // Der Wert oder das Muster (z.B. "TRUE" für Blacklist-Einträge)
-    @Column(columnDefinition = "TEXT", nullable = true)
+    @Column(name = "rule_value", columnDefinition = "TEXT")
     val ruleValue: String?,
 
-    @Column(nullable = false)
+    @Column(name = "is_active", nullable = false)
     val isActive: Boolean = true,
 
+    @Column(name = "created_at", nullable = false)
     val createdAt: LocalDateTime = LocalDateTime.now()
 )

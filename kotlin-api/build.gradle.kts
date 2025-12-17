@@ -27,6 +27,13 @@ dependencies {
     implementation("tools.jackson.module:jackson-module-kotlin")
     // NEU: Hinzufügen der OpenAPI (Swagger) Abhängigkeiten
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
+    // Grundlegende Exposed-Funktionen
+    implementation("org.jetbrains.exposed:exposed-core:0.56.0")
+    implementation("org.jetbrains.exposed:exposed-dao:0.56.0")
+    implementation("org.jetbrains.exposed:exposed-jdbc:0.56.0")
+
+    // WICHTIG: Für den Fehler bei 'datetime' benötigst du dieses Modul:
+    implementation("org.jetbrains.exposed:exposed-java-time:0.56.0")
     // NEU: FLYWAY-ABHÄNGIGKEIT (Der Fix für die Resilienz)
     // 🚨 KRITISCHER FIX: Ersetze flyway-core durch den Spring Boot Starter
     implementation("org.springframework.boot:spring-boot-starter-flyway") // <--- DIES IST DER SCHLÜSSEL

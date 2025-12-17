@@ -52,7 +52,7 @@ class JobMiningService(
             rawText = resultDto.rawText,
             postingDate = LocalDate.parse(resultDto.postingDate),
             region = resultDto.region,
-            industry = resultDto.industry // ⬅️ KRITISCH: KEIN KOMMA HIER!
+            industry = resultDto.industry
         )
 
         // Setzen der Kompetenzen auf das erstellte Objekt

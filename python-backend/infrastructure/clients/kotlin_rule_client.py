@@ -46,6 +46,12 @@ class KotlinRuleClient:
             # Kritischer Ausfall: Lade Fallback
             return self._get_static_fallback_blacklist()
 
+    # In kotlin_rule_client.py ergänzen
+    def fetch_full_esco(self) -> List[Dict]:
+        endpoint = f"{self.base_url}/api/v1/rules/esco-full"
+        response = requests.get(endpoint, timeout=30)
+        return response.json()
+
     def fetch_role_mappings(self) -> Dict[str, str]:
         """
         Ruft die DB-gestützten Rollen-Mappings vom Kotlin-Endpunkt ab.
