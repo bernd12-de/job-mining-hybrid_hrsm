@@ -1,5 +1,6 @@
 package de.layher.jobmining.kotlinapi
 
+import de.layher.jobmining.kotlinapi.domain.Competence
 import jakarta.persistence.*
 import java.time.LocalDate
 
@@ -12,7 +13,7 @@ data class JobPosting(
     val title: String,
     val jobRole: String,
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", unique = true)
     val rawTextHash: String, // Für Idempotenz-Prüfung
 
     val postingDate: LocalDate,
@@ -20,19 +21,7 @@ data class JobPosting(
     val industry: String,
 
     // Liste der gefundenen Kompetenzen
-    @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
-    @JoinColumn(name = "job_id")
+    @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+    @JoinColumn(name = "job_posting_id")
     val competences: List<Competence> = emptyList()
-)
-
-@Entity
-data class Competence(
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
-
-    val originalTerm: String,
-    val escoLabel: String,
-    val escoUri: String,
-    val confidenceScore: Double
 )
