@@ -39,7 +39,7 @@ def analyse_job_ad(file: UploadFile = File(...), manager: IJobMiningWorkflowMana
         raise HTTPException(status_code=500, detail=f"Analysefehler: {str(e)}")
 
 # Endpoint 2: Web-Scraping
-def scrape_and_analyze_url(url_input: URLInput, manager: IJobMiningWorkflowManager = Depends(lambda: None)):
+async def scrape_and_analyze_url(url_input: URLInput, manager: IJobMiningWorkflowManager = Depends(lambda: None)):
     url = url_input.url
     raw_text = ""
 
@@ -47,13 +47,14 @@ def scrape_and_analyze_url(url_input: URLInput, manager: IJobMiningWorkflowManag
     if url_input.render_js:
         print(f"-> Starte JS-Scraping für URL: {url}")
         try:
-            raw_text = scrape_with_rendering(url)
+            raw_text = await scrape_with_rendering(url)
         except Exception as e:
-            # Fallback oder harter Fehler - je nach Wunsch. Hier Fehler:
-            raise HTTPException(status_code=500, detail=f"JS-Rendering Fehler: {str(e)}")
+            # Fallback zu statischem Scraping statt hard fail
+            print(f"⚠️ JS-Rendering fehlgeschlagen, versuche statisches Scraping: {e}")
+            url_input.render_js = False  # Trigger fallback
 
-    # 2. ODER: Statischer Request (Requests)
-    else:
+    # 2. ODER: Statischer Request (Requests) - auch als Fallback
+    if not url_input.render_js or not raw_text:
         print(f"-> Starte statisches Scraping für URL: {url}")
         headers = {'User-Agent': 'Mozilla/5.0'}
         try:
@@ -62,7 +63,7 @@ def scrape_and_analyze_url(url_input: URLInput, manager: IJobMiningWorkflowManag
             soup = BeautifulSoup(response.content, 'html.parser')
             raw_text = _extract_job_content(soup)
         except requests.HTTPError as e:
-            raise HTTPException(status_code=e.response.status_code, detail=f"HTTP-Fehler: {e}")
+            raise HTTPException(status_code=e.response.status_code, detail=f"HTTP-Fehler beim Scraping: {e}")
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Scraping-Fehler: {str(e)}")
 
@@ -70,7 +71,7 @@ def scrape_and_analyze_url(url_input: URLInput, manager: IJobMiningWorkflowManag
     if not raw_text or len(raw_text) < 100:
         raise HTTPException(
             status_code=400,
-            detail="Scraping erfolgreich, aber zu wenig Text gefunden. Versuche 'render_js=True'."
+            detail=f"Zu wenig Text extrahiert ({len(raw_text)} Zeichen). URL evtl. mit Captcha/Login geschützt."
         )
 
     cleaned_raw_text = raw_text.replace('\x00', '')

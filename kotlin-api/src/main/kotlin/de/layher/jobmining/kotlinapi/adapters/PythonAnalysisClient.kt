@@ -11,6 +11,7 @@ import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.RestTemplate
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpMethod
+import org.slf4j.LoggerFactory
 
 // NEUE IMPORTS FÜR ROBUSTES FEHLERHANDLING
 import org.springframework.web.client.HttpStatusCodeException
@@ -26,6 +27,7 @@ class PythonAnalysisClient(
 ) {
 
     private val restTemplate = RestTemplate()
+    private val logger = LoggerFactory.getLogger(PythonAnalysisClient::class.java)
 
     /**
      * Führt den Datei-Upload und den Analyse-Aufruf an das Python-Backend (/analyse) durch.
@@ -115,15 +117,27 @@ class PythonAnalysisClient(
                 ?: throw IllegalStateException("Scraping-Analyse-Ergebnis vom Python-Service war leer.")
 
         } catch (e: HttpStatusCodeException) {
-            // --- FIX FÜR JACKSON-WARNING ---
-            // Fängt 4xx/5xx (inkl. 501 Not Implemented) und wirft eine saubere RuntimeException.
-            // Dies verhindert, dass Spring den Fehler-Body in das DTO mappen muss.
-            val pythonErrorDetail = e.responseBodyAsString.substringAfter("{\"detail\":\"").substringBeforeLast("\"}")
-
-            throw RuntimeException("Web-Scraping-Fehler (${e.statusCode.value()}): $pythonErrorDetail")
+            // Graceful Error Handling: 4xx = Client-Fehler (z.B. zu wenig Text), 5xx = Server-Fehler
+            val pythonErrorDetail = try {
+                e.responseBodyAsString.substringAfter("{\"detail\":\"").substringBeforeLast("\"}"))
+            } catch (ex: Exception) {
+                e.responseBodyAsString
+            }
+            
+            val errorMsg = "Web-Scraping fehlgeschlagen (${e.statusCode.value()}): $pythonErrorDetail"
+            logger.warn("⚠️ $errorMsg")
+            
+            // Werfe keine RuntimeException mehr, sondern IllegalStateException für bessere Spring-Behandlung
+            throw IllegalStateException(errorMsg, e)
 
         } catch (e: ResourceAccessException) {
-            throw RuntimeException("Verbindungsfehler zum Python-Backend: Ist der Service gestartet? Fehler: ${e.message}")
+            val errorMsg = "Python-Backend nicht erreichbar: Ist der Service gestartet? (${e.message})"
+            logger.error("❌ $errorMsg")
+            throw IllegalStateException(errorMsg, e)
+        } catch (e: Exception) {
+            val errorMsg = "Unerwarteter Fehler beim Scraping: ${e.message}"
+            logger.error("❌ $errorMsg", e)
+            throw IllegalStateException(errorMsg, e)
         }
     }
 

@@ -3,10 +3,10 @@ import re
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
 # Helperfunktion, um Playwright synchron aus FastAPI aufzurufen
-def scrape_with_rendering(url: str) -> str:
-    """Synchroner Wrapper für asynchrone Playwright-Funktion."""
-    # Ruft die asynchrone Funktion blockierend auf
-    return asyncio.run(_render_and_scrape_async(url))
+async def scrape_with_rendering(url: str) -> str:
+    """Async Wrapper für Playwright (kompatibel mit FastAPI Event Loop)."""
+    # Nutzt await statt asyncio.run() -> kein Event Loop Konflikt
+    return await _render_and_scrape_async(url)
 
 async def _render_and_scrape_async(url: str) -> str:
     """
