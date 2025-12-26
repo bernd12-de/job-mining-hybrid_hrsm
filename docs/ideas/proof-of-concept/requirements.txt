@@ -1,0 +1,41 @@
+# API & Data Validation
+fastapi==0.110.0
+uvicorn==0.28.0
+pydantic==2.6.4
+
+# Data Science / NLP (Gelockert für Python 3.11 Kompatibilität)
+spacy<3.9
+rapidfuzz==3.6.1 # <--- WURDE HINZUGEFÜGT (Für Fuzzy Matching)
+
+
+# Datenverarbeitung & Export
+pandas<3.0
+numpy<2.0
+psycopg2-binary>=2.9.10
+pypdf==4.1.0           # Für PDF-Parsing
+python-docx==1.1.0
+
+# Netzwerk & Scraping
+requests==2.31.0
+beautifulsoup4==4.12.3
+playwright==1.42.0
+
+
+# Testing
+pytest==8.1.1
+
+
+# unklar
+scikit-learn<1.6
+python-multipart==0.0.9
+#ladeanzeige
+tqdm
+
+
+
+
+
+
+
+
+
