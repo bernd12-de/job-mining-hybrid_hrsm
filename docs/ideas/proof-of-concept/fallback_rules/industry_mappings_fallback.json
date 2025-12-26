@@ -1,0 +1,7 @@
+{
+  "Automobil": "(?i).*(Automobil|Maschinenbau|Fertigung|Anlage).*",
+  "Finanzen": "(?i).*(Finanz|Bank|Versicherung|Aktie|Bilanz).*",
+  "Gesundheit": "(?i).*(Klinik|Pflege|Therapie|Krankenhaus).*",
+  "IT & Software": "(?i).*(IT|Software|Entwicklung|Cloud|Informatik).*",
+  "Logistik": "(?i).*(Handel|Logistik|Einzelhandel|Lager|Supply Chain).*"
+}
