@@ -160,16 +160,39 @@ def get_role_mappings():
     }
 
 
+# --- DASHBOARD / REPORTING ENDPOINTS ---
+from fastapi.responses import StreamingResponse
+from app.infrastructure.reporting import build_dashboard_metrics, generate_csv_report, generate_pdf_report
+
+@app.get("/reports/dashboard-metrics")
+def get_dashboard_metrics(top_n: int = 10):
+    """Aggregierte Metriken für das Dashboard (Top Skills, Domain Mix, Zeitreihen)"""
+    metrics = build_dashboard_metrics(top_n=top_n)
+    return metrics
+
+
+@app.get("/reports/export.csv")
+def download_csv_report():
+    """Generiert einen CSV-Export der aktuell verarbeiteten Jobs."""
+    csv_bio = generate_csv_report()
+    return StreamingResponse(csv_bio, media_type="text/csv", headers={"Content-Disposition": "attachment; filename=job_mining_data_report.csv"})
+
+
+@app.get("/reports/export.pdf")
+def download_pdf_report():
+    """Generiert einen einfachen PDF-Report der aktuell verarbeiteten Jobs."""
+    pdf_bio = generate_pdf_report()
+    return StreamingResponse(pdf_bio, media_type="application/pdf", headers={"Content-Disposition": "attachment; filename=job_mining_report.pdf"})
+
+
 # Bestehende Pfade (waren bereits korrekt/grün)
-@app.post("/batch-process")
+@app.post("/batch-process", response_model=List[AnalysisResultDTO])
 async def trigger_batch():
     logger.info("📦 [POST /batch-process] Starte...")
     results = await DIRECTORY_PROCESSOR.process_all_jobs()
-    return {
-        "status": "completed",
-        "count": len(results),
-        "message": f"{len(results)} Dateien analysiert."
-    }
+    logger.info(f"📦 Batch fertig: {len(results)} Dateien analysiert.")
+    # Gib die Liste der AnalysisResultDTOs zurück, damit Kotlin den Inhalt direkt verarbeiten kann
+    return results
 
 @app.post("/internal/admin/refresh-knowledge")
 def refresh_knowledge():

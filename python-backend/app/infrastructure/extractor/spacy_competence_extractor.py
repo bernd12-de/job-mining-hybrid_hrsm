@@ -107,6 +107,21 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
         except Exception:
             candidates = []
 
+        # Approved-Mappings aus gemeinsamer Datei laden (Discovery-Review)
+        approved_mapping = {}
+        try:
+            import os, json
+            from pathlib import Path
+            base = os.environ.get("BASE_DATA_DIR")
+            if base:
+                p = Path(base) / "discovery" / "approved_skills.json"
+            else:
+                p = Path(__file__).resolve().parents[4] / "python-backend" / "data" / "discovery" / "approved_skills.json"
+            if p.exists():
+                approved_mapping = json.loads(p.read_text(encoding="utf-8")) or {}
+        except Exception:
+            approved_mapping = {}
+
         for _, start, end in matches:
             term = doc[start:end].text
             term_lower = term.lower().strip()
@@ -128,6 +143,12 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
             mapped = None
             if self.esco_service is not None:
                 mapping = getattr(self.esco_service, 'get_esco_mapping', lambda: {})() or {}
+                # Merge approved mappings (user-reviewed discovery)
+                if approved_mapping:
+                    try:
+                        mapping = {**mapping, **approved_mapping}
+                    except Exception:
+                        pass
                 mapped = mapping.get(term_lower)
 
             # Debug: Ausgabe der gefundenen Matches (nur beim direkten Testlauf sichtbar)
@@ -236,6 +257,11 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
 
                 # Hole ggf. Custom-Mapping fürs Fallback
                 mapping = getattr(self.esco_service, 'get_esco_mapping', lambda: {})() if self.esco_service is not None else {}
+                if approved_mapping:
+                    try:
+                        mapping = {**mapping, **approved_mapping}
+                    except Exception:
+                        pass
 
                 # 1) Mapping-Pass: suche gezielt nach Mappings in den Tokens (z.B. 'jira', 'nosql')
                 for n in range(1, max_n+1):

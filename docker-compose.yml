@@ -39,6 +39,19 @@ services:
     volumes:
       - ./python-backend/data:/app/data
 
+  # 2b. Streamlit Dashboard (optional)
+  streamlit:
+    build: ./python-backend
+    command: streamlit run dashboard_app.py --server.port 8501 --server.address 0.0.0.0
+    ports:
+      - "8501:8501"
+    environment:
+      BASE_DATA_DIR: /app/data
+    volumes:
+      - ./python-backend/data:/app/data
+    depends_on:
+      - python-backend
+
   # 3. PostgreSQL Database
   jobmining-db:
     image: postgres:15-alpine

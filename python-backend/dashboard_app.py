@@ -1,0 +1,53 @@
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+from app.infrastructure.reporting import build_dashboard_metrics, generate_csv_report
+
+st.set_page_config(page_title="Job Mining Dashboard", layout="wide")
+st.title("Job Mining — Dashboard")
+
+if st.button("Analyse aktualisieren"):
+    with st.spinner("Erstelle Metriken..."):
+        metrics = build_dashboard_metrics()
+        st.success("Metriken generiert.")
+else:
+    metrics = build_dashboard_metrics()
+
+col1, col2 = st.columns([2, 1])
+with col1:
+    st.subheader("Top Skills")
+    top_skills_df = pd.DataFrame(metrics.get('top_skills', []))
+    if not top_skills_df.empty:
+        top_skills_df = top_skills_df.set_index('skill')
+        st.bar_chart(top_skills_df)
+
+    st.subheader("Zeitreihen für Top Skills")
+    ts = metrics.get('time_series', {})
+    if ts:
+        df_list = []
+        for skill, year_map in ts.items():
+            for year, val in year_map.items():
+                df_list.append({'skill': skill, 'year': int(year), 'count': val})
+        ts_df = pd.DataFrame(df_list)
+        if not ts_df.empty:
+            fig = px.line(ts_df, x='year', y='count', color='skill', markers=True)
+            st.plotly_chart(fig, use_container_width=True)
+
+with col2:
+    st.subheader("Domain Mix")
+    domain = metrics.get('domain_mix', {})
+    if domain:
+        domain_df = pd.DataFrame(list(domain.items()), columns=['domain', 'count'])
+        st.plotly_chart(px.pie(domain_df, names='domain', values='count', title='Verteilung der Jobs nach Domäne'))
+
+    st.subheader("Downloads")
+    csv_bio = generate_csv_report()
+    st.download_button(label='CSV-Datenreport herunterladen', data=csv_bio.getvalue(), file_name='job_mining_data_report.csv', mime='text/csv')
+
+    st.write("")
+    st.subheader("PDF-Report")
+    pdf_bio = generate_pdf_report()
+    st.download_button(label='PDF-Report herunterladen', data=pdf_bio.getvalue(), file_name='job_mining_report.pdf', mime='application/pdf')
+
+st.markdown("---")
+st.caption("Minimaler Dashboard-Prototyp basierend auf dem RTFD-Spezifikationsbeispiel. Für Produktion: Authentifizierung, Pagination und Hintergrund-Jobs hinzufügen.")

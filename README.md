@@ -265,3 +265,14 @@ git branch -a
 
 
 Dann sehe ich, welche Branches lokal und remote existieren — und sage dir exakt, welchen Befehl DU jetzt brauchst.
+
+---
+
+Weitere Informationen: Siehe `docs/DASHBOARD.md` für Run‑Anleitung und Beispiele
+
+Dashboard (kurz):
+- Streamlit-Dashboard: http://localhost:8501 (wenn lokal gestartet)
+- API Metriken: GET /reports/dashboard-metrics
+- CSV Download: GET /reports/export.csv
+- PDF Download: GET /reports/export.pdf
+

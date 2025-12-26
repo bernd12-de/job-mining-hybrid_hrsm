@@ -174,4 +174,38 @@ class PythonAnalysisClient(
             mapOf("status" to "OFFLINE", "error" to (e.message ?: "Unknown"))
         }
     }
+
+    // ------------------------ DASHBOARD / REPORTING -------------------------
+
+    fun getDashboardMetrics(topN: Int = 10): Map<String, Any> {
+        val url = "$pythonApiBaseUrl/reports/dashboard-metrics?top_n=$topN"
+        return try {
+            val responseType = object : ParameterizedTypeReference<Map<String, Any>>() {}
+            val response = restTemplate.exchange(url, HttpMethod.GET, null, responseType)
+            response.body ?: emptyMap()
+        } catch (e: Exception) {
+            println("❌ Fehler beim Abrufen von Dashboard-Metriken: ${e.message}")
+            mapOf("error" to (e.message ?: "Unknown error"))
+        }
+    }
+
+    fun downloadCsvReport(): ByteArray? {
+        val url = "$pythonApiBaseUrl/reports/export.csv"
+        return try {
+            restTemplate.getForObject(url, ByteArray::class.java)
+        } catch (e: Exception) {
+            println("❌ Fehler beim CSV-Download von Python: ${e.message}")
+            null
+        }
+    }
+
+    fun downloadPdfReport(): ByteArray? {
+        val url = "$pythonApiBaseUrl/reports/export.pdf"
+        return try {
+            restTemplate.getForObject(url, ByteArray::class.java)
+        } catch (e: Exception) {
+            println("❌ Fehler beim PDF-Download von Python: ${e.message}")
+            null
+        }
+    }
 }

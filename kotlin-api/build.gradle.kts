@@ -24,7 +24,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("tools.jackson.module:jackson-module-kotlin")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     // NEU: Hinzufügen der OpenAPI (Swagger) Abhängigkeiten
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
@@ -51,10 +50,8 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    //testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    // EXKLUSIV für deine Tests (behebt die roten Fehler im Screenshot)
-    // Ergänze diese Zeile für den Test-Scope:
-    testImplementation("tools.jackson.module:jackson-module-kotlin")
+    // Tests verwenden die gleiche Jackson-Koordinate wie die App:
+    testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

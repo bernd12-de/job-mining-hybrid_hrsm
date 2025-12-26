@@ -98,6 +98,35 @@ class JobController(
         return jobMiningService.getTopCompetenceTrends(limit)
     }
 
+    // Proxy für Dashboard-Metriken (von Python)
+    @GetMapping("/reports/dashboard-metrics")
+    fun getDashboardMetrics(@RequestParam(defaultValue = "10") top_n: Int): ResponseEntity<Map<String, Any>> {
+        val metrics = pythonClient.getDashboardMetrics(top_n)
+        return ResponseEntity.ok(metrics)
+    }
+
+    @GetMapping("/reports/export.csv")
+    fun proxyCsvReport(): ResponseEntity<ByteArray> {
+        val bytes = pythonClient.downloadCsvReport()
+            ?: return ResponseEntity.status(502).body(null)
+
+        return ResponseEntity.ok()
+            .header("Content-Disposition", "attachment; filename=job_mining_data_report.csv")
+            .contentType(MediaType.TEXT_PLAIN)
+            .body(bytes)
+    }
+
+    @GetMapping("/reports/export.pdf")
+    fun proxyPdfReport(): ResponseEntity<ByteArray> {
+        val bytes = pythonClient.downloadPdfReport()
+            ?: return ResponseEntity.status(502).body(null)
+
+        return ResponseEntity.ok()
+            .header("Content-Disposition", "attachment; filename=job_mining_report.pdf")
+            .contentType(MediaType.APPLICATION_PDF)
+            .body(bytes)
+    }
+
     // In JobController.kt hinzufügen
     @Operation(
         summary = "Alle analysierten Stellenanzeigen abrufen",

@@ -10,6 +10,9 @@ class Competence(BaseModel):
     Interne Repräsentation einer Kompetenz in der Wissensbasis (Repo).
     Unterscheidet sich vom DTO, da es keine Analyse-Scores hat.
     """
+    # Erlaube zusätzliche Felder (z.B. is_digital) für Tests und Metadaten-Annotationen
+    model_config = {"extra": "allow"}
+
     preferred_label: str
     esco_uri: str
     alt_labels: List[str] = []

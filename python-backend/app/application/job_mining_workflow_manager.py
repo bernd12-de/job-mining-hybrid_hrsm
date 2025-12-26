@@ -15,6 +15,7 @@ from app.interfaces.interfaces import (
 # Services & Factory
 from app.application.factories.analysis_result_factory import AnalysisResultFactory
 from app.infrastructure.extractor.metadata_extractor import MetadataExtractor
+from app.infrastructure.extractor.discovery_logger import log_candidates
 
 logger = logging.getLogger(__name__)
 
@@ -82,10 +83,13 @@ class JobMiningWorkflowManager(IJobMiningWorkflowManager):
         # Baue "Konzentrat" für die KI
         segmented_text = (tasks + " " + reqs).strip()
 
-        # Fallback-Logik: Wenn Segmentierung fehlschlägt (z.B. < 50 Zeichen), nimm alles.
+        # Vorsegmentierter Text ohne Benefits/About-Blöcke
+        prefiltered_text = meta.get('processing_text') or text
+
+        # Fallback-Logik: Wenn Segmentierung fehlschlägt (z.B. < 50 Zeichen), nimm prefilter.
         if len(segmented_text) < 50:
-            logger.info(f"Segmentierung für '{source_name}' zu kurz. Nutze Volltext.")
-            analysis_text = text
+            logger.info(f"Segmentierung für '{source_name}' zu kurz. Nutze vorgefilterten Text.")
+            analysis_text = prefiltered_text if prefiltered_text else text
         else:
             analysis_text = segmented_text
         # -----------------------------------------------
@@ -111,7 +115,40 @@ class JobMiningWorkflowManager(IJobMiningWorkflowManager):
 
         # Schritt C: NLP Extraktion (Ebene 1-5)
         # WICHTIG: Übergibt 'role' an den Extractor, wie im Interface gefixt.
-        competences = self.competence_extractor.extract_competences(text=text, role=role)
+        competences = self.competence_extractor.extract_competences(text=analysis_text, role=role)
+
+        # Discovery: unbekannte Kandidaten sammeln (vereinfachte Heuristik)
+        try:
+            # Labels für Ausschluss (bekannte ESCO-Begriffe)
+            known_labels = set()
+            repo = getattr(self.competence_extractor, 'repository', None)
+            if repo is not None and hasattr(repo, 'get_all_identifiable_labels'):
+                known_labels = set(l.lower() for l in (repo.get_all_identifiable_labels() or []))
+
+            # Tokenisierung: einfache Wort-Tokens
+            import re
+            tokens = re.findall(r"[A-Za-zÄÖÜäöüß][-A-Za-z0-9ÄÖÜäöüß]{2,}", analysis_text)
+            freq = {}
+            for t in tokens:
+                tl = t.lower()
+                # Filter: nicht bereits bekannte Labels (roh oder kompakt), nicht zu kurz
+                if len(tl) < 4:
+                    continue
+                if tl in known_labels or tl.replace(' ', '') in known_labels:
+                    continue
+                # Ein paar triviale Stopwörter ausschließen
+                if tl in {"und", "oder", "die", "der", "das", "ein", "eine"}:
+                    continue
+                freq[tl] = freq.get(tl, 0) + 1
+
+            # Kandidaten nach Häufigkeit sortieren, Top-N
+            top = sorted(freq.items(), key=lambda x: x[1], reverse=True)[:20]
+            candidates = [{"term": k, "role": role, "context": "segmented", "count": v} for k, v in top]
+            if candidates:
+                log_candidates(candidates)
+        except Exception:
+            # Discovery ist best-effort, Fehler hier sollen die Pipeline nicht stoppen
+            pass
 
         # Schritt D: DTO Bauen (Ebene 7)
         # Nutzt die Factory, um Zirkelbezüge zu vermeiden.

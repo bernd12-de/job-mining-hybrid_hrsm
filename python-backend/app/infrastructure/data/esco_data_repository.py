@@ -12,6 +12,7 @@ class ESCODataRepository:
         self.data_path = data_path
         self.skills: Dict[str, Dict[str, Any]] = {} # URI -> Daten-Objekt
         self.label_to_uri: Dict[str, str] = {}      # Label/Synonym -> URI
+        self.approved_aliases: Dict[str, str] = {}  # term(lower) -> canonical label(lower)
         self._is_loaded = False
 
     def load_all(self):
@@ -23,6 +24,9 @@ class ESCODataRepository:
 
         # 1. Haupt-Skills & Synonyme laden
         self._load_base_skills()
+
+        # 1b. Approved Aliases (Discovery-Review) laden und integrieren
+        self._load_approved_aliases()
 
         # 2. Hierarchien laden (Abstraktionsebene)
         self._load_hierarchies()
@@ -59,6 +63,31 @@ class ESCODataRepository:
             self.label_to_uri[pref_label.lower()] = uri
             for alt in skill_data["altLabels"]:
                 self.label_to_uri[alt.lower()] = uri
+
+    def _load_approved_aliases(self):
+        """Lädt von Discovery freigegebene Aliasse und integriert sie als Label-Mapping."""
+        base = os.environ.get("BASE_DATA_DIR")
+        if base:
+            path = os.path.join(base, "discovery", "approved_skills.json")
+        else:
+            repo_base = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "python-backend", "data", "discovery"))
+            path = os.path.join(repo_base, "approved_skills.json")
+
+        if os.path.exists(path):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    data = json.load(f) or {}
+                for term, canonical in data.items():
+                    t = str(term).lower().strip()
+                    c = str(canonical).lower().strip()
+                    if not t:
+                        continue
+                    self.approved_aliases[t] = c
+                    uri = self.label_to_uri.get(c)
+                    if uri:
+                        self.label_to_uri[t] = uri
+            except Exception:
+                pass
 
     def _load_hierarchies(self):
         """Verknüpft Skills mit ihren Überordnungen (Abstraktion)."""
@@ -100,8 +129,15 @@ class ESCODataRepository:
 
     # Getter für den Extractor
     def get_all_labels(self) -> List[str]:
-        return list(self.label_to_uri.keys())
+        base_labels = set(self.label_to_uri.keys())
+        base_labels.update(self.approved_aliases.keys())
+        return list(base_labels)
 
     def get_data_by_label(self, label: str) -> Optional[Dict]:
-        uri = self.label_to_uri.get(label.lower())
+        key = label.lower()
+        uri = self.label_to_uri.get(key)
+        if not uri:
+            canonical = self.approved_aliases.get(key)
+            if canonical:
+                uri = self.label_to_uri.get(canonical)
         return self.skills.get(uri) if uri else None

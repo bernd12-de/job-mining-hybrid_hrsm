@@ -260,11 +260,27 @@ class HybridCompetenceRepository(ICompetenceRepository):
                 continue
 
     def _load_local_domains_v2(self):
-        """Loads JSON domains from `data/job_domains` and populates `self.custom_domains`."""
+        """Loads JSON domains from `data/job_domains` and populates `self.custom_domains`.
+
+        Tries multiple candidate base paths: current working directory first (useful for tests),
+        then the repository-relative path (production / container use).
+        """
         self.custom_domains = {}
-        base = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), 'data', 'job_domains')
-        if not os.path.exists(base):
+        candidate_paths = [
+            os.path.join(os.getcwd(), 'data', 'job_domains'),
+            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), 'data', 'job_domains')
+        ]
+
+        base = None
+        for p in candidate_paths:
+            if os.path.exists(p):
+                base = p
+                break
+
+        if not base:
+            # nothing to load
             return
+
         for fname in os.listdir(base):
             if not fname.endswith('.json'):
                 continue
