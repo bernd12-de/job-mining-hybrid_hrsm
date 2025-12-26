@@ -1,0 +1,297 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2822
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 (.venv) layher-ad@PC192 python-backend % pytest -v\
+============================================= test session starts ==============================================\
+platform darwin -- Python 3.11.14, pytest-8.1.1, pluggy-1.6.0 -- /Users/layher-ad/IdeaProjects/job-mining-kotlin-python/python-backend/.venv/bin/python3.11\
+cachedir: .pytest_cache\
+rootdir: /Users/layher-ad/IdeaProjects/job-mining-kotlin-python/python-backend\
+plugins: anyio-4.12.0\
+collected 14 items                                                                                             \
+\
+test_competence_extractor.py::TestCompetenceExtractor::test_01_direct_phrase_match ERROR                 [  7%]\
+test_competence_extractor.py::TestCompetenceExtractor::test_02_custom_mapping_pass ERROR                 [ 14%]\
+test_competence_extractor.py::TestCompetenceExtractor::test_03_blacklist_filter ERROR                    [ 21%]\
+test_competence_extractor.py::TestCompetenceExtractor::test_04_idempotency_check ERROR                   [ 28%]\
+test_competence_extractor.py::TestCompetenceExtractor::test_05_uri_and_id_integrity ERROR                [ 35%]\
+tests/test_7_ebenen.py::test_assistenz_level_logic FAILED                                                [ 42%]\
+tests/test_analysis.py::test_assistenz_digital_shift FAILED                                              [ 50%]\
+tests/test_auto_domain_detection.py::test_automatic_level_4_assignment PASSED                            [ 57%]\
+tests/test_competence_levels.py::test_assistenz_digital_artifact PASSED                                  [ 64%]\
+tests/test_db_compatibility.py::test_model_datatypes PASSED                                              [ 71%]\
+tests/test_extractor.py::test_level_assignment FAILED                                                    [ 78%]\
+tests/test_final_logic.py::test_assistenz_digital_shift FAILED                                           [ 85%]\
+tests/test_methodology_levels.py::test_assistenz_digital_shift_logic FAILED                              [ 92%]\
+tests/test_workflow.py::test_complete_workflow_logic FAILED                                              [100%]\
+\
+==================================================== ERRORS ====================================================\
+____________________ ERROR at setup of TestCompetenceExtractor.test_01_direct_phrase_match _____________________\
+\
+mock_esco_service = <MagicMock id='4662257104'>, mock_domain_rule_service = <MagicMock id='4983406224'>\
+\
+    @pytest.fixture\
+    # Stellt sicher, dass der Extractor die Mocks verwendet (Dependency Injection)\
+    def extractor(mock_esco_service, mock_domain_rule_service):\
+        """Instanz des Extractor-Service mit gemockten Abh\'e4ngigkeiten."""\
+        # Der Extractor muss initialisiert werden, um die Spacy-Pipeline zu laden.\
+>       return SpaCyCompetenceExtractor(\
+            esco_service=mock_esco_service,\
+            domain_rule_service=mock_domain_rule_service\
+        )\
+E       TypeError: SpaCyCompetenceExtractor.__init__() got an unexpected keyword argument 'esco_service'\
+\
+test_competence_extractor.py:73: TypeError\
+____________________ ERROR at setup of TestCompetenceExtractor.test_02_custom_mapping_pass _____________________\
+\
+mock_esco_service = <MagicMock id='4982818064'>, mock_domain_rule_service = <MagicMock id='4982783120'>\
+\
+    @pytest.fixture\
+    # Stellt sicher, dass der Extractor die Mocks verwendet (Dependency Injection)\
+    def extractor(mock_esco_service, mock_domain_rule_service):\
+        """Instanz des Extractor-Service mit gemockten Abh\'e4ngigkeiten."""\
+        # Der Extractor muss initialisiert werden, um die Spacy-Pipeline zu laden.\
+>       return SpaCyCompetenceExtractor(\
+            esco_service=mock_esco_service,\
+            domain_rule_service=mock_domain_rule_service\
+        )\
+E       TypeError: SpaCyCompetenceExtractor.__init__() got an unexpected keyword argument 'esco_service'\
+\
+test_competence_extractor.py:73: TypeError\
+______________________ ERROR at setup of TestCompetenceExtractor.test_03_blacklist_filter ______________________\
+\
+mock_esco_service = <MagicMock id='4982766928'>, mock_domain_rule_service = <MagicMock id='4982625552'>\
+\
+    @pytest.fixture\
+    # Stellt sicher, dass der Extractor die Mocks verwendet (Dependency Injection)\
+    def extractor(mock_esco_service, mock_domain_rule_service):\
+        """Instanz des Extractor-Service mit gemockten Abh\'e4ngigkeiten."""\
+        # Der Extractor muss initialisiert werden, um die Spacy-Pipeline zu laden.\
+>       return SpaCyCompetenceExtractor(\
+            esco_service=mock_esco_service,\
+            domain_rule_service=mock_domain_rule_service\
+        )\
+E       TypeError: SpaCyCompetenceExtractor.__init__() got an unexpected keyword argument 'esco_service'\
+\
+test_competence_extractor.py:73: TypeError\
+_____________________ ERROR at setup of TestCompetenceExtractor.test_04_idempotency_check ______________________\
+\
+mock_esco_service = <MagicMock id='4983381712'>, mock_domain_rule_service = <MagicMock id='4982700688'>\
+\
+    @pytest.fixture\
+    # Stellt sicher, dass der Extractor die Mocks verwendet (Dependency Injection)\
+    def extractor(mock_esco_service, mock_domain_rule_service):\
+        """Instanz des Extractor-Service mit gemockten Abh\'e4ngigkeiten."""\
+        # Der Extractor muss initialisiert werden, um die Spacy-Pipeline zu laden.\
+>       return SpaCyCompetenceExtractor(\
+            esco_service=mock_esco_service,\
+            domain_rule_service=mock_domain_rule_service\
+        )\
+E       TypeError: SpaCyCompetenceExtractor.__init__() got an unexpected keyword argument 'esco_service'\
+\
+test_competence_extractor.py:73: TypeError\
+____________________ ERROR at setup of TestCompetenceExtractor.test_05_uri_and_id_integrity ____________________\
+\
+mock_esco_service = <MagicMock id='4982593296'>, mock_domain_rule_service = <MagicMock id='4935349136'>\
+\
+    @pytest.fixture\
+    # Stellt sicher, dass der Extractor die Mocks verwendet (Dependency Injection)\
+    def extractor(mock_esco_service, mock_domain_rule_service):\
+        """Instanz des Extractor-Service mit gemockten Abh\'e4ngigkeiten."""\
+        # Der Extractor muss initialisiert werden, um die Spacy-Pipeline zu laden.\
+>       return SpaCyCompetenceExtractor(\
+            esco_service=mock_esco_service,\
+            domain_rule_service=mock_domain_rule_service\
+        )\
+E       TypeError: SpaCyCompetenceExtractor.__init__() got an unexpected keyword argument 'esco_service'\
+\
+test_competence_extractor.py:73: TypeError\
+=================================================== FAILURES ===================================================\
+__________________________________________ test_assistenz_level_logic __________________________________________\
+\
+    def test_assistenz_level_logic():\
+        # Setup Mock Repository\
+        mock_repo = MagicMock()\
+        mock_repo.get_all_esco_labels.return_value = ["excel", "cloud"]\
+        mock_repo.is_digital_skill.side_effect = lambda x: x == "cloud"\
+        mock_repo.check_academic_validity.side_effect = lambda x: x == "cloud"\
+    \
+        extractor = SpaCyCompetenceExtractor(repository=mock_repo)\
+    \
+        # Test-Lauf\
+>       results = extractor.extract_competences("Suche Assistenz f\'fcr Excel und Cloud", "Assistenz")\
+\
+tests/test_7_ebenen.py:14: \
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \
+app/infrastructure/extractor/spacy_extractor.py:21: in extract_competences\
+    doc = self.matcher(doc) #self.nlp(raw_text)\
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \
+\
+>   ???\
+E   ValueError: [E195] Matcher can be called on Doc or Span only, got str.\
+\
+spacy/matcher/phrasematcher.pyx:262: ValueError\
+_________________________________________ test_assistenz_digital_shift _________________________________________\
+\
+    def test_assistenz_digital_shift():\
+        # 1. Mock-Repository erstellen\
+        mock_repo = MagicMock()\
+    \
+        # DER FIX: Wir simulieren den neuen "Vertrag"\
+        # Wir geben Begriffe f\'fcr Ebene 2 (Standard) und Ebene 4 (Fachbuch) zur\'fcck\
+        mock_repo.get_all_identifiable_labels.return_value = ["Cloud-Software", "Koordination"]\
+    \
+        # Verhalten f\'fcr Level und Digital-Status definieren\
+        mock_repo.get_level.side_effect = lambda term: 4 if "Cloud" in term else 2\
+        mock_repo.is_digital_skill.side_effect = lambda term: True if "Cloud" in term else False\
+    \
+        # 2. Extractor initialisieren (mit dem reparierten Mock)\
+        # Beachte: Der Konstruktor braucht (repository, manager, nlp_model)\
+        # Falls du keinen Manager hast, nimm einen weiteren Mock\
+        mock_manager = MagicMock()\
+        extractor = SpaCyCompetenceExtractor(repository=mock_repo, manager=mock_manager)\
+    \
+        text = "Die Assistenz nutzt Cloud-Software zur Koordination."\
+    \
+        # 3. Extraktion ausf\'fchren\
+        results = extractor.extract_competences(text, "Assistenz")\
+    \
+        # 4. Assertions (Validierung der Masterarbeit-Logik)\
+>       cloud_skill = [r for r in results if "Cloud" in r.original_term][0]\
+E       IndexError: list index out of range\
+\
+tests/test_analysis.py:28: IndexError\
+____________________________________________ test_level_assignment _____________________________________________\
+\
+    def test_level_assignment():\
+        # Wir tun so, als k\'e4men die Daten von Kotlin (Mock)\
+        mock_repo = MagicMock()\
+        mock_repo.get_all_skills.return_value = ["ERP-System"]\
+        mock_repo.get_fachbuch_labels.return_value = ["erp-system"]\
+    \
+        # Der Extractor bekommt das "Fake-Repo"\
+        extractor = SpaCyCompetenceExtractor(repository=mock_repo)\
+    \
+        # Test: Erkennt er die Ebene 4?\
+>       results = extractor.extract_competences("Assistenz bedient ERP-System", "Assistenz")\
+\
+tests/test_extractor.py:15: \
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \
+app/infrastructure/extractor/spacy_extractor.py:21: in extract_competences\
+    doc = self.matcher(doc) #self.nlp(raw_text)\
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \
+\
+>   ???\
+E   ValueError: [E195] Matcher can be called on Doc or Span only, got str.\
+\
+spacy/matcher/phrasematcher.pyx:262: ValueError\
+_________________________________________ test_assistenz_digital_shift _________________________________________\
+\
+    def test_assistenz_digital_shift():\
+        """\
+        Szenario: Eine Assistenz nutzt Cloud-Computing.\
+        Erwartung:\
+        - Excel -> Level 2 (Standard)\
+        - Cloud-Computing -> Level 4 (Fachbuch) + is_digital=True\
+        """\
+        repo = MockRepo()\
+        extractor = SpaCyCompetenceExtractor(repository=repo)\
+    \
+        text = "Wir suchen eine Assistenz f\'fcr Excel und Cloud-Computing Aufgaben."\
+        role = "Assistenz"\
+    \
+>       results = extractor.extract_competences(text, role)\
+\
+tests/test_final_logic.py:28: \
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \
+app/infrastructure/extractor/spacy_extractor.py:21: in extract_competences\
+    doc = self.matcher(doc) #self.nlp(raw_text)\
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \
+\
+>   ???\
+E   ValueError: [E195] Matcher can be called on Doc or Span only, got str.\
+\
+spacy/matcher/phrasematcher.pyx:262: ValueError\
+______________________________________ test_assistenz_digital_shift_logic ______________________________________\
+\
+mock_data_paths = ('/private/var/folders/xn/51871d110rjbjjz35sslp20c0000gn/T/pytest-of-layher-ad/pytest-0/test_assistenz_digital_shift_l...s/xn/51871d110rjbjjz35sslp20c0000gn/T/pytest-of-layher-ad/pytest-0/test_assistenz_digital_shift_l0/test_academia.json')\
+\
+    def test_assistenz_digital_shift_logic(mock_data_paths):\
+        fb_p, ac_p = mock_data_paths\
+    \
+        # 1. Repo mit Test-Pfaden initialisieren\
+>       repo = HybridCompetenceRepository(fachbuch_path=fb_p, academia_path=ac_p)\
+\
+tests/test_methodology_levels.py:24: \
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \
+\
+self = <app.infrastructure.repositories.hybrid_competence_repository.HybridCompetenceRepository object at 0x143337550>\
+kotlin_api_url = 'http://localhost:8080'\
+fachbuch_path = '/private/var/folders/xn/51871d110rjbjjz35sslp20c0000gn/T/pytest-of-layher-ad/pytest-0/test_assistenz_digital_shift_l0/test_fachbuch.json'\
+academia_path = '/private/var/folders/xn/51871d110rjbjjz35sslp20c0000gn/T/pytest-of-layher-ad/pytest-0/test_assistenz_digital_shift_l0/test_academia.json'\
+rule_client = None\
+\
+    def __init__(self,\
+                 kotlin_api_url: str = "http://localhost:8080",\
+                 fachbuch_path: str = None,\
+                 academia_path: str = None,\
+                 rule_client = None): #Optional Flexibel\
+    \
+        # 1. Bestehende Parameter sichern (f\'fcr deine Tests wichtig!)\
+        self.api_url = kotlin_api_url\
+        self.fachbuch_path = fachbuch_path\
+        self.academia_path = academia_path\
+    \
+        # 2. Den Client setzen (entweder \'fcbergeben oder neu erstellen)\
+        # 2. Client-Initialisierung (Sauber gel\'f6st)\
+        if rule_client:\
+            self.rule_client = rule_client\
+        else:\
+            # Wir nutzen das oben importierte Modul\
+>           self.rule_client = clients.KotlinRuleClient(base_url=self.api_url)\
+E           TypeError: KotlinRuleClient.__init__() got an unexpected keyword argument 'base_url'\
+\
+app/infrastructure/repositories/hybrid_competence_repository.py:28: TypeError\
+_________________________________________ test_complete_workflow_logic _________________________________________\
+\
+    def test_complete_workflow_logic():\
+        # Mocks erstellen\
+        mock_repo = MagicMock()\
+        mock_repo.get_all_skills.return_value = ["Cloud Computing"]\
+        mock_repo.get_fachbuch_labels.return_value = ["cloud computing"]\
+        mock_repo.is_digital_skill.return_value = True\
+    \
+        # Manager zusammenbauen (Dependency Injection)\
+        # Hier nutzen wir deine echten Extractoren, aber ein gefaktes Daten-Repo\
+        from app.infrastructure.extractor.metadata_extractor import MetadataExtractor\
+        from app.infrastructure.extractor.spacy_extractor import SpaCyCompetenceExtractor\
+    \
+        meta_ext = MetadataExtractor()\
+        comp_ext = SpaCyCompetenceExtractor(repository=mock_repo)\
+>       manager = JobMiningWorkflowManager(meta_ext, comp_ext)\
+E       TypeError: JobMiningWorkflowManager.__init__() missing 3 required positional arguments: 'organization_service', 'role_service', and 'metadata_extractor'                                                                \
+\
+tests/test_workflow.py:19: TypeError\
+=============================================== warnings summary ===============================================\
+tests/test_db_compatibility.py::test_model_datatypes\
+  /Users/layher-ad/IdeaProjects/job-mining-kotlin-python/python-backend/.venv/lib/python3.11/site-packages/pydantic/main.py:1048: PydanticDeprecatedSince20: The `json` method is deprecated; use `model_dump_json` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.6/migration/\
+    warnings.warn(\
+\
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\
+=========================================== short test summary info ============================================\
+FAILED tests/test_7_ebenen.py::test_assistenz_level_logic - ValueError: [E195] Matcher can be called on Doc or Span only, got str.\
+FAILED tests/test_analysis.py::test_assistenz_digital_shift - IndexError: list index out of range\
+FAILED tests/test_extractor.py::test_level_assignment - ValueError: [E195] Matcher can be called on Doc or Span only, got str.\
+FAILED tests/test_final_logic.py::test_assistenz_digital_shift - ValueError: [E195] Matcher can be called on Doc or Span only, got str.\
+FAILED tests/test_methodology_levels.py::test_assistenz_digital_shift_logic - TypeError: KotlinRuleClient.__init__() got an unexpected keyword argument 'base_url'\
+FAILED tests/test_workflow.py::test_complete_workflow_logic - TypeError: JobMiningWorkflowManager.__init__() missing 3 required positional arguments: 'organization_servi...\
+ERROR test_competence_extractor.py::TestCompetenceExtractor::test_01_direct_phrase_match - TypeError: SpaCyCompetenceExtractor.__init__() got an unexpected keyword argument 'esco_service'\
+ERROR test_competence_extractor.py::TestCompetenceExtractor::test_02_custom_mapping_pass - TypeError: SpaCyCompetenceExtractor.__init__() got an unexpected keyword argument 'esco_service'\
+ERROR test_competence_extractor.py::TestCompetenceExtractor::test_03_blacklist_filter - TypeError: SpaCyCompetenceExtractor.__init__() got an unexpected keyword argument 'esco_service'\
+ERROR test_competence_extractor.py::TestCompetenceExtractor::test_04_idempotency_check - TypeError: SpaCyCompetenceExtractor.__init__() got an unexpected keyword argument 'esco_service'\
+ERROR test_competence_extractor.py::TestCompetenceExtractor::test_05_uri_and_id_integrity - TypeError: SpaCyCompetenceExtractor.__init__() got an unexpected keyword argument 'esco_service'\
+============================== 6 failed, 3 passed, 1 warning, 5 errors in 11.80s ===============================\
+(.venv) layher-ad@PC192 python-backend % }
