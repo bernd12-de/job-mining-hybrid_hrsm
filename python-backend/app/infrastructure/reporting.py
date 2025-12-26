@@ -38,11 +38,24 @@ def aggregate_top_skills(top_n: int = 10) -> List[Tuple[str, int]]:
 
 
 def aggregate_domain_mix() -> Dict[str, int]:
+    """Aggregiert Domains basierend auf Rolle + Industrie Kombination"""
     counter = Counter()
     for p in _iter_job_files():
         try:
             data = json.load(open(p, 'r', encoding='utf-8'))
-            domain = data.get('job_role') or data.get('industry') or 'unknown'
+            role = data.get('job_role', '').strip()
+            industry = data.get('industry', '').strip()
+            
+            # Kombiniere Rolle + Industrie für bessere Segmentierung
+            if role and industry:
+                domain = f"{role} / {industry}"
+            elif role:
+                domain = role
+            elif industry:
+                domain = industry
+            else:
+                domain = 'Unbekannt'
+            
             counter[domain] += 1
         except Exception:
             continue

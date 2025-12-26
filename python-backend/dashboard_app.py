@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from app.infrastructure.reporting import build_dashboard_metrics, generate_csv_report
+from app.infrastructure.reporting import build_dashboard_metrics, generate_csv_report, generate_pdf_report
 
 st.set_page_config(page_title="Job Mining Dashboard", layout="wide")
 st.title("Job Mining — Dashboard")
@@ -30,7 +30,11 @@ with col1:
                 df_list.append({'skill': skill, 'year': int(year), 'count': val})
         ts_df = pd.DataFrame(df_list)
         if not ts_df.empty:
-            fig = px.line(ts_df, x='year', y='count', color='skill', markers=True)
+            ts_df = ts_df.sort_values('year')
+            fig = px.line(ts_df, x='year', y='count', color='skill', markers=True, 
+                         title='Skill-Trends über Jahre')
+            fig.update_xaxes(type='category', title='Jahr')
+            fig.update_yaxes(title='Anzahl Jobs')
             st.plotly_chart(fig, use_container_width=True)
 
 with col2:
@@ -46,8 +50,11 @@ with col2:
 
     st.write("")
     st.subheader("PDF-Report")
-    pdf_bio = generate_pdf_report()
-    st.download_button(label='PDF-Report herunterladen', data=pdf_bio.getvalue(), file_name='job_mining_report.pdf', mime='application/pdf')
+    try:
+        pdf_bio = generate_pdf_report()
+        st.download_button(label='PDF-Report herunterladen', data=pdf_bio.getvalue(), file_name='job_mining_report.pdf', mime='application/pdf')
+    except Exception as e:
+        st.error(f"PDF-Report nicht verfügbar: {e}")
 
 st.markdown("---")
 st.caption("Minimaler Dashboard-Prototyp basierend auf dem RTFD-Spezifikationsbeispiel. Für Produktion: Authentifizierung, Pagination und Hintergrund-Jobs hinzufügen.")
