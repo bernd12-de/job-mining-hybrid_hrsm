@@ -71,16 +71,16 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
         # Patterns aus dem Repository laden (SSoT)
         labels = self.repository.get_all_identifiable_labels()
         if labels:
-            # Erzeuge zusätzliche einfache Varianten (z.B. ohne Leerzeichen, ohne Bindestriche)
-            ext_labels = set()
-            for l in labels:
-                ext_labels.add(l)
-                ext_labels.add(l.replace(' ', ''))
-                ext_labels.add(l.replace('-', ' '))
-            # Erzeuge Docs mit make_doc (stabiler als tokenizer.pipe in manchen Env)
-            patterns = [self.nlp.make_doc(l) for l in list(ext_labels)]
+            # Nur Labels verwenden, die mindestens 3 Zeichen sind und keine zu generischen Wörter sind
+            generic_words = {'und', 'oder', 'der', 'die', 'das', 'den', 'des', 'dem', 'ein', 'eine', 'einen', 
+                           'einer', 'einem', 'eines', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+                           'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'}
+            filtered_labels = [l for l in labels if len(l) >= 3 and l.lower() not in generic_words]
+            
+            # Erzeuge Patterns OHNE zu viele Varianten (verhindert Explosionen)
+            patterns = [self.nlp.make_doc(l) for l in filtered_labels[:10000]]  # Max 10k patterns
             self.matcher.add("KNOWLEDGE_BASE", patterns)
-            print(f"✅ spaCy Extractor geladen mit {len(ext_labels)} Begriffen (inkl. Varianten).")
+            print(f"✅ spaCy Extractor geladen mit {len(patterns)} Begriffen (gefiltert von {len(labels)} Gesamt).")
         else:
             print("⚠️ spaCy Extractor Warnung: Repository ist leer!")
 
