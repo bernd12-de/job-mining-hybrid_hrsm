@@ -1,0 +1,26 @@
+{
+  "job_id": null,
+  "title": "Titel: Senior Software Entwickler",
+  "job_role": "Software-Entwicklung",
+  "region": "Deutschland",
+  "industry": "Informationstechnologie & Software",
+  "posting_date": "2024-01-01",
+  "raw_text": "Titel: Senior Software Entwickler (m/w/d)\nStandort: Wiesbaden\n\nIhre Aufgaben:\n* Entwicklung von Python Backends mit FastAPI.\n* Anbindung von PostgreSQL Datenbanken.\n\nIhr Profil:\n* Erfahrung mit NLP und Spacy.\n* Kenntnisse in Kotlin und Spring Boot.\n* Teamfähigkeit und Motivation.\n",
+  "raw_text_hash": "fbee8602e698341afcfde6961b833812e801d00adda7492cab4dc25fec3b25e1",
+  "is_segmented": true,
+  "competences": [
+    {
+      "id": null,
+      "original_term": "PostgreSQL",
+      "esco_label": "PostgreSQL",
+      "esco_uri": "custom/postgresql",
+      "esco_group_code": null,
+      "confidence_score": 1.0,
+      "level": 3,
+      "is_digital": false,
+      "is_discovery": false,
+      "source_domain": "System",
+      "role_context": "Software-Entwicklung"
+    }
+  ]
+}

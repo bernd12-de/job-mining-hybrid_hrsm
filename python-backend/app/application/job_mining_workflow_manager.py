@@ -63,6 +63,10 @@ class JobMiningWorkflowManager(IJobMiningWorkflowManager):
         cleaned_text = text.replace('\x00', '')
         return self._execute_pipeline(cleaned_text, source_name=source_name)
 
+    # Kompatibilitäts-Alias: Einige Tests/Clients nutzen noch die interne Methode `_run_analysis_from_text`
+    def _run_analysis_from_text(self, text: str, source_name: str) -> AnalysisResultDTO:
+        return self.run_analysis_from_scraped_text(text, source_name)
+
     def _execute_pipeline(self, text: str, source_name: str) -> AnalysisResultDTO:
         """
         Die KERN-LOGIK (SSoT).

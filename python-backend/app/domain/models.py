@@ -22,6 +22,7 @@ class CompetenceDTO(BaseModel):
     original_term: str
     esco_label: Optional[str] = None
     esco_uri: Optional[str] = None
+    esco_group_code: Optional[str] = None
     confidence_score: float = Field(default=1.0, ge=0.0, le=1.0)
 
     # Ebene 1-5: Erzwingt Integer-Werte für Hibernate/Kotlin

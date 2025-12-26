@@ -12,14 +12,23 @@ class HybridCompetenceRepository(ICompetenceRepository):
     # Pfad relativ zum Projekt-Root
     CUSTOM_JSON_PATH = "data/custom_skills_extended.json"
 
-    def __init__(self, rule_client: KotlinRuleClient):
+    def __init__(self, rule_client: KotlinRuleClient = None, fachbuch_path: str = None, academia_path: str = None):
+        # Backwards-Compatibility: Manche Tests/Clients übergeben 'fachbuch_path' & 'academia_path'
         self._esco_labels: Set[str] = set()
         self._custom_labels: Set[str] = set()
         self._all_competences: List[Competence] = []
         self._esco_mapping: Dict[str, str] = {}
         self._blacklist: Set[str] = set()
 
+        # Falls nur positional args verwendet wurden (legacy), akzeptieren wir das auch
+        if isinstance(rule_client, str) and fachbuch_path is None:
+            # Ein simpler Fallback: erstes Argument war wahrscheinlich pfad, kein RuleClient
+            fachbuch_path = rule_client
+            rule_client = None
+
         self.rule_client = rule_client
+        self.fachbuch_path = fachbuch_path
+        self.academia_path = academia_path
 
         # Initial laden
         self._load_data()
@@ -35,9 +44,16 @@ class HybridCompetenceRepository(ICompetenceRepository):
 
             print(f"📡 Lade ESCO-Daten von {endpoint}...")
             response = requests.get(endpoint, timeout=15)
+            print(f"   -> HTTP-Status: {response.status_code}")
 
             if response.status_code == 200:
-                data = response.json()
+                try:
+                    data = response.json()
+                except Exception as e:
+                    print(f"   ⚠️ Fehler beim Parsen der JSON-Antwort: {e}")
+                    return
+
+                print(f"   -> Response-Type: {type(data)}; Länge: {len(data) if hasattr(data, '__len__') else 'unknown'}")
 
                 if not data:
                     print("⚠️ Kotlin API antwortet mit leerer Liste.")
@@ -45,15 +61,31 @@ class HybridCompetenceRepository(ICompetenceRepository):
 
                 # Debug: Was schickt Kotlin wirklich?
                 first = data[0] if isinstance(data, list) and len(data) > 0 else {}
-                # print(f"👀 DEBUG KEYS: {list(first.keys())}")
+                print(f"👀 DEBUG KEYS: {list(first.keys())}")
+                print(f"👀 DEBUG SAMPLE: {first}")
 
                 count = 0
                 for item in data:
                     # FIX: .get() verhindert den Crash ('preferredLabel')
-                    lbl = item.get('preferredLabel') or item.get('preferred_label') or item.get('term') or item.get('label')
-                    uri = item.get('escoUri') or item.get('esco_uri') or item.get('uri') or f"unknown/{count}"
+                    lbl = (
+                        item.get('preferredLabel') or
+                        item.get('preferred_label') or
+                        item.get('original_term') or
+                        item.get('esco_label') or
+                        item.get('term') or
+                        item.get('label')
+                    )
+
+                    uri = (
+                        item.get('escoUri') or
+                        item.get('esco_uri') or
+                        item.get('uri') or
+                        item.get('conceptUri') or
+                        f"unknown/{count}"
+                    )
 
                     if lbl:
+                        lbl = lbl.strip()
                         self._esco_labels.add(lbl)
                         self._all_competences.append(Competence(
                             preferred_label=lbl,
@@ -67,6 +99,12 @@ class HybridCompetenceRepository(ICompetenceRepository):
 
         except Exception as e:
             print(f"❌ Fehler beim Laden der ESCO-Daten: {e}")
+            # Fallback: Versuche lokale ESCO CSV-Dateien zu laden
+            try:
+                print("⚠️ Versuche lokale ESCO CSV-Dateien zu laden...")
+                self._load_data_from_local_esco()
+            except Exception as le:
+                print(f"❌ Lokales Laden fehlgeschlagen: {le}")
 
     def _load_custom_skills(self):
         if os.path.exists(self.CUSTOM_JSON_PATH):
@@ -84,6 +122,29 @@ class HybridCompetenceRepository(ICompetenceRepository):
                             ))
             except Exception as e:
                 print(f"⚠️ Custom Skills Fehler: {e}")
+
+    def _load_data_from_local_esco(self):
+        """Lädt ESCO-Daten aus lokalen CSV-Dateien im Ordner `data/esco` als Fallback.
+        Erwartet Spalten: preferredLabel, conceptUri oder conceptUri/skillType
+        """
+        esco_folder = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), 'data', 'esco')
+        skills_file = os.path.join(esco_folder, 'skills_de.csv')
+        if not os.path.exists(skills_file):
+            print("⚠️ Lokale ESCO-Datei nicht gefunden: skills_de.csv")
+            return
+
+        added = 0
+        import csv
+        with open(skills_file, newline='', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                lbl = row.get('preferredLabel') or row.get('preferred_label') or row.get('preferredlabel')
+                uri = row.get('conceptUri') or row.get('concept_uri') or row.get('concepturi')
+                if lbl:
+                    self._esco_labels.add(lbl)
+                    self._all_competences.append(Competence(preferred_label=lbl, esco_uri=uri or f"local/{added}"))
+                    added += 1
+        print(f"✅ Lokaler ESCO-Fallback: {added} Begriffe geladen.")
 
     def _load_dynamic_blacklist(self):
         try:

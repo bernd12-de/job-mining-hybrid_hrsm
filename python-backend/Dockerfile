@@ -15,7 +15,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 4. Playwright Browser-Setup (Chromium reicht für Scraper)
-RUN playwright install chromium --with-deps
+# Install Playwright only when explicitly requested (avoid failing builds in constrained envs)
+ARG INSTALL_PLAYWRIGHT=false
+RUN if [ "$INSTALL_PLAYWRIGHT" = "true" ]; then playwright install chromium --with-deps; else echo "Skipping Playwright install (INSTALL_PLAYWRIGHT=$INSTALL_PLAYWRIGHT)"; fi
 
 # 5. Code kopieren
 COPY . .
