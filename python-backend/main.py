@@ -13,6 +13,9 @@ from app.infrastructure.clients.kotlin_rule_client import KotlinRuleClient
 from app.infrastructure.repositories.hybrid_competence_repository import HybridCompetenceRepository
 from app.infrastructure.extractor.advanced_text_extractor import AdvancedTextExtractor
 from app.infrastructure.extractor.spacy_competence_extractor import SpaCyCompetenceExtractor
+from app.infrastructure.extractor.fuzzy_competence_extractor import FuzzyCompetenceExtractor
+from app.infrastructure.extractor.competence_extractor import CompetenceExtractor
+from app.infrastructure.extractor.discovery_extractor import DiscoveryExtractor
 from app.infrastructure.extractor.metadata_extractor import MetadataExtractor
 from app.infrastructure.io.job_directory_processor import JobDirectoryProcessor
 
@@ -60,17 +63,27 @@ except TypeError:
     logger.info("ℹ️ RoleService nutzt Standard-Init (kein RuleClient).")
     ROLE_SERVICE = RoleService()
 
-# D. NLP
-COMPETENCE_EXTRACTOR = SpaCyCompetenceExtractor(repository=COMPETENCE_REPOSITORY)
+# D. NLP components (SpaCy + Fuzzy + Discovery)
+# Create base extractors first
+SPACY_EXT = SpaCyCompetenceExtractor(repository=COMPETENCE_REPOSITORY)
+FUZZY_EXT = FuzzyCompetenceExtractor(repository=COMPETENCE_REPOSITORY)
 
-# E. Manager
+# E. Manager: temporarily wire SPACY_EXT as placeholder, will be replaced after Discovery is constructed
 WORKFLOW_MANAGER = JobMiningWorkflowManager(
     text_extractor=TEXT_EXTRACTOR,
-    competence_extractor=COMPETENCE_EXTRACTOR,
+    competence_extractor=SPACY_EXT,  # placeholder
     organization_service=ORG_SERVICE,
     role_service=ROLE_SERVICE,
     metadata_extractor=METADATA_EXTRACTOR
 )
+
+# Discovery extractor needs a reference to the manager
+DISCOVERY_EXT = DiscoveryExtractor(repository=COMPETENCE_REPOSITORY, manager=WORKFLOW_MANAGER)
+
+# Now build the full CompetenceExtractor (passes: Spacy, Fuzzy, Discovery)
+COMPETENCE_EXTRACTOR = CompetenceExtractor(spacy_ext=SPACY_EXT, fuzzy_ext=FUZZY_EXT, discovery_ext=DISCOVERY_EXT)
+# Inject the real competence extractor into the manager
+WORKFLOW_MANAGER.competence_extractor = COMPETENCE_EXTRACTOR
 
 # F. Batch
 DIRECTORY_PROCESSOR = JobDirectoryProcessor(
@@ -151,7 +164,7 @@ def get_role_mappings():
 @app.post("/batch-process")
 async def trigger_batch():
     logger.info("📦 [POST /batch-process] Starte...")
-    results = DIRECTORY_PROCESSOR.process_all_jobs()
+    results = await DIRECTORY_PROCESSOR.process_all_jobs()
     return {
         "status": "completed",
         "count": len(results),

@@ -56,6 +56,15 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
                 spacy.cli.download(MODEL_NAME)
             self.nlp = spacy.load(MODEL_NAME)
 
+        # Kompatibilitäts-Alias: 'extract' wird in der Pipeline erwartet
+        def _extract_alias(doc_or_text):
+            if isinstance(doc_or_text, str):
+                return self.extract_competences(doc_or_text)
+            else:
+                return self.extract_competences(doc_or_text.text)
+
+        self.extract = _extract_alias
+
         self.repository = repository
         self.matcher = PhraseMatcher(self.nlp.vocab, attr="LOWER")
 
@@ -115,33 +124,39 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
                     exact_match = cand
                     break
 
-            # Wenn kein exakter Kandidat gefunden wurde, überspringe (vermeidet "und Kunden beraten"-Fälle)
-            if exact_match is None:
+            # Ermittle, ob es ein Custom-Mapping (z.B. 'jira' -> 'Projektmanagement durchführen') gibt
+            mapped = None
+            if self.esco_service is not None:
+                mapping = getattr(self.esco_service, 'get_esco_mapping', lambda: {})() or {}
+                mapped = mapping.get(term_lower)
+
+            # Debug: Ausgabe der gefundenen Matches (nur beim direkten Testlauf sichtbar)
+            # print(f"DEBUG MATCH: term={term!r}, term_lower={term_lower!r}, exact_match={exact_match}, mapped={mapped}")
+
+            # Wenn weder exakter Kandidat noch Mapping gefunden wurde, überspringe (vermeidet falsche Matches)
+            if exact_match is None and mapped is None:
                 continue
 
-            if term_lower in seen:
+            # Bestimme das kanonische Label (für Deduplizierung): Mapping hat Vorrang
+            canonical_label = (mapped if mapped is not None else exact_match)
+            canonical_label_lower = canonical_label.lower().strip()
+
+            # Dedupliziere nach kanonischem ESCO-Label
+            if canonical_label_lower in seen:
                 continue
 
-            # Blacklist prüfen
-            if term_lower in blacklist:
+            # Blacklist prüfen (sowohl gefundener Term als auch das kanonische Label)
+            if term_lower in blacklist or canonical_label_lower in blacklist:
                 continue
 
-            seen.add(term_lower)
+            seen.add(canonical_label_lower)
 
             # Versuche ESCO Informationen zu holen, falls vorhanden
-            esco_label = term
-            esco_uri = f"custom/{term_lower}"
+            esco_label = canonical_label
+            esco_uri = f"custom/{canonical_label_lower.replace(' ', '_')}"
             esco_group_code = None
 
             try:
-                # Mapping (z.B. 'jira' -> 'Projektmanagement durchführen')
-                mapped = None
-                if self.esco_service is not None:
-                    mapping = getattr(self.esco_service, 'get_esco_mapping', lambda: {})() or {}
-                    mapped = mapping.get(term_lower)
-                    if mapped:
-                        esco_label = mapped
-
                 # Versuche zuerst mit dem (möglicherweise) gemappten Label die URI zu holen
                 label_to_lookup = esco_label
 
@@ -160,13 +175,13 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
 
                 # Falls der gemappte Label-Lookup nicht erfolgreich war, versuche die Kandidaten aus dem Repository zu finden
                 if esco_uri.startswith('custom/'):
-                    # Suche nach Labels, die Teil des gefundenen Terms sind (robust gegen Prefix/Suffix)
+                    # Suche nach Labels, die den gefundenen Term (oder seine kompakte Form) enthalten
                     candidates = self.repository.get_all_identifiable_labels() if hasattr(self.repository, 'get_all_identifiable_labels') else []
                     found = None
                     term_norm = term_lower.replace(' ', '')
                     for cand in candidates:
-                        cand_norm = cand.lower()
-                        if cand_norm in term_lower or cand_norm.replace(' ', '') in term_norm:
+                        cand_norm = cand.lower().replace(' ', '')
+                        if term_lower in cand_norm or term_compact in cand_norm:
                             found = cand
                             break
                     if found:
@@ -210,45 +225,100 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
                 from rapidfuzz import fuzz
 
                 labels = self.repository.get_all_identifiable_labels()
-                tokens = [t.text for t in self.nlp(text)]
+                # Filtere Tokens: alphabetische oder hyphenierte Tokens, keine Stop-Words
+                tokens = [t.text for t in self.nlp(text) if (t.is_alpha or '-' in t.text) and not t.is_stop]
+                if not tokens:
+                    return results
                 max_n = min(4, max((len(l.split()) for l in labels), default=1))
 
                 def ngrams(seq, n):
                     return [seq[i:i+n] for i in range(len(seq)-n+1)]
 
+                # Hole ggf. Custom-Mapping fürs Fallback
+                mapping = getattr(self.esco_service, 'get_esco_mapping', lambda: {})() if self.esco_service is not None else {}
+
+                # 1) Mapping-Pass: suche gezielt nach Mappings in den Tokens (z.B. 'jira', 'nosql')
+                for n in range(1, max_n+1):
+                    for gram in ngrams(tokens, n):
+                        joined = ''.join(gram).lower()
+                        gram_joined_space = ' '.join(gram).lower()
+                        mapped_label = mapping.get(gram_joined_space) or mapping.get(joined)
+                        # Debug
+                        # print(f"MAPPING_PASS: gram={gram_joined_space!r}, mapped_label={mapped_label!r}")
+                        if mapped_label and mapped_label.lower() not in seen:
+                            uri, _id, group = (self.repository.get_esco_uri_and_id(mapped_label) if hasattr(self.repository, 'get_esco_uri_and_id') else (None, None, None))
+                            esco_uri_val = uri if uri else f"custom/{mapped_label.lower().replace(' ', '_')}"
+                            dto = AnalysisResultFactory.create_competence(
+                                original_term=' '.join(gram),
+                                esco_label=mapped_label,
+                                esco_uri=esco_uri_val,
+                                level=self.repository.get_level(mapped_label),
+                                is_digital=self.repository.is_digital_skill(mapped_label),
+                                role_context=role
+                            )
+                            results.append(dto)
+                            seen.add(mapped_label.lower())
+
+                # 2) Label-Scan: substring / fuzzy matching (nur für Labels, die noch nicht gefunden wurden)
                 for label in labels:
-                    norm_label = ''.join(label.split()).lower()
+                    if label.lower() in seen:
+                        continue
+                    # Normiertes, alnum-only Label für Vergleiche (z.B. UX-Testing -> uxtesting)
+                    norm_label_raw = ''.join(label.split()).lower()
+                    norm_label = ''.join(ch for ch in norm_label_raw if ch.isalnum())
                     found = False
                     for n in range(1, max_n+1):
                         for gram in ngrams(tokens, n):
-                            joined = ''.join(gram).lower()
-                            if norm_label in joined:
+                            joined_raw = ''.join(gram).lower()
+                            # Entferne Nicht-Alphanumerische Zeichen für robustere Vergleiche (z.B. UX-Testing -> uxtesting)
+                            joined = ''.join(ch for ch in joined_raw if ch.isalnum())
+
+                            # Substring match (hohe Präzision): kurze joined in längeres norm_label
+                            if joined and joined in norm_label:
                                 # Erzeuge DTO ähnlich wie beim Matcher
+                                esco_uri_val = f"custom/{label.lower().replace(' ', '_')}"
+                                try:
+                                    uri, _id, group = (self.repository.get_esco_uri_and_id(label) if hasattr(self.repository, 'get_esco_uri_and_id') else (None, None, None))
+                                    if uri:
+                                        esco_uri_val = uri
+                                except Exception:
+                                    uri, _id, group = (None, None, None)
+
                                 dto = AnalysisResultFactory.create_competence(
                                     original_term=' '.join(gram),
                                     esco_label=label,
-                                    esco_uri=f"custom/{label.lower().replace(' ', '_')}",
+                                    esco_uri=esco_uri_val,
                                     level=self.repository.get_level(label),
                                     is_digital=self.repository.is_digital_skill(label),
                                     role_context=role
                                 )
-                                results.append(dto)
+                                # Ergänze optional das Gruppen-Attribut falls vorhanden
+                                if group is not None:
+                                    setattr(dto, 'esco_group_code', group)
+
+                                # Dedupliziere nach ESCO-Label
+                                if label.lower() not in seen:
+                                    results.append(dto)
+                                    seen.add(label.lower())
                                 found = True
                                 break
-                            # Fuzzy-Check (falls nötig)
-                            score = fuzz.partial_ratio(norm_label, joined)
-                            if score >= 80:
-                                dto = AnalysisResultFactory.create_competence(
-                                    original_term=' '.join(gram),
-                                    esco_label=label,
-                                    esco_uri=f"custom/{label.lower().replace(' ', '_')}",
-                                    level=self.repository.get_level(label),
-                                    is_digital=self.repository.is_digital_skill(label),
-                                    role_context=role
-                                )
-                                results.append(dto)
-                                found = True
-                                break
+                            # Fuzzy-Check (strenger Threshold um False-Positives zu vermeiden)
+                            if len(joined) >= 3:
+                                score = fuzz.partial_ratio(norm_label, joined)
+                                if score >= 90:
+                                    dto = AnalysisResultFactory.create_competence(
+                                        original_term=' '.join(gram),
+                                        esco_label=label,
+                                        esco_uri=f"custom/{label.lower().replace(' ', '_')}",
+                                        level=self.repository.get_level(label),
+                                        is_digital=self.repository.is_digital_skill(label),
+                                        role_context=role
+                                    )
+                                    if label.lower() not in seen:
+                                        results.append(dto)
+                                        seen.add(label.lower())
+                                    found = True
+                                    break
                         if found:
                             break
             except Exception:

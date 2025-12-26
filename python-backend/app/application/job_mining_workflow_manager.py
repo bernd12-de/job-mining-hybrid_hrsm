@@ -95,7 +95,18 @@ class JobMiningWorkflowManager(IJobMiningWorkflowManager):
         posting_date = meta.get('posting_date') or "2024-12-01"
 
         # Schritt B: Kontext-Erkennung (Branche & Rolle)
-        industry = self.organization_service.detect_industry(text)
+        # Versuche zuerst die neuere detect_industry API, fallback auf classify_industry (Legacy) falls nötig
+        industry = None
+        try:
+            if hasattr(self.organization_service, 'detect_industry'):
+                industry = self.organization_service.detect_industry(text)
+        except Exception:
+            industry = None
+
+        if not isinstance(industry, str):
+            # Fallback
+            industry = getattr(self.organization_service, 'classify_industry', lambda t: None)(text)
+
         role = self.role_service.classify_role(text, meta.get('job_title') or source_name)
 
         # Schritt C: NLP Extraktion (Ebene 1-5)
@@ -114,3 +125,32 @@ class JobMiningWorkflowManager(IJobMiningWorkflowManager):
             is_segmented=meta.get('is_segmented', False),
             competences=competences
         )
+
+    def create_competence_dto(self, **kwargs):
+        """Zentrale Factory-Methode für Extractors (z.B. Discovery).
+        Prüft Blacklist und Validität bevor ein CompetenceDTO erzeugt wird.
+        Gibt None zurück, wenn das DTO verworfen werden soll.
+        """
+        term = kwargs.get('original_term', '')
+        try:
+            # Versuche die Blacklist über das Repository zu prüfen, falls vorhanden
+            repo = getattr(self.competence_extractor, 'repository', None)
+            if repo is not None and hasattr(repo, 'is_blacklisted') and repo.is_blacklisted(term):
+                return None
+        except Exception:
+            pass
+
+        try:
+            return AnalysisResultFactory.create_competence(
+                original_term=kwargs.get('original_term'),
+                esco_label=kwargs.get('esco_label'),
+                esco_uri=kwargs.get('esco_uri'),
+                level=kwargs.get('level', 1),
+                esco_group_code=kwargs.get('esco_group_code'),
+                is_digital=kwargs.get('is_digital', False),
+                is_discovery=kwargs.get('is_discovery', False),
+                role_context=kwargs.get('role_context'),
+                confidence=kwargs.get('confidence_score', 0.7)
+            )
+        except Exception:
+            return None

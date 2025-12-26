@@ -30,8 +30,20 @@ class HybridCompetenceRepository(ICompetenceRepository):
         self.fachbuch_path = fachbuch_path
         self.academia_path = academia_path
 
+        # Indexes für schnelle Abfragen
+        self.esco_data: Dict[str, Dict] = {}
+        self.custom_domains: Dict[str, Dict] = {}
+        self._fachbuch_skills: Set[str] = set()
+        self._academia_skills: Set[str] = set()
+
         # Initial laden
         self._load_data()
+        # Baue Index für schnellen Lookup
+        self._build_esco_index()
+        # Lade lokale Domänen (Ebene 4/5)
+        self._load_local_domains_v2()
+        # Sync für Legacy Sets (fachbuch / academia)
+        self._sync_legacy_sets()
         self._load_custom_skills()
         self._load_dynamic_blacklist()
 
@@ -165,8 +177,151 @@ class HybridCompetenceRepository(ICompetenceRepository):
     def get_all_identifiable_labels(self) -> List[str]:
         return list(self.get_all_skills())
 
+    # Backwards-compatibility: older callers expect get_all_labels()
+    def get_all_labels(self) -> List[str]:
+        return self.get_all_identifiable_labels()
+
     def get_level(self, term: str) -> int:
-        return 3
+        """Determine level priority:
+        5 = Academia (modulhandbuch), 4 = Fachbuch, 2/3 = ESCO, default = 2
+        """
+        if not term:
+            return 2
+        t = term.lower().strip()
+
+        # 1) Academia (level 5)
+        if t in self._academia_skills:
+            return 5
+
+        # 2) Fachbuch (level 4)
+        if t in self._fachbuch_skills:
+            return 4
+
+        # 3) ESCO lookup
+        if t in self.esco_data:
+            try:
+                return int(self.esco_data[t].get('level', 2))
+            except Exception:
+                return 2
+
+        # 4) Heuristik: substring match against ESCO labels
+        for k, v in self.esco_data.items():
+            if t == k or t in k or k in t:
+                try:
+                    return int(v.get('level', 2))
+                except Exception:
+                    return 2
+
+        # Fallback
+        return 2
+
+    def get_data_by_label(self, label: str) -> Dict:
+        """Returns metadata dict for a given label if found in the repository."""
+        if not label:
+            return None
+
+        label_l = label.lower().strip()
+        # 1) direct index
+        if label_l in self.esco_data:
+            return self.esco_data[label_l]
+
+        # 2) search _all_competences as fallback
+        for comp in self._all_competences:
+            try:
+                if getattr(comp, 'preferred_label', '').lower() == label_l:
+                    return {
+                        'uri': getattr(comp, 'esco_uri', None),
+                        'preferredLabel': getattr(comp, 'preferred_label', label),
+                        'level': getattr(comp, 'level', 3),
+                        'is_digital': getattr(comp, 'is_digital', False),
+                        'source_domain': getattr(comp, 'source_domain', 'ESCO')
+                    }
+            except Exception:
+                continue
+        return None
+
+    def _build_esco_index(self):
+        """Builds `self.esco_data` dict from `self._all_competences` for fast lookups."""
+        self.esco_data = {}
+        for comp in self._all_competences:
+            try:
+                lbl = getattr(comp, 'preferred_label', None)
+                if not lbl:
+                    continue
+                key = lbl.lower()
+                self.esco_data[key] = {
+                    'uri': getattr(comp, 'esco_uri', None),
+                    'preferredLabel': lbl,
+                    'level': getattr(comp, 'level', 2),
+                    'is_digital': getattr(comp, 'is_digital', False),
+                    'source_domain': getattr(comp, 'source_domain', 'ESCO')
+                }
+            except Exception:
+                continue
+
+    def _load_local_domains_v2(self):
+        """Loads JSON domains from `data/job_domains` and populates `self.custom_domains`."""
+        self.custom_domains = {}
+        base = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), 'data', 'job_domains')
+        if not os.path.exists(base):
+            return
+        for fname in os.listdir(base):
+            if not fname.endswith('.json'):
+                continue
+            path = os.path.join(base, fname)
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                domain_name = data.get('domain', os.path.splitext(fname)[0])
+                self.custom_domains[domain_name] = data
+            except Exception as e:
+                print(f"⚠️ Fehler beim Laden der Domain {fname}: {e}")
+
+    def _sync_legacy_sets(self):
+        """Populate legacy sets for backward-compatible lookup (fachbuch / academia)."""
+        self._fachbuch_skills = set()
+        self._academia_skills = set()
+        for domain, data in self.custom_domains.items():
+            lvl = data.get('level', 2)
+            for comp in data.get('competences', []):
+                name = comp.get('name')
+                if not name:
+                    continue
+                name_low = name.lower().strip()
+                if lvl == 4:
+                    self._fachbuch_skills.add(name_low)
+                if lvl == 5:
+                    self._academia_skills.add(name_low)
+
+    def is_known(self, term: str) -> bool:
+        """Check if a given term is known in ESCO or custom skills.
+        This returns True for exact matches and for terms that are a meaningful
+        substring of any known label (e.g. 'projektmanagement' -> 'Projektmanagement durchführen').
+        """
+        if not term:
+            return False
+        term_norm = term.lower().strip()
+        # direct ESCO index
+        if term_norm in self.esco_data:
+            return True
+        # custom domains names
+        if term_norm in {n.lower() for n in self.custom_domains.keys()}:
+            return True
+        # heuristic substring match
+        for lbl in self.get_all_skills():
+            lbl_norm = lbl.lower()
+            if term_norm == lbl_norm:
+                return True
+            if term_norm in lbl_norm:
+                return True
+        return False
+
+    def is_blacklisted(self, term: str) -> bool:
+        if not term:
+            return False
+        return term.lower().strip() in {t.lower() for t in self._blacklist}
 
     def is_digital_skill(self, term: str) -> bool:
-        return False
+        if not term:
+            return False
+        return self.esco_data.get(term.lower().strip(), {}).get('is_digital', False)

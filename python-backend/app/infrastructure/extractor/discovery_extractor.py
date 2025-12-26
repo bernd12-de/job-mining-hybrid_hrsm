@@ -37,6 +37,13 @@ class DiscoveryExtractor:
                 if term_lower in seen_in_doc:
                     continue
 
+                # Blacklist prüfen
+                try:
+                    if self.repository.is_blacklisted(term_lower):
+                        continue
+                except Exception:
+                    pass
+
                 # Check gegen die gesamte Wissensbasis (Ebene 2, 4, 5)
                 if not self.repository.is_known(term_lower):
 
@@ -57,3 +64,7 @@ class DiscoveryExtractor:
                         seen_in_doc.add(term_lower)
 
         return discoveries
+
+    # Alias für die generische Pipeline (Kompatibel mit CompetenceExtractor)
+    def extract(self, doc: spacy.tokens.Doc):
+        return self.extract_discoveries(doc)

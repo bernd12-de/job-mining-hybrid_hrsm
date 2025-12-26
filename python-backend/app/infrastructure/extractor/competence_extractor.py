@@ -11,13 +11,25 @@ class CompetenceExtractor(ICompetenceExtractor):
         self.nlp = nlp_model or spacy.load("de_core_news_md")
 
     def extract_competences(self, text: str, role: str) -> List[CompetenceDTO]:
-        """Orchestriert die 3 Extraktions-Pässe."""
-        doc = self.nlp(text)
+        """Backward-compatible wrapper: akzeptiert (text, role)"""
+        return self.extract(text, role)
+
+    def extract(self, text_or_doc, role: str = '') -> List[CompetenceDTO]:
+        """Kompatible, bequeme Extraktionsmethode.
+
+        - Akzeptiert entweder einen spaCy `Doc` oder einen `str` Text.
+        - Führt die drei Pässe (Spacy, Fuzzy, Discovery) aus und normalisiert die Ergebnisse.
+        """
+        # Normalisiere auf ein spaCy Doc
+        if isinstance(text_or_doc, str):
+            doc = self.nlp(text_or_doc)
+        else:
+            doc = text_or_doc
 
         # Extraktion
-        results = self.spacy_ext.extract(doc)       # Pass 1: Matcher (Ebene 2/4/5)
-        results += self.fuzzy_ext.extract_competences(text) # Pass 2: Fuzzy (Varianten)
-        results += self.discovery_ext.extract(doc)  # Pass 3: Discovery (Ebene 1)
+        results = self.spacy_ext.extract(doc)                     # Pass 1: Matcher (Ebene 2/4/5)
+        results += self.fuzzy_ext.extract_competences(doc.text)   # Pass 2: Fuzzy (Varianten)
+        results += self.discovery_ext.extract(doc)               # Pass 3: Discovery (Ebene 1)
 
         # Bereinigung und Typ-Sicherung
         return self._merge_and_level_check(results, role)

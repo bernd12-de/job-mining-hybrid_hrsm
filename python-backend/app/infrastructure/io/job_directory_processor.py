@@ -15,9 +15,10 @@ class JobDirectoryProcessor:
         self.manager = manager
         self.base_path = base_path
 
-    def process_all_jobs(self) -> List[AnalysisResultDTO]:
+    async def process_all_jobs(self) -> List[AnalysisResultDTO]:
         """
         Iteriert über alle validen Dateien im Zielordner und startet die Analyse.
+        Achtung: Async, weil der WorkflowManager asynchrone Analyse-Aufrufe ausführt.
         """
         results: List[AnalysisResultDTO] = []
 
@@ -49,7 +50,7 @@ class JobDirectoryProcessor:
                 with open(file_path, 'rb') as f:
                     # 3. Übergabe an den Manager (Die Brücke)
                     # Der Manager übernimmt ab hier die Verantwortung.
-                    result = self.manager.run_full_analysis(file_object=f, filename=filename)
+                    result = await self.manager.run_full_analysis(file_object=f, filename=filename)
 
                     if result:
                         results.append(result)
