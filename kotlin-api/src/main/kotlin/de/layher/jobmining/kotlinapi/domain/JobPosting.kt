@@ -14,7 +14,7 @@ class JobPosting(
     @Column(nullable = false,length = 1024)
     val title: String,
     @Column(name = "job_role", nullable = false,length = 512)
-    val jobRole: String,
+    var jobRole: String,
 
     @Column(name = "raw_text_hash",nullable = false,columnDefinition = "TEXT",unique = true)
     val rawTextHash: String, // <- Wichtig für Idempotenz und Hashcode

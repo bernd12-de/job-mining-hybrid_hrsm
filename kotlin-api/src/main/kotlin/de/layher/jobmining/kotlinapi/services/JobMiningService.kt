@@ -1,6 +1,7 @@
 package de.layher.jobmining.kotlinapi.services
 
 import de.layher.jobmining.kotlinapi.adapters.PythonAnalysisClient
+import de.layher.jobmining.kotlinapi.adapters.CompetenceDTO
 import de.layher.jobmining.kotlinapi.domain.Competence
 import de.layher.jobmining.kotlinapi.domain.JobPosting
 import de.layher.jobmining.kotlinapi.infrastructure.JobPostingRepository
@@ -14,37 +15,41 @@ class JobMiningService(
     private val repository: JobPostingRepository,
     private val pythonClient: PythonAnalysisClient
 ) {
+
     /**
-     * Einzeldokument-Workflow mit Idempotenz-Prüfung.
+     * Zentrales Mapping: Transformiert ein DTO von Python in eine JPA-Entität.
+     * Nutzt die exakten Variablennamen aus deinem Modell.
+     */
+    private fun mapDtoToEntity(dto: CompetenceDTO, jobPosting: JobPosting): Competence {
+        return Competence(
+            originalTerm = dto.originalTerm,
+            escoLabel = dto.escoLabel,
+            escoUri = dto.escoUri,
+            confidenceScore = dto.confidenceScore,
+            escoGroupCode = dto.escoGroupCode,
+            isDigital = dto.isDigital,       // Ebene 3
+            isDiscovery = dto.isDiscovery,   // Ebene 1
+            level = dto.level,               // Ebene 2, 4 oder 5
+            roleContext = dto.roleContext,   // Ebene 6
+            sourceDomain = dto.sourceDomain   // Ebene 4/5
+        ).apply { this.jobPosting = jobPosting }
+    }
+
+    /**
+     * Einzel-Workflow: PDF/DOCX-Analyse mit Status-Meldungen.
      */
     @Transactional
     fun processJobAd(fileContent: ByteArray, filename: String): JobPosting {
-
+        println("--- 🚀 STARTE ANALYSE: Datei '$filename' wird an Python gesendet...")
         val resultDto = pythonClient.sendDocumentForAnalysis(fileContent, filename)
 
-        // --- IDEMPOTENZ-PRÜFUNG FÜR EINZELDOKUMENT ---
+        // Idempotenz-Check (Ebene 7)
         val existingJob = repository.findByRawTextHash(resultDto.rawTextHash).firstOrNull()
-
         if (existingJob != null) {
-            println("--- 🛡️ IDEMPOTENZ: Stellenanzeige bereits vorhanden. Rückgabe des bestehenden Eintrags (ID: ${existingJob.id}).")
+            println("--- 🛡️ IDEMPOTENZ: Job bereits bekannt (Hash: ${resultDto.rawTextHash.take(8)}...). Überspringe Speicherung.")
             return existingJob
         }
-        // ----------------------------------------------
 
-        val competences = resultDto.competences.map { dto ->
-            Competence(
-                originalTerm = dto.originalTerm,
-                escoLabel = dto.escoLabel,
-                escoUri = dto.escoUri,
-                confidenceScore = dto.confidenceScore,
-                escoGroupCode = dto.escoGroupCode
-            )
-        }
-
-        // Konvertierung zu einem Set VOR der JobPosting-Erstellung
-        val competenceSet = competences.toMutableSet()
-
-        // 🚨 FINALER FIX: Das fehlerhafte Argument wurde entfernt und das Komma nach industry gelöscht.
         val jobPosting = JobPosting(
             title = resultDto.title,
             jobRole = resultDto.jobRole,
@@ -52,53 +57,32 @@ class JobMiningService(
             rawText = resultDto.rawText,
             postingDate = LocalDate.parse(resultDto.postingDate),
             region = resultDto.region,
-            industry = resultDto.industry,
-            isSegmented = resultDto.is_segmented
+            industry = resultDto.industry.take(500),
+            isSegmented = resultDto.is_segmented // Ebene 6 Status
         )
 
-        // Setzen der Kompetenzen auf das erstellte Objekt
-        jobPosting.competences = competenceSet
+        jobPosting.competences = resultDto.competences.map { dto ->
+            mapDtoToEntity(dto, jobPosting)
+        }.toMutableSet()
 
-        // WICHTIGER FIX: Setze die bidirektionale Gegenreferenz (Competence -> JobPosting)
-        jobPosting.competences.forEach { competence ->
-            competence.jobPosting = jobPosting
-        }
-
-
-        return repository.save(jobPosting)
+        val saved = repository.save(jobPosting)
+        println("--- ✅ ERFOLG: Job '${saved.title}' mit ${saved.competences.size} Kompetenzen gespeichert (ID: ${saved.id}).")
+        return saved
     }
 
     /**
-     * Führt den Scraper-Workflow aus (Web-URL).
+     * Scraper-Workflow: Web-URL Analyse mit Feedback.
      */
     @Transactional
     fun processScrapedUrl(url: String, renderJs: Boolean): JobPosting {
-
-        // 1. Aufruf des Python-Scraper-Microservice
+        println("--- 🌐 SCRAPING: Analysiere URL: $url (JS-Rendering: $renderJs)")
         val resultDto = pythonClient.scrapeAndAnalyzeUrl(url, renderJs)
 
-        // --- IDEMPOTENZ-PRÜFUNG ---
         val existingJob = repository.findByRawTextHash(resultDto.rawTextHash).firstOrNull()
-
         if (existingJob != null) {
-            println("--- 🛡️ IDEMPOTENZ (URL): Stellenanzeige bereits vorhanden. Rückgabe des bestehenden Eintrags (ID: ${existingJob.id}).")
+            println("--- 🛡️ IDEMPOTENZ: Web-Anzeige bereits vorhanden.")
             return existingJob
         }
-        // -----------------------------
-
-        // 2. Mapping und Speicherung
-        val competences = resultDto.competences.map { dto ->
-            Competence(
-                originalTerm = dto.originalTerm,
-                escoLabel = dto.escoLabel,
-                escoUri = dto.escoUri,
-                confidenceScore = dto.confidenceScore,
-                escoGroupCode = dto.escoGroupCode
-            )
-        }
-
-        // Konvertierung zu einem Set VOR der JobPosting-Erstellung
-        val competenceSet = competences.toMutableSet()
 
         val jobPosting = JobPosting(
             title = resultDto.title,
@@ -111,57 +95,31 @@ class JobMiningService(
             isSegmented = resultDto.is_segmented
         )
 
-        // Setzen der Kompetenzen auf das erstellte Objekt
-        jobPosting.competences = competenceSet
+        jobPosting.competences = resultDto.competences.map { dto ->
+            mapDtoToEntity(dto, jobPosting)
+        }.toMutableSet()
 
-        // WICHTIGER FIX: Setze die bidirektionale Gegenreferenz (Competence -> JobPosting)
-        jobPosting.competences.forEach { competence ->
-            competence.jobPosting = jobPosting
-        }
-
-        return repository.save(jobPosting)
+        val saved = repository.save(jobPosting)
+        println("--- ✅ ERFOLG: Web-Anzeige '${saved.title}' erfolgreich indexiert.")
+        return saved
     }
 
     /**
-     * Löscht alle gespeicherten JobPostings.
-     */
-    @Transactional
-    fun deleteAllPostings(): Long {
-        val count = repository.count()
-        repository.deleteAll()
-        println("--- ⚠️ ADMIN: Datenbank bereinigt. $count Einträge gelöscht.")
-        return count
-    }
-
-    /**
-     * Batch-Analyse aller lokalen Dateien mit Idempotenz-Prüfung.
+     * Batch-Analyse: Verarbeitet alle lokalen Dateien für die Zeitreihenanalyse.
      */
     @Transactional
     fun processJobDirectoryBatch(): List<JobPosting> {
+        println("--- 📂 BATCH-PROZESS: Starte Massenverarbeitung lokaler Dateien...")
         val resultsDto = pythonClient.processLocalJobDirectory()
         val jobPostingsToSave = mutableListOf<JobPosting>()
-
-        // 🛡️ Set zur Verfolgung von Hashes innerhalb DIESES Batch-Laufs
         val seenHashesInBatch = mutableSetOf<String>()
         var countIgnored = 0
 
         resultsDto.forEach { resultDto ->
             val hash = resultDto.rawTextHash
 
-            // 1. Check gegen DB UND 2. Check gegen aktuelle Batch-Liste
             if (repository.findByRawTextHash(hash).firstOrNull() == null && !seenHashesInBatch.contains(hash)) {
-
-                seenHashesInBatch.add(hash) // Hash registrieren
-
-                val competences = resultDto.competences.map { dto ->
-                    Competence(
-                        originalTerm = dto.originalTerm,
-                        escoLabel = dto.escoLabel,
-                        escoUri = dto.escoUri,
-                        confidenceScore = dto.confidenceScore,
-                        escoGroupCode = dto.escoGroupCode
-                    )
-                }.toMutableSet()
+                seenHashesInBatch.add(hash)
 
                 val jobPosting = JobPosting(
                     title = resultDto.title.take(1000),
@@ -174,28 +132,35 @@ class JobMiningService(
                     isSegmented = resultDto.is_segmented
                 )
 
-                jobPosting.competences = competences
-                jobPosting.competences.forEach { it.jobPosting = jobPosting }
+                jobPosting.competences = resultDto.competences.map { dto ->
+                    mapDtoToEntity(dto, jobPosting)
+                }.toMutableSet()
+
                 jobPostingsToSave.add(jobPosting)
             } else {
                 countIgnored++
             }
         }
 
-        println("--- 🛡️ BATCH: $countIgnored Einträge ignoriert. ${jobPostingsToSave.size} neue Einträge werden gespeichert.")
-        return repository.saveAll(jobPostingsToSave)
-    }
-    // In JobMiningService.kt hinzufügen
-    @Transactional(readOnly = true)
-    fun getAllStoredJobs(): List<JobPosting> {
-        return repository.findAll()
+        val finalSaved = repository.saveAll(jobPostingsToSave)
+        println("--- 🛡️ BATCH-ABSCHLUSS: $countIgnored Duplikate ignoriert. ${finalSaved.size} neue Jobs erfolgreich in DB importiert.")
+        return finalSaved
     }
 
-    /**
-     * Aggregiert die Top-N der am häufigsten in allen gespeicherten Stellenanzeigen
-     */
+    @Transactional
+    fun deleteAllPostings(): Long {
+        val count = repository.count()
+        repository.deleteAll()
+        println("--- ⚠️ ADMIN: Datenbank wurde komplett bereinigt ($count Einträge gelöscht).")
+        return count
+    }
+
+    @Transactional(readOnly = true)
+    fun getAllStoredJobs(): List<JobPosting> = repository.findAll()
+
     @Transactional(readOnly = true)
     fun getTopCompetenceTrends(limit: Int = 5): List<CompetenceReportDTO> {
+        println("--- 📊 REPORTING: Berechne Top $limit Kompetenz-Trends...")
         val results = repository.findTopCompetencesByCount(limit)
         return results.map { array ->
             CompetenceReportDTO(

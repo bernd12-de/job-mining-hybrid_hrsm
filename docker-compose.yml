@@ -11,7 +11,7 @@ services:
       # Verlinkung zur Datenbank und zum Python-Service
       SPRING_DATASOURCE_URL: jdbc:postgresql://jobmining-db:5432/jobmining_db
       PYTHON_API_URL: http://python-backend:8000
-        - ESCO_DATA_PATH=/app/data/esco
+      ESCO_DATA_PATH: /app/data/esco
     depends_on:
       - jobmining-db
       - python-backend
@@ -25,6 +25,11 @@ services:
     build: ./python-backend
     ports:
       - "8000:8000"
+    environment:
+      # ZENTRALE DEFINITION: Hier sagen wir Python, wo Kotlin wohnt.
+      # "kotlin-api" ist der Service-Name aus Zeile 3 dieser Datei.
+      KOTLIN_API_URL: http://kotlin-api:8080
+      BASE_DATA_DIR: /app/data
     # Wichtig: Bindet den lokalen Datenordner in den Container ein (für ESCO-Dateien)
     volumes:
       - ./data:/app/data

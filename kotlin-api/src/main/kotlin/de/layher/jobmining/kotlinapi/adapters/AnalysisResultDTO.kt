@@ -28,7 +28,20 @@ data class CompetenceDTO @JsonCreator constructor(
 
     // Optional, da Custom Skills keinen ESCO Group Code haben
     @JsonProperty("esco_group_code")
-    val escoGroupCode: String? = null
+    val escoGroupCode: String? = null,
+
+
+    // --- NEU: Flags von Python empfangen ---
+    @JsonProperty("is_digital")
+    val isDigital: Boolean = false,
+
+    @JsonProperty("is_discovery")
+    val isDiscovery: Boolean = false,
+    // ---------------------------------------
+
+    @JsonProperty("level") val level: Int = 2, // 2=ESCO, 4=Fachbuch, 5=Uni
+    @JsonProperty("role_context") val roleContext: String? = null,
+    @JsonProperty("source_domain") val sourceDomain: String? = null
 )
 
 /**
@@ -62,4 +75,5 @@ data class AnalysisResultDTO @JsonCreator constructor(
 
     @JsonProperty("competences") // Das Feld war bereits korrekt annotiert
     val competences: List<CompetenceDTO>
+
 )

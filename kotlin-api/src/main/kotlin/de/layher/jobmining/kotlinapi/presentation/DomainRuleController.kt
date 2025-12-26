@@ -26,7 +26,7 @@ class DomainRuleController(
 
     @Operation(
         summary = "Rollen-Mappings abrufen",
-        description = "Gibt aktive Mappings von Rolle (Key) zu Regex-Muster (Value) zurück. Wird vom Python-Backend verwendet."
+        description = "Gibt aktive Mappings von Rolle (Key) zu Regex-Muster (Value) zurück."
     )
     @GetMapping("/role-mappings")
     fun getRoleMappings(): ResponseEntity<Map<String, String>> {
@@ -34,13 +34,12 @@ class DomainRuleController(
         return ResponseEntity.ok(mappings)
     }
 
-    @Operation( // <--- NEUER ENDPUNKT (KORRIGIERT)
+    @Operation(
         summary = "Branchen-Mappings abrufen",
-        description = "Gibt aktive Mappings von Branche (Key) zu Regex-Muster (Value) zurück. Wird vom Python-Backend verwendet."
+        description = "Gibt aktive Mappings von Branche (Key) zu Regex-Muster (Value) zurück."
     )
-    @GetMapping("/industry-mappings") // 🚨 KRITISCHER FIX: NUR der relative Pfad
+    @GetMapping("/industry-mappings")
     fun getIndustryMappings(): ResponseEntity<Map<String, String>> {
-        // 🚨 KRITISCHER FIX: Korrekter Aufruf der existierenden Methode
         val mappings = domainRuleService.getActiveIndustryMappings()
         return ResponseEntity.ok(mappings)
     }
@@ -48,24 +47,19 @@ class DomainRuleController(
     @Operation(summary = "Vollständige ESCO-Wissensbasis abrufen")
     @GetMapping("/esco-full")
     fun getFullEscoKnowledgeBase(): ResponseEntity<List<CompetenceDTO>> {
-        // Holt alle 31.655 Begriffe aus dem Service
         val allSkills = domainRuleService.getAllCompetences()
         return ResponseEntity.ok(allSkills)
     }
 
-    // In DomainRuleController.kt
+    // --- HIER WAR DER FEHLER (Doppelte Klasse entfernt) ---
 
-    @RestController
-    @RequestMapping("/api/v1/rules")
-    class DomainRuleController(private val domainRuleService: DomainRuleService) {
-
-        @Operation(summary = "SSoT-Statistik abrufen", description = "Liefert Mengen und Qualitäts-Metriken.")
-        @GetMapping("/stats")
-        fun getStats(): ResponseEntity<Map<String, Any>> {
-            // Der Controller delegiert die Arbeit an den Service
-            return ResponseEntity.ok(domainRuleService.getKnowledgeBaseStats())
-        }
+    @Operation(summary = "SSoT-Statistik abrufen", description = "Liefert Mengen und Qualitäts-Metriken.")
+    @GetMapping("/stats")
+    fun getStats(): ResponseEntity<Map<String, Any>> {
+        return ResponseEntity.ok(domainRuleService.getKnowledgeBaseStats())
     }
-    // Zukünftige Endpunkte (z.B. POST /rules/blacklist zum Hinzufügen über Admin-UI)
-    // ...
+
+
 }
+// Zukünftige Endpunkte (z.B. POST /rules/blacklist zum Hinzufügen über Admin-UI)
+// ...

@@ -20,5 +20,10 @@ interface DomainRuleRepository : JpaRepository<DomainRule, Long> {
     // 🚨 FIX: Diese Methode fehlte und verursachte den 'Unresolved reference' Fehler
     fun findByRuleTypeAndRuleKey(ruleType: String, ruleKey: String): List<DomainRule>
 
+    // Diese Methode prüft, ob ein Begriff (z.B. 'Scrum') bereits existiert
+    // Für den schnellen Integritäts-Check (Boolean)
+    fun existsByRuleKey(ruleKey: String): Boolean
+
+
 
 }

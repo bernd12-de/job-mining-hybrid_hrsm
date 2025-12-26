@@ -4,7 +4,9 @@ import jakarta.persistence.*
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "domain_rule")
+@Table(name = "domain_rule", uniqueConstraints = [
+    UniqueConstraint(columnNames = ["rule_type", "rule_key"])
+])
 data class DomainRule(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

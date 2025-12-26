@@ -49,7 +49,7 @@ class PythonAnalysisClient(
             }
 
             val requestEntity = HttpEntity(body, headers)
-            val url = "$pythonApiBaseUrl/analyse"
+            val url = "$pythonApiBaseUrl/analyse/file"
 
             val response = restTemplate.postForEntity(url, requestEntity, AnalysisResultDTO::class.java)
 
@@ -98,8 +98,10 @@ class PythonAnalysisClient(
      * NEU: Fängt HTTP-Fehler ab, um die Jackson-Deserialisierungs-Warnung zu vermeiden.
      */
     fun scrapeAndAnalyzeUrl(url: String, renderJs: Boolean = false): AnalysisResultDTO {
-        val requestUrl = "$pythonApiBaseUrl/scrape-url"
+        val requestUrl = "$pythonApiBaseUrl/analyse/scrape-url"
+        // WICHTIG: renderJs wird durch @JsonProperty("render_js") im DTO korrekt gemappt
         val requestBody = URLInput(url, renderJs)
+
 
         try {
             // Führt den POST Request durch und mappt das Ergebnis
@@ -122,6 +124,54 @@ class PythonAnalysisClient(
 
         } catch (e: ResourceAccessException) {
             throw RuntimeException("Verbindungsfehler zum Python-Backend: Ist der Service gestartet? Fehler: ${e.message}")
+        }
+    }
+
+    // In PythonAnalysisClient.kt
+    /**
+     * Python mitteilen, Kotlin ist aktiv
+     */
+    fun triggerKnowledgeRefresh(): String {
+        val url = "$pythonApiBaseUrl/internal/admin/refresh-knowledge"
+        println("📡 Sende Refresh-Signal an Python: $url")
+
+        return try {
+            // Wir senden einen leeren POST Request
+            val response = restTemplate.postForEntity(url, null, Map::class.java)
+
+            if (response.statusCode.is2xxSuccessful) {
+                "✅ Python Refresh erfolgreich! Status: ${response.body?.get("status")}"
+            } else {
+                "⚠️ Python hat mit Fehler geantwortet: ${response.statusCode}"
+            }
+        } catch (e: Exception) {
+            println("❌ Fehler beim Senden des Refresh-Signals: ${e.message}")
+            "❌ Fehler: Konnte Python nicht erreichen. (${e.message})"
+        }
+    }
+
+    /**
+     * 5. CHECK HEALTH (Admin: Status prüfen)
+     * FIX: Nutzt 'exchange' statt 'getForEntity', um den Map-Typ strikt festzulegen.
+     */
+    fun checkHealth(): Map<String, Any> {
+        return try {
+            val url = "$pythonApiBaseUrl/system/status"
+
+            // Wir sagen Spring explizit: "Wir wollen eine Map<String, Any>"
+            val responseType = object : ParameterizedTypeReference<Map<String, Any>>() {}
+
+            val response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                null,
+                responseType
+            )
+
+            response.body ?: mapOf("status" to "UNKNOWN")
+        } catch (e: Exception) {
+            // Falls Python tot ist, geben wir das sauber zurück
+            mapOf("status" to "OFFLINE", "error" to (e.message ?: "Unknown"))
         }
     }
 }

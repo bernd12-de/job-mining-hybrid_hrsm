@@ -1,97 +1,177 @@
-# main.py
+import os
+import logging
+import uvicorn
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
+from typing import List, Dict
 
-# --- INFRASTRUKTUR & DOMAIN IMPORTS ---
-from advanced_text_extractor import AdvancedTextExtractor
-from interfaces import IJobMiningWorkflowManager, ITextExtractor, ICompetenceExtractor
-from job_mining_workflow_manager import JobMiningWorkflowManager
+# --- 1. KORREKTE IMPORTE (Mit 'app.' Prefix) ---
+from app.domain.models import AnalysisResultDTO
+from app.interfaces.interfaces import IJobMiningWorkflowManager
 
-from repositories.hybrid_competence_repository import HybridCompetenceRepository
-from infrastructure.extractor.spacy_competence_extractor import SpaCyCompetenceExtractor
-from infrastructure.clients.kotlin_rule_client import KotlinRuleClient
-from api_endpoints import scrape_and_analyze_url, analyse_job_ad, batch_process_local_jobs, URLInput
+# Infrastruktur
+from app.infrastructure.clients.kotlin_rule_client import KotlinRuleClient
+from app.infrastructure.repositories.hybrid_competence_repository import HybridCompetenceRepository
+from app.infrastructure.extractor.advanced_text_extractor import AdvancedTextExtractor
+from app.infrastructure.extractor.spacy_competence_extractor import SpaCyCompetenceExtractor
+from app.infrastructure.extractor.metadata_extractor import MetadataExtractor
+from app.infrastructure.io.job_directory_processor import JobDirectoryProcessor
 
-from domain.services.organization_service import OrganizationService
-from domain.services.role_service import RoleService
-from job_directory_processor import JobDirectoryProcessor
-from typing import List
-from models import AnalysisResultDTO
+# Domain Services
+from app.application.services.organization_service import OrganizationService
+from app.application.services.role_service import RoleService
+
+# Orchestrator
+from app.application.job_mining_workflow_manager import JobMiningWorkflowManager
+
+# API Helper
+from app.core.api_endpoints import scrape_and_analyze_url, URLInput
+
+# --- 2. SETUP & LOGGING ---
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("JobMiningBackend")
+
+BASE_DATA_DIR = os.getenv("BASE_DATA_DIR", "data")
+JOB_DIR = os.path.join(BASE_DATA_DIR, "jobs")
+
+app = FastAPI(title="Job Mining Python Analysis Engine", version="2.3.0")
+
 # =========================================================
-# 1. Globale Instanziierung (SINGLETONS)
+# 3. SYSTEM-VERDRAHTUNG (WIRING)
 # =========================================================
+logger.info("🔧 Initialisiere Komponenten...")
 
-# Infrastruktur-Clients
+# A. Basis (SSoT)
 RULE_CLIENT = KotlinRuleClient()
-TEXT_EXTRACTOR: ITextExtractor = AdvancedTextExtractor()
 
-# Domain/Repository (injiziert den Client)
-# KERN-FIX: Das Repository lädt jetzt ALLES (ESCO + Custom) selbständig intern
+# Repository (Keine Selbst-Importe mehr!)
 COMPETENCE_REPOSITORY = HybridCompetenceRepository(rule_client=RULE_CLIENT)
 
-# Extractor (injiziert das Repository)
-COMPETENCE_EXTRACTOR: ICompetenceExtractor = SpaCyCompetenceExtractor(repository=COMPETENCE_REPOSITORY)
+# B. Extraktoren
+TEXT_EXTRACTOR = AdvancedTextExtractor()
+METADATA_EXTRACTOR = MetadataExtractor()
 
-# Services
-ORGANIZATION_SERVICE = OrganizationService(rule_client=RULE_CLIENT)
-ROLE_SERVICE = RoleService(rule_client=RULE_CLIENT)
+# C. Services (FIX: RuleClient wird übergeben!)
+ORG_SERVICE = OrganizationService(rule_client=RULE_CLIENT)
 
+# RoleService (Fehlerabfangung, falls alte Version ohne Client)
+try:
+    ROLE_SERVICE = RoleService(rule_client=RULE_CLIENT)
+except TypeError:
+    logger.info("ℹ️ RoleService nutzt Standard-Init (kein RuleClient).")
+    ROLE_SERVICE = RoleService()
 
+# D. NLP
+COMPETENCE_EXTRACTOR = SpaCyCompetenceExtractor(repository=COMPETENCE_REPOSITORY)
 
-# Workflow Manager
-WORKFLOW_MANAGER: IJobMiningWorkflowManager = JobMiningWorkflowManager(
+# E. Manager
+WORKFLOW_MANAGER = JobMiningWorkflowManager(
     text_extractor=TEXT_EXTRACTOR,
     competence_extractor=COMPETENCE_EXTRACTOR,
-    organization_service=ORGANIZATION_SERVICE,
-    role_service=ROLE_SERVICE
+    organization_service=ORG_SERVICE,
+    role_service=ROLE_SERVICE,
+    metadata_extractor=METADATA_EXTRACTOR
 )
 
-# Instanziierung (Der Prozessor braucht den WorkflowManager)
-# 1. Den Prozessor erstellen und den vorhandenen WORKFLOW_MANAGER übergeben
-# Stelle sicher, dass "JobDirectoryProcessor" importiert wurde
+# F. Batch
 DIRECTORY_PROCESSOR = JobDirectoryProcessor(
     manager=WORKFLOW_MANAGER,
-    base_path="data/jobs")
+    base_path=JOB_DIR
+)
 
-app = FastAPI()
+logger.info("✅ System erfolgreich verdrahtet.")
 
-# --- DEPENDENCY INJECTION ---
-def get_workflow_manager() -> IJobMiningWorkflowManager:
-    return WORKFLOW_MANAGER
 
-# --- ENDPUNKTE ---
+# =========================================================
+# 4. API ENDPUNKTE (ANGEPASST AN KOTLIN-ERWARTUNG)
+# =========================================================
 
-@app.post("/analyse")
-async def handle_analyse(file: UploadFile = File(...), manager: IJobMiningWorkflowManager = Depends(get_workflow_manager)):
-    return analyse_job_ad(file=file, manager=manager)
+@app.on_event("startup")
+async def startup_event():
+    logger.info("🚀 API startet...")
+    if not os.path.exists(JOB_DIR):
+        os.makedirs(JOB_DIR, exist_ok=True)
 
-@app.post("/scrape-url")
-async def handle_scrape(url_input: URLInput, manager: IJobMiningWorkflowManager = Depends(get_workflow_manager)):
-    return scrape_and_analyze_url(url_input=url_input, manager=manager)
+    # Check Repo
+    if len(COMPETENCE_REPOSITORY.get_all_skills()) == 0:
+        logger.warning("⚠️ Repository leer. Trigger Nachladen...")
+        if hasattr(COMPETENCE_REPOSITORY, "_load_data"):
+            COMPETENCE_REPOSITORY._load_data()
 
-# 2. Den Endpunkt für Kotlin registrieren
-@app.post("/batch-process", response_model=List[AnalysisResultDTO])
-async def run_batch_analysis():
-    """
-    Dieser Endpunkt wird von Kotlin aufgerufen.
-    Er triggert den Batch-Lauf über den DirectoryProcessor.
-    """
-    # Ruft die Methode auf, die du vorhin in der Datei JobDirectoryProcessor hattest
-    return DIRECTORY_PROCESSOR.process_all_jobs()
 
-# In main.py hinzufügen:
-@app.get("/health")
-async def  health_check():
-    return {"status": "online"}
+# --- PFAD-FIX 1: /analyse/file statt /analyse ---
+@app.post("/analyse/file", response_model=AnalysisResultDTO)
+async def analyze_file(file: UploadFile = File(...)):
+    """Upload-Endpunkt für Kotlin (PDF/DOCX)."""
+    logger.info(f"📥 [POST /analyse/file] Datei: {file.filename}")
+    try:
+        return await WORKFLOW_MANAGER.run_full_analysis(file.file, file.filename)
+    except Exception as e:
+        logger.error(f"❌ Fehler: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/health/esco-count")
-async def get_esco_count():
-    """Gibt die geladene ESCO-Kompetenzanzahl direkt aus dem Repository zurück."""
+
+# --- PFAD-FIX 2: /analyse/scrape-url statt /scrape-url ---
+@app.post("/analyse/scrape-url", response_model=AnalysisResultDTO)
+async def scrape_url_endpoint(url_input: URLInput):
+    """Scraping-Endpunkt."""
+    logger.info(f"🌍 [POST /analyse/scrape-url] URL: {url_input.url}")
+    return scrape_and_analyze_url(url_input, manager=WORKFLOW_MANAGER)
+
+
+# --- PFAD-FIX 3: /system/status statt /health ---
+@app.get("/system/status")
+def system_status():
+    """Health-Check für Kotlin."""
     return {
-        "status": "OK",
-        "esco_label_count": len(COMPETENCE_REPOSITORY.get_all_skills()),
-        "custom_label_count": len(COMPETENCE_REPOSITORY.get_custom_only()),
-        "total_competences": len(COMPETENCE_REPOSITORY.get_all_skills())
+        "status": "UP",
+        "service": "python-backend",
+        "skills_loaded": len(COMPETENCE_REPOSITORY.get_all_skills())
+    }
+
+# --- PFAD-FIX 4: /role-mappings (NEU) ---
+@app.get("/role-mappings")
+def get_role_mappings():
+    """
+    Gibt die aktiven Rollen-Mappings zurück, damit Kotlin den Status prüfen kann.
+    """
+    # Versuche Mappings aus dem RoleService oder RuleClient zu holen
+    mappings = {}
+    if hasattr(ROLE_SERVICE, 'role_mappings'):
+        mappings = ROLE_SERVICE.role_mappings
+    elif hasattr(RULE_CLIENT, '_get_static_fallback_role_mappings'):
+        mappings = RULE_CLIENT._get_static_fallback_role_mappings()
+
+    return {
+        "count": len(mappings),
+        "mappings": mappings
     }
 
 
+# Bestehende Pfade (waren bereits korrekt/grün)
+@app.post("/batch-process")
+async def trigger_batch():
+    logger.info("📦 [POST /batch-process] Starte...")
+    results = DIRECTORY_PROCESSOR.process_all_jobs()
+    return {
+        "status": "completed",
+        "count": len(results),
+        "message": f"{len(results)} Dateien analysiert."
+    }
 
+@app.post("/internal/admin/refresh-knowledge")
+def refresh_knowledge():
+    logger.info("🔄 [POST /refresh-knowledge] Refresh...")
+    if hasattr(COMPETENCE_REPOSITORY, "_load_data"):
+        COMPETENCE_REPOSITORY._load_data()
+        COMPETENCE_REPOSITORY._load_custom_skills()
+        COMPETENCE_REPOSITORY._load_dynamic_blacklist()
+
+    global COMPETENCE_EXTRACTOR, WORKFLOW_MANAGER
+    COMPETENCE_EXTRACTOR = SpaCyCompetenceExtractor(repository=COMPETENCE_REPOSITORY)
+    WORKFLOW_MANAGER.competence_extractor = COMPETENCE_EXTRACTOR
+
+    return {"status": "refreshed", "skills": len(COMPETENCE_REPOSITORY.get_all_skills())}
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)

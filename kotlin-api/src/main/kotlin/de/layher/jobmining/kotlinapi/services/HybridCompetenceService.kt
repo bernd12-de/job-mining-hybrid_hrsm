@@ -1,40 +1,60 @@
 package de.layher.jobmining.kotlinapi.services
 
-import de.layher.jobmining.kotlinapi.infrastructure.EscoDataRepository
-import de.layher.jobmining.kotlinapi.infrastructure.JobPostingRepository
 import de.layher.jobmining.kotlinapi.infrastructure.bridge.PythonNlpBridge
+import de.layher.jobmining.kotlinapi.infrastructure.JobPostingRepository
+import de.layher.jobmining.kotlinapi.infrastructure.EscoDataRepository
+import de.layher.jobmining.kotlinapi.infrastructure.CompetenceRepository // 🚨 WICHTIG: Repository hinzufügen
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import de.layher.jobmining.kotlinapi.domain.Competence
 
 @Service
 class HybridCompetenceService(
-    private val pythonClient: PythonNlpBridge, // Ruft Python-Script/API auf
+    private val pythonBridge: PythonNlpBridge,
     private val escoRepo: EscoDataRepository,
-    private val jobRepo: JobPostingRepository, // 🚨 FIX: Ersetzt 'DatabaseHandler'
-    private val domainRuleService: DomainRuleService // 🚨 NEU: Für den Blacklist-Check
+    private val jobRepo: JobPostingRepository,
+    private val competenceRepo: CompetenceRepository // 🚨 Hinzugefügt für das Speichern
 ) {
 
-    fun processJob(jobId: Long, jobText: String) {
-        // A. Extraktion (Python liefert Roh-Labels)
-        // 🚨 FIX: Die Bridge-Methode heißt meist 'analyze' oder 'extractCompetences'
-        val rawLabels = pythonClient.analyze(jobText)
-
-        // B. Mapping & Filterung in Kotlin (Sinn-Ebene)
-        val enrichedSkills = rawLabels
-            // 🚨 FIX: Nutzt den DB-gestützten Service statt einer statischen Liste
-            .filterNot { domainRuleService.isBlacklisted(it) }
-            // 🚨 FIX: Methode im Repo heißt 'getSkillByLabel'
-            .mapNotNull { escoRepo.getSkillByLabel(it) }
-
-        // C. Analyse
-        val digitalCount = enrichedSkills.count { it.isDigital }
-        val share = if (enrichedSkills.isNotEmpty()) {
-            digitalCount.toDouble() / enrichedSkills.size
-        } else 0.0
-
-        // D. Speichern des Audits / Ergebnisses
-        jobRepo.findById(jobId).ifPresent { job ->
-            // Hier können Ergebnisse am Job-Objekt gespeichert werden
-            jobRepo.save(job)
+    @Transactional
+    fun processAndSave(jobId: Long, text: String) {
+        // 1. Hole das Job-Posting aus der DB
+        val job = jobRepo.findById(jobId).orElseThrow {
+            IllegalArgumentException("Job mit ID $jobId nicht gefunden")
         }
+
+        // 2. Extraktion via Python (Ebenen 1-5 + 6 werden dort bestimmt)
+        // Die Bridge muss ein AnalysisResultDTO zurückgeben
+        val analysisResult = pythonBridge.analyzeFull(text.toByteArray(), "scan.txt")
+
+        // 3. Transformation der DTOs in Domain-Entitäten
+        val newCompetences = analysisResult.competences.map { dto ->
+            // FIX: Wir müssen ALLE Pflichtfelder aus deinem DB-Schema befüllen!
+            Competence(
+                originalTerm = dto.originalTerm,
+                escoLabel = dto.escoLabel,
+                escoUri = dto.escoUri,
+                confidenceScore = dto.confidenceScore,
+
+                // Neue Felder aus deinem V2 Schema
+                level = dto.level,
+                sourceDomain = dto.sourceDomain ?: "Hybrid-Analysis",
+                isDigital = dto.isDigital,
+                isDiscovery = dto.isDiscovery,
+                roleContext = analysisResult.jobRole, // Dynamisch aus der Analyse
+
+
+            ).apply { this.jobPosting = job }
+        }
+
+        // 4. In die DB schreiben
+        competenceRepo.saveAll(newCompetences)
+
+        // 5. Metadaten am Job aktualisieren (Ebene 6)
+        job.isSegmented = analysisResult.is_segmented
+        job.jobRole = analysisResult.jobRole
+        jobRepo.save(job)
+
+        println("--- ✅ HYBRID-UPDATE: Job ${job.id} mit ${newCompetences.size} Skills nachqualifiziert.")
     }
 }

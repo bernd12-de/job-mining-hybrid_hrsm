@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 // Importieren Sie das neue DTO
 import de.layher.jobmining.kotlinapi.presentation.CompetenceReportDTO
 import org.springframework.http.ResponseEntity
+import de.layher.jobmining.kotlinapi.adapters.PythonAnalysisClient
 
 // Modell für den URL-Input vom Frontend
 data class URLRequest(val url: String)
@@ -20,7 +21,9 @@ data class URLRequest(val url: String)
 @RestController
 @RequestMapping("/api/v1/jobs")
 class JobController(
-    private val jobMiningService: JobMiningService
+    private val jobMiningService: JobMiningService,
+    // 👇 HIER kommt der "Client" her. Das ist einfach deine Klasse aus 'adapters/'
+    private val pythonClient: PythonAnalysisClient
 ) {
 
     @Operation(
@@ -105,4 +108,31 @@ class JobController(
         val jobs = jobMiningService.getAllStoredJobs()
         return ResponseEntity.ok(jobs)
     }
+
+    @PostMapping("/admin/sync-python-knowledge")
+    fun syncPythonKnowledge(): ResponseEntity<String> {
+        // Hier benutzt du die "Fernbedienung", um Python den Befehl zu senden
+        val result = pythonClient.triggerKnowledgeRefresh()
+        return ResponseEntity.ok(result)
+    }
+
+    // In JobController.kt (oder DomainRuleController)
+
+    @Operation(summary = "ADMIN: System-Status prüfen")
+    @GetMapping("/admin/system-health")
+    fun checkSystemHealth(): ResponseEntity<Map<String, Any>> {
+        // FIX: Hier rufen wir jetzt den Client auf, statt selbst HTTP zu machen!
+        // Der Client hat Zugriff auf restTemplate und Url.
+        val pythonStatus = pythonClient.checkHealth()
+
+        val fullStatus = mapOf(
+            "kotlin_backend" to "ONLINE",
+            "database" to "CONNECTED",
+            "python_worker" to pythonStatus
+        )
+        return ResponseEntity.ok(fullStatus)
+    }
+
+
+
 }

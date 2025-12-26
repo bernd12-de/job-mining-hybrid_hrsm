@@ -1,10 +1,10 @@
 # test_competence_extractor.py
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 # Annahme: Der Extractor liegt unter:
 # python-backend.infrastructure.nlp
-from infrastructure.extractor.spacy_competence_extractor import SpaCyCompetenceExtractor
+from app.infrastructure.extractor.spacy_competence_extractor import SpaCyCompetenceExtractor
 
 # =========================================================
 # 🛠️ Fixtures und Setup

@@ -27,6 +27,12 @@ def export_job_mining_data():
                 EXTRACT(YEAR FROM j.posting_date) as jahr,
                 c.esco_label,
                 c.esco_uri,
+                c.original_term,
+                c.is_digital,
+                c.level,
+                c.is_discovery,
+                c.source_domain,
+                c.role_context
                 c.confidence_score
             FROM job_posting j
                      LEFT JOIN competence c ON j.id = c.job_posting_id
@@ -38,6 +44,9 @@ def export_job_mining_data():
         cur = conn.cursor()
         cur.execute(query)
         rows = cur.fetchall()
+        colnames = [desc[0] for desc in cur.description]
+
+        # Die Spaltennamen werden automatisch aus dem Query übernommen
         colnames = [desc[0] for desc in cur.description]
 
         with open(output_file, 'w', newline='', encoding='utf-8-sig') as f:

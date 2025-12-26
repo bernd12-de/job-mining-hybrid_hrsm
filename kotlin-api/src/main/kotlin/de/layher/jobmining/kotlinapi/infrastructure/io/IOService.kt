@@ -29,4 +29,21 @@ class IOService(
         val directory = File("$basePath/jobs")
         return directory.listFiles()?.filter { it.isFile } ?: emptyList()
     }
+
+    /**
+     * Liefert alle CSV-Dateien aus dem ESCO-Ordner.
+     * Beachtet den Test-Fallback, falls der Pfad lokal nicht existiert.
+     */
+    fun listEscoFiles(): List<File> {
+        val path = "$basePath/esco"
+        var directory = File(path)
+
+        // Pfad-Check: Wenn der Standardpfad (Docker) nicht existiert,
+        // weichen wir für den IntelliJ-Test auf den relativen Pfad aus.
+        if (!directory.exists()) {
+            directory = File("../python-backend/data/esco")
+        }
+
+        return directory.listFiles { f -> f.extension == "csv" }?.toList() ?: emptyList()
+    }
 }
