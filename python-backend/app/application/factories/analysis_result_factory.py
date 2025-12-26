@@ -20,6 +20,7 @@ class AnalysisResultFactory:
             esco_group_code: Optional[str] = None,
             is_digital: bool = False,
             is_discovery: bool = False,
+            collections: Optional[List[str]] = None,
             role_context: Optional[str] = None,
             confidence: float = 1.0
     ) -> CompetenceDTO:
@@ -32,6 +33,7 @@ class AnalysisResultFactory:
             level=level,
             is_digital=is_digital,
             is_discovery=is_discovery,
+            collections=collections or [],
             role_context=role_context,
             confidence_score=confidence
         )

@@ -224,12 +224,23 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
             except Exception:
                 pass
 
+            # Hole ESCO Collections (digital, research, transversal, language)
+            collections = []
+            try:
+                if hasattr(self.repository, 'get_data_by_label'):
+                    esco_data = self.repository.get_data_by_label(esco_label)
+                    if esco_data and 'collections' in esco_data:
+                        collections = esco_data['collections']
+            except Exception:
+                pass
+
             dto = AnalysisResultFactory.create_competence(
                 original_term=term,
                 esco_label=esco_label,
                 esco_uri=esco_uri,
                 level=self.repository.get_level(term),
                 is_digital=self.repository.is_digital_skill(term),
+                collections=collections,
                 role_context=role,
                 confidence=1.0
             )

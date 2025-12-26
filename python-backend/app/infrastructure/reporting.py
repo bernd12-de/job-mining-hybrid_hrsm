@@ -23,14 +23,33 @@ def load_summary() -> Dict[str, Any]:
         return json.load(f)
 
 
+def _should_include_in_top_skills(collections: List[str]) -> bool:
+    """
+    Filtert Skills nach ESCO-Collections:
+    - ✅ Digital, Research → Wertvolle, spezifische Skills
+    - ❌ Language, Transversal → Generic, zu breit für Top-Skills
+    """
+    if not collections:
+        return True  # Occupation-specific Skills ohne Collection → behalten
+    
+    # Exclude wenn NUR Language oder Transversal
+    if set(collections).issubset({'language', 'transversal'}):
+        return False
+    
+    return True
+
+
 def aggregate_top_skills(top_n: int = 10) -> List[Tuple[str, int]]:
+    """Aggregiert Top Skills, filtert nach ESCO-Collections (keine Sprachen/Generic)."""
     counter = Counter()
     for p in _iter_job_files():
         try:
             data = json.load(open(p, 'r', encoding='utf-8'))
             for c in data.get('competences', []):
                 label = c.get('esco_label') or c.get('original_term')
-                if label:
+                collections = c.get('collections', [])
+                
+                if label and _should_include_in_top_skills(collections):
                     counter[label] += 1
         except Exception:
             continue
@@ -57,6 +76,40 @@ def aggregate_domain_mix() -> Dict[str, int]:
                 domain = 'Unbekannt'
             
             counter[domain] += 1
+        except Exception:
+            continue
+    return dict(counter)
+
+
+def aggregate_collection_breakdown() -> Dict[str, int]:
+    """
+    Zählt Skills nach ESCO-Collections:
+    - digital: Tech-Skills (Python, Cloud, etc.)
+    - research: Forschungs-Skills
+    - transversal: Soft Skills (Kommunikation, Teamarbeit)
+    - language: Sprachen (Deutsch, Englisch, etc.)
+    - occupation: Berufsspezifische Skills (ohne Collection)
+    """
+    counter = Counter()
+    for p in _iter_job_files():
+        try:
+            data = json.load(open(p, 'r', encoding='utf-8'))
+            for c in data.get('competences', []):
+                collections = c.get('collections', [])
+                
+                if not collections:
+                    # Kein Collection → Occupation-specific
+                    counter['Occupation-Specific'] += 1
+                elif 'digital' in collections:
+                    counter['Digital'] += 1
+                elif 'research' in collections:
+                    counter['Research'] += 1
+                elif 'language' in collections:
+                    counter['Language'] += 1
+                elif 'transversal' in collections:
+                    counter['Transversal'] += 1
+                else:
+                    counter['Other'] += 1
         except Exception:
             continue
     return dict(counter)
@@ -155,6 +208,7 @@ def build_dashboard_metrics(top_n: int = 10) -> Dict[str, Any]:
     total_skills = summary.get('skills_total') or 0
     top_skills = aggregate_top_skills(top_n=top_n)
     domain_mix = aggregate_domain_mix()
+    collection_breakdown = aggregate_collection_breakdown()
     time_series = aggregate_time_series_for_skills([s for s, _ in top_skills])
 
     return {
@@ -162,5 +216,6 @@ def build_dashboard_metrics(top_n: int = 10) -> Dict[str, Any]:
         'total_skills': total_skills,
         'top_skills': [{'skill': s, 'count': c} for s, c in top_skills],
         'domain_mix': domain_mix,
+        'collection_breakdown': collection_breakdown,
         'time_series': time_series
     }

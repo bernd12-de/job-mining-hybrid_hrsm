@@ -44,6 +44,20 @@ with col2:
         domain_df = pd.DataFrame(list(domain.items()), columns=['domain', 'count'])
         st.plotly_chart(px.pie(domain_df, names='domain', values='count', title='Verteilung der Jobs nach Domäne'))
 
+    st.subheader("Skill-Kategorien (ESCO Collections)")
+    collection_breakdown = metrics.get('collection_breakdown', {})
+    if collection_breakdown:
+        collection_df = pd.DataFrame(list(collection_breakdown.items()), columns=['collection', 'count'])
+        st.plotly_chart(px.pie(collection_df, names='collection', values='count', 
+                               title='Skill-Verteilung nach ESCO-Collections',
+                               color_discrete_map={
+                                   'Digital': '#3498db',
+                                   'Research': '#9b59b6',
+                                   'Occupation-Specific': '#2ecc71',
+                                   'Language': '#e74c3c',
+                                   'Transversal': '#95a5a6'
+                               }))
+
     st.subheader("Downloads")
     csv_bio = generate_csv_report()
     st.download_button(label='CSV-Datenreport herunterladen', data=csv_bio.getvalue(), file_name='job_mining_data_report.csv', mime='text/csv')

@@ -101,11 +101,12 @@ class ESCODataRepository:
                     self.skills[uri]["parents"].append(parent_uri)
 
     def _load_collections(self):
-        """Markiert Skills als Digital, Green oder Research."""
+        """Markiert Skills als Digital, Green, Research, Transversal oder Language."""
         collections = {
             "digital": "digitalSkillsCollection_de.csv",
             "research": "researchSkillsCollection_de.csv",
-            "transversal": "transversalSkillsCollection_de.csv"
+            "transversal": "transversalSkillsCollection_de.csv",
+            "language": "languageSkillsCollection_de.csv"
         }
 
         for key, filename in collections.items():

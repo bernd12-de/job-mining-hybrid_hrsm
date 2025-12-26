@@ -33,6 +33,7 @@ class CompetenceDTO(BaseModel):
 
     is_digital: bool = False      # Ebene 3
     is_discovery: bool = False    # Ebene 1
+    collections: List[str] = []   # ESCO Collections: digital, research, transversal, language, green
     source_domain: Optional[str] = "System"
     role_context: Optional[str] = None
 
