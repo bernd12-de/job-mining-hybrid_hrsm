@@ -1,0 +1,7 @@
+{
+  "Architect": "(?i).*(architect|architekt).*",
+  "Consultant": "(?i).*(consultant|berater).*",
+  "Data Scientist": "(?i).*(data scientist|data analyst|machine learning).*",
+  "Project Manager": "(?i).*(project manager|projektleiter|product owner).*",
+  "Software Engineer": "(?i).*(software|entwickler|developer|programmer).*"
+}
