@@ -19,13 +19,27 @@ class SpaCyCompetenceExtractor:
                     spacy.cli.download(MODEL_NAME)
                     print(f"✅ Modell '{MODEL_NAME}' erfolgreich installiert.")
                 except Exception as e:
-                    raise RuntimeError(
-                        f"🚨 Automatischer Download von '{MODEL_NAME}' fehlgeschlagen: {e}\n"
-                        f"Bitte manuell ausführen: python -m spacy download {MODEL_NAME}"
-                    )
+                    print(f"❌ Automatischer Download von '{MODEL_NAME}' fehlgeschlagen: {e}")
+                    print(f"⚠️ FALLBACK: Verwende leeres SpaCy-Modell (NLP-Features deaktiviert)")
+                    print(f"💡 Zum Aktivieren später ausführen: python -m spacy download {MODEL_NAME}")
+                    # Erstelle ein leeres deutsches Modell als Fallback
+                    self.nlp = spacy.blank("de")
+                    self.repository = repository
+                    self.manager = manager
+                    self.matcher = None  # Kein Matcher ohne Modell
+                    return
 
             # Modell laden
-            self.nlp = spacy.load(MODEL_NAME)
+            try:
+                self.nlp = spacy.load(MODEL_NAME)
+            except Exception as e:
+                print(f"❌ Fehler beim Laden von '{MODEL_NAME}': {e}")
+                print(f"⚠️ FALLBACK: Verwende leeres SpaCy-Modell (NLP-Features deaktiviert)")
+                self.nlp = spacy.blank("de")
+                self.repository = repository
+                self.manager = manager
+                self.matcher = None
+                return
         else:
             self.nlp = nlp_model
             print("modell könnte leer sein")
@@ -46,6 +60,11 @@ class SpaCyCompetenceExtractor:
            self.matcher.add("KNOWLEDGE_BASE", patterns)
 
     def extract_competences(self, text_or_doc: str, role: str) -> List[CompetenceDTO]: #kein Any Rückgabe
+        # Fallback wenn kein Matcher verfügbar
+        if self.matcher is None:
+            print("⚠️ SpaCy-Matcher nicht verfügbar (Modell fehlt) - Keine Kompetenzen extrahiert")
+            return []
+
         #doc = self.nlp(text)
         doc = text_or_doc if isinstance(text_or_doc, spacy.tokens.Doc) else self.nlp(text_or_doc)
         # ... restlicher Code bleibt gleich
