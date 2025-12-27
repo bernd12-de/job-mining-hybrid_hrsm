@@ -21,6 +21,10 @@ from app.infrastructure.extractor.metadata_extractor import MetadataExtractor
 from app.infrastructure.exporter import save_result, rebuild_summary
 from app.infrastructure.io.job_directory_processor import JobDirectoryProcessor
 
+# NEUE ARCHITEKTUR (EXPERIMENTAL): N-Gramm Extractor + JsonAliasRepository
+from app.infrastructure.data.json_alias_repository import JsonAliasRepository
+from app.infrastructure.extractor.spacy_ngram_extractor import SpaCyNGramExtractor
+
 # Domain Services
 from app.application.services.organization_service import OrganizationService
 from app.application.services.role_service import RoleService
@@ -38,6 +42,9 @@ logger = logging.getLogger("JobMiningBackend")
 BASE_DATA_DIR = os.getenv("BASE_DATA_DIR", "data")
 JOB_DIR = os.path.join(BASE_DATA_DIR, "jobs")
 
+# Feature-Flag: Neue N-Gramm Architektur aktivieren (Standard: False = alte Architektur)
+USE_NGRAM_EXTRACTOR = os.getenv("USE_NGRAM_EXTRACTOR", "false").lower() in ("true", "1", "yes")
+
 app = FastAPI(title="Job Mining Python Analysis Engine", version="2.3.0")
 
 # =========================================================
@@ -51,6 +58,14 @@ try:
 
     # Repository (Keine Selbst-Importe mehr!)
     COMPETENCE_REPOSITORY = HybridCompetenceRepository(rule_client=RULE_CLIENT)
+
+    # NEUE ARCHITEKTUR: JsonAliasRepository (optional, für N-Gramm Extractor)
+    if USE_NGRAM_EXTRACTOR:
+        logger.info("🆕 Neue Architektur aktiviert: JsonAliasRepository + N-Gramm Extractor")
+        ALIAS_REPOSITORY = JsonAliasRepository()
+    else:
+        logger.info("📚 Klassische Architektur: HybridCompetenceRepository + PhraseMatcher")
+        ALIAS_REPOSITORY = None
 
     # B. Extraktoren
     TEXT_EXTRACTOR = AdvancedTextExtractor()
@@ -68,7 +83,18 @@ try:
 
     # D. NLP components (SpaCy + Fuzzy + Discovery)
     # Create base extractors first
-    SPACY_EXT = SpaCyCompetenceExtractor(repository=COMPETENCE_REPOSITORY)
+    if USE_NGRAM_EXTRACTOR and ALIAS_REPOSITORY:
+        # NEUE ARCHITEKTUR: N-Gramm Extractor (1-3 Wörter, kein PhraseMatcher-Limit)
+        SPACY_EXT = SpaCyNGramExtractor(
+            alias_repository=ALIAS_REPOSITORY,
+            domain_rule_service=None  # TODO: DomainRuleService integrieren
+        )
+        logger.info("✅ SpaCyNGramExtractor initialisiert (N-Gramm Matching)")
+    else:
+        # ALTE ARCHITEKTUR: PhraseMatcher (10k-15k Limit)
+        SPACY_EXT = SpaCyCompetenceExtractor(repository=COMPETENCE_REPOSITORY)
+        logger.info("✅ SpaCyCompetenceExtractor initialisiert (PhraseMatcher)")
+
     FUZZY_EXT = FuzzyCompetenceExtractor(repository=COMPETENCE_REPOSITORY)
 
     # E. Manager: temporarily wire SPACY_EXT as placeholder, will be replaced after Discovery is constructed

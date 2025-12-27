@@ -1,0 +1,227 @@
+[
+  {
+    "id": "S1.1.1",
+    "official_name": "Java programmieren",
+    "aliases": ["java", "java programming", "java entwicklung", "java-entwicklung"],
+    "domain": "ESCO",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "http://data.europa.eu/esco/skill/java-programming"
+  },
+  {
+    "id": "S1.1.2",
+    "official_name": "Python programmieren",
+    "aliases": ["python", "python programming", "python entwicklung", "python-entwicklung"],
+    "domain": "ESCO",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "http://data.europa.eu/esco/skill/python-programming"
+  },
+  {
+    "id": "S1.1.3",
+    "official_name": "JavaScript programmieren",
+    "aliases": ["javascript", "js", "javascript programming", "javascript entwicklung"],
+    "domain": "ESCO",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "http://data.europa.eu/esco/skill/javascript-programming"
+  },
+  {
+    "id": "S1.2.1",
+    "official_name": "SQL-Datenbanken verwalten",
+    "aliases": ["sql", "mysql", "postgresql", "mssql", "sql server", "datenbank", "datenbanken"],
+    "domain": "ESCO",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "http://data.europa.eu/esco/skill/sql-databases"
+  },
+  {
+    "id": "S1.2.2",
+    "official_name": "NoSQL-Datenbanken verwalten",
+    "aliases": ["nosql", "mongodb", "cassandra", "redis", "couchdb"],
+    "domain": "ESCO",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "http://data.europa.eu/esco/skill/nosql-databases"
+  },
+  {
+    "id": "S1.3.1",
+    "official_name": "Cloud-Infrastruktur verwalten",
+    "aliases": ["cloud", "aws", "azure", "gcp", "google cloud", "cloud computing"],
+    "domain": "ESCO",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "http://data.europa.eu/esco/skill/cloud-infrastructure"
+  },
+  {
+    "id": "S1.3.2",
+    "official_name": "Docker-Container verwalten",
+    "aliases": ["docker", "container", "containerisierung", "containerization"],
+    "domain": "ESCO",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "http://data.europa.eu/esco/skill/docker-containers"
+  },
+  {
+    "id": "S1.3.3",
+    "official_name": "Kubernetes orchestrieren",
+    "aliases": ["kubernetes", "k8s", "container orchestration"],
+    "domain": "ESCO",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "http://data.europa.eu/esco/skill/kubernetes"
+  },
+  {
+    "id": "S1.4.1",
+    "official_name": "Git für Versionsverwaltung nutzen",
+    "aliases": ["git", "versionsverwaltung", "version control", "github", "gitlab", "bitbucket"],
+    "domain": "ESCO",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "http://data.europa.eu/esco/skill/git-version-control"
+  },
+  {
+    "id": "S1.5.1",
+    "official_name": "Machine Learning entwickeln",
+    "aliases": ["machine learning", "ml", "maschinelles lernen", "künstliche intelligenz", "ai"],
+    "domain": "ESCO",
+    "level": 4,
+    "is_digital": true,
+    "esco_uri": "http://data.europa.eu/esco/skill/machine-learning"
+  },
+  {
+    "id": "S1.5.2",
+    "official_name": "Data Science betreiben",
+    "aliases": ["data science", "datenwissenschaft", "datenanalyse", "data analysis"],
+    "domain": "ESCO",
+    "level": 4,
+    "is_digital": true,
+    "esco_uri": "http://data.europa.eu/esco/skill/data-science"
+  },
+  {
+    "id": "S1.6.1",
+    "official_name": "Agile Methoden anwenden",
+    "aliases": ["agile", "scrum", "kanban", "agile methoden", "agile methodologies"],
+    "domain": "ESCO",
+    "level": 3,
+    "is_digital": false,
+    "esco_uri": "http://data.europa.eu/esco/skill/agile-methods"
+  },
+  {
+    "id": "S1.6.2",
+    "official_name": "Projektmanagement durchführen",
+    "aliases": ["projektmanagement", "project management", "pm", "projektleitung"],
+    "domain": "ESCO",
+    "level": 3,
+    "is_digital": false,
+    "esco_uri": "http://data.europa.eu/esco/skill/project-management"
+  },
+  {
+    "id": "S1.7.1",
+    "official_name": "REST-APIs entwickeln",
+    "aliases": ["rest", "rest api", "restful", "api", "apis", "web services"],
+    "domain": "ESCO",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "http://data.europa.eu/esco/skill/rest-api"
+  },
+  {
+    "id": "S1.7.2",
+    "official_name": "GraphQL-APIs entwickeln",
+    "aliases": ["graphql", "graphql api"],
+    "domain": "ESCO",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "http://data.europa.eu/esco/skill/graphql-api"
+  },
+  {
+    "id": "S1.8.1",
+    "official_name": "React entwickeln",
+    "aliases": ["react", "reactjs", "react.js", "react entwicklung"],
+    "domain": "ESCO",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "http://data.europa.eu/esco/skill/react"
+  },
+  {
+    "id": "S1.8.2",
+    "official_name": "Angular entwickeln",
+    "aliases": ["angular", "angularjs", "angular.js"],
+    "domain": "ESCO",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "http://data.europa.eu/esco/skill/angular"
+  },
+  {
+    "id": "S1.8.3",
+    "official_name": "Vue.js entwickeln",
+    "aliases": ["vue", "vuejs", "vue.js"],
+    "domain": "ESCO",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "http://data.europa.eu/esco/skill/vuejs"
+  },
+  {
+    "id": "S1.9.1",
+    "official_name": "DevOps-Praktiken anwenden",
+    "aliases": ["devops", "ci/cd", "continuous integration", "continuous deployment"],
+    "domain": "ESCO",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "http://data.europa.eu/esco/skill/devops"
+  },
+  {
+    "id": "S1.10.1",
+    "official_name": "Cybersecurity implementieren",
+    "aliases": ["cybersecurity", "security", "sicherheit", "it-sicherheit", "informationssicherheit"],
+    "domain": "ESCO",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "http://data.europa.eu/esco/skill/cybersecurity"
+  },
+  {
+    "id": "S1.11.1",
+    "official_name": "C++ programmieren",
+    "aliases": ["c++", "cpp", "c plus plus"],
+    "domain": "ESCO",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "http://data.europa.eu/esco/skill/cpp-programming"
+  },
+  {
+    "id": "S1.11.2",
+    "official_name": "C# programmieren",
+    "aliases": ["c#", "csharp", "c sharp"],
+    "domain": "ESCO",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "http://data.europa.eu/esco/skill/csharp-programming"
+  },
+  {
+    "id": "S1.12.1",
+    "official_name": "TypeScript programmieren",
+    "aliases": ["typescript", "ts"],
+    "domain": "ESCO",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "http://data.europa.eu/esco/skill/typescript-programming"
+  },
+  {
+    "id": "S1.13.1",
+    "official_name": "UX-Design gestalten",
+    "aliases": ["ux", "ux design", "user experience", "ux-design"],
+    "domain": "ESCO",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "http://data.europa.eu/esco/skill/ux-design"
+  },
+  {
+    "id": "S1.13.2",
+    "official_name": "UI-Design gestalten",
+    "aliases": ["ui", "ui design", "user interface", "ui-design"],
+    "domain": "ESCO",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "http://data.europa.eu/esco/skill/ui-design"
+  }
+]

@@ -1,0 +1,245 @@
+[
+  {
+    "id": "C1.1.1",
+    "official_name": "Jira für Projektmanagement nutzen",
+    "aliases": ["jira", "atlassian jira", "jira software"],
+    "domain": "Custom",
+    "level": 2,
+    "is_digital": true,
+    "esco_uri": "custom/jira"
+  },
+  {
+    "id": "C1.1.2",
+    "official_name": "Confluence für Dokumentation nutzen",
+    "aliases": ["confluence", "atlassian confluence"],
+    "domain": "Custom",
+    "level": 2,
+    "is_digital": true,
+    "esco_uri": "custom/confluence"
+  },
+  {
+    "id": "C1.2.1",
+    "official_name": "Slack für Teamkommunikation nutzen",
+    "aliases": ["slack", "slack communication"],
+    "domain": "Custom",
+    "level": 2,
+    "is_digital": true,
+    "esco_uri": "custom/slack"
+  },
+  {
+    "id": "C1.2.2",
+    "official_name": "Microsoft Teams für Teamkommunikation nutzen",
+    "aliases": ["teams", "microsoft teams", "ms teams"],
+    "domain": "Custom",
+    "level": 2,
+    "is_digital": true,
+    "esco_uri": "custom/microsoft-teams"
+  },
+  {
+    "id": "C1.3.1",
+    "official_name": "FastAPI für Webentwicklung nutzen",
+    "aliases": ["fastapi", "fast api"],
+    "domain": "Custom",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "custom/fastapi"
+  },
+  {
+    "id": "C1.3.2",
+    "official_name": "Django für Webentwicklung nutzen",
+    "aliases": ["django"],
+    "domain": "Custom",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "custom/django"
+  },
+  {
+    "id": "C1.3.3",
+    "official_name": "Flask für Webentwicklung nutzen",
+    "aliases": ["flask"],
+    "domain": "Custom",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "custom/flask"
+  },
+  {
+    "id": "C1.4.1",
+    "official_name": "Spring Boot für Java-Anwendungen nutzen",
+    "aliases": ["spring boot", "spring", "springboot"],
+    "domain": "Custom",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "custom/spring-boot"
+  },
+  {
+    "id": "C1.4.2",
+    "official_name": "Node.js für Backend-Entwicklung nutzen",
+    "aliases": ["node", "nodejs", "node.js"],
+    "domain": "Custom",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "custom/nodejs"
+  },
+  {
+    "id": "C1.5.1",
+    "official_name": "TensorFlow für Machine Learning nutzen",
+    "aliases": ["tensorflow", "tf"],
+    "domain": "Custom",
+    "level": 4,
+    "is_digital": true,
+    "esco_uri": "custom/tensorflow"
+  },
+  {
+    "id": "C1.5.2",
+    "official_name": "PyTorch für Machine Learning nutzen",
+    "aliases": ["pytorch", "torch"],
+    "domain": "Custom",
+    "level": 4,
+    "is_digital": true,
+    "esco_uri": "custom/pytorch"
+  },
+  {
+    "id": "C1.6.1",
+    "official_name": "Pandas für Datenanalyse nutzen",
+    "aliases": ["pandas"],
+    "domain": "Custom",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "custom/pandas"
+  },
+  {
+    "id": "C1.6.2",
+    "official_name": "NumPy für numerische Berechnungen nutzen",
+    "aliases": ["numpy"],
+    "domain": "Custom",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "custom/numpy"
+  },
+  {
+    "id": "C1.7.1",
+    "official_name": "Jenkins für CI/CD nutzen",
+    "aliases": ["jenkins"],
+    "domain": "Custom",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "custom/jenkins"
+  },
+  {
+    "id": "C1.7.2",
+    "official_name": "GitLab CI/CD nutzen",
+    "aliases": ["gitlab ci", "gitlab ci/cd"],
+    "domain": "Custom",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "custom/gitlab-ci"
+  },
+  {
+    "id": "C1.8.1",
+    "official_name": "Terraform für Infrastructure as Code nutzen",
+    "aliases": ["terraform", "tf"],
+    "domain": "Custom",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "custom/terraform"
+  },
+  {
+    "id": "C1.8.2",
+    "official_name": "Ansible für Automatisierung nutzen",
+    "aliases": ["ansible"],
+    "domain": "Custom",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "custom/ansible"
+  },
+  {
+    "id": "C1.9.1",
+    "official_name": "Elasticsearch für Suche nutzen",
+    "aliases": ["elasticsearch", "elastic"],
+    "domain": "Custom",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "custom/elasticsearch"
+  },
+  {
+    "id": "C1.9.2",
+    "official_name": "Apache Kafka für Datenstreaming nutzen",
+    "aliases": ["kafka", "apache kafka"],
+    "domain": "Custom",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "custom/kafka"
+  },
+  {
+    "id": "C1.10.1",
+    "official_name": "Figma für UI/UX-Design nutzen",
+    "aliases": ["figma"],
+    "domain": "Custom",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "custom/figma"
+  },
+  {
+    "id": "C1.10.2",
+    "official_name": "Adobe XD für UI/UX-Design nutzen",
+    "aliases": ["adobe xd", "xd"],
+    "domain": "Custom",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "custom/adobe-xd"
+  },
+  {
+    "id": "C1.11.1",
+    "official_name": "SAP für Enterprise Resource Planning nutzen",
+    "aliases": ["sap", "sap erp"],
+    "domain": "Custom",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "custom/sap"
+  },
+  {
+    "id": "C1.11.2",
+    "official_name": "Salesforce für CRM nutzen",
+    "aliases": ["salesforce", "sfdc"],
+    "domain": "Custom",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "custom/salesforce"
+  },
+  {
+    "id": "C1.12.1",
+    "official_name": "Excel für Datenanalyse nutzen",
+    "aliases": ["excel", "microsoft excel", "ms excel"],
+    "domain": "Custom",
+    "level": 2,
+    "is_digital": true,
+    "esco_uri": "custom/excel"
+  },
+  {
+    "id": "C1.12.2",
+    "official_name": "Power BI für Business Intelligence nutzen",
+    "aliases": ["power bi", "powerbi"],
+    "domain": "Custom",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "custom/power-bi"
+  },
+  {
+    "id": "C1.13.1",
+    "official_name": "Linux-Systeme administrieren",
+    "aliases": ["linux", "unix", "linux administration"],
+    "domain": "Custom",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "custom/linux"
+  },
+  {
+    "id": "C1.13.2",
+    "official_name": "Windows-Systeme administrieren",
+    "aliases": ["windows", "windows server", "windows administration"],
+    "domain": "Custom",
+    "level": 3,
+    "is_digital": true,
+    "esco_uri": "custom/windows"
+  }
+]
