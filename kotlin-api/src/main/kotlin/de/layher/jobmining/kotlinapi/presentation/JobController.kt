@@ -34,13 +34,25 @@ class JobController(
     fun scrapeUrlAndAnalyze(
         @RequestBody request: URLRequest,
         @RequestParam(required = false, defaultValue = "false") renderJs: Boolean
-    ): JobPosting {
-        if (request.url.isBlank()) {
-            throw IllegalArgumentException("Die URL darf nicht leer sein.")
-        }
+    ): ResponseEntity<*> {
+        return try {
+            if (request.url.isBlank()) {
+                return ResponseEntity.badRequest().body(mapOf(
+                    "error" to "Die URL darf nicht leer sein."
+                ))
+            }
 
-        // KORREKTUR: Übergibt den fehlenden Parameter 'renderJs' an den Service
-        return jobMiningService.processScrapedUrl(request.url, renderJs)
+            val result = jobMiningService.processScrapedUrl(request.url, renderJs)
+            ResponseEntity.ok(result)
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.badRequest().body(mapOf(
+                "error" to e.message
+            ))
+        } catch (e: Exception) {
+            ResponseEntity.status(500).body(mapOf(
+                "error" to "Interner Fehler: ${e.message}"
+            ))
+        }
     }
 
 
@@ -49,8 +61,19 @@ class JobController(
         description = "Verarbeitet alle Stellenanzeigen-Dateien aus dem Python 'data/jobs' Ordner und speichert die Ergebnisse in der Datenbank."
     )
     @PostMapping("/batch-analyze")
-    fun analyzeLocalDirectory(): List<JobPosting> {
-        return jobMiningService.processJobDirectoryBatch()
+    fun analyzeLocalDirectory(): ResponseEntity<*> {
+        return try {
+            val results = jobMiningService.processJobDirectoryBatch()
+            ResponseEntity.ok(mapOf(
+                "status" to "success",
+                "processed" to results.size,
+                "jobs" to results
+            ))
+        } catch (e: Exception) {
+            ResponseEntity.status(500).body(mapOf(
+                "error" to "Batch-Verarbeitung fehlgeschlagen: ${e.message}"
+            ))
+        }
     }
 
     @Operation(
@@ -79,16 +102,28 @@ class JobController(
         )
         @RequestPart("file")
         file: MultipartFile
-    ): JobPosting {
+    ): ResponseEntity<*> {
+        return try {
+            if (file.isEmpty) {
+                return ResponseEntity.badRequest().body(mapOf(
+                    "error" to "Die Datei darf nicht leer sein."
+                ))
+            }
 
-        if (file.isEmpty) {
-            throw IllegalArgumentException("Die Datei darf nicht leer sein.")
+            val result = jobMiningService.processJobAd(
+                file.bytes,
+                file.originalFilename ?: "unbekannt"
+            )
+            ResponseEntity.ok(result)
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.badRequest().body(mapOf(
+                "error" to e.message
+            ))
+        } catch (e: Exception) {
+            ResponseEntity.status(500).body(mapOf(
+                "error" to "Fehler bei der Dateiverarbeitung: ${e.message}"
+            ))
         }
-
-        return jobMiningService.processJobAd(
-            file.bytes,
-            file.originalFilename ?: "unbekannt"
-        )
     }
 
     @GetMapping("/reports/competence-trends")
@@ -98,33 +133,54 @@ class JobController(
         return jobMiningService.getTopCompetenceTrends(limit)
     }
 
-    // Proxy für Dashboard-Metriken (von Python)
     @GetMapping("/reports/dashboard-metrics")
-    fun getDashboardMetrics(@RequestParam(defaultValue = "10") top_n: Int): ResponseEntity<Map<String, Any>> {
-        val metrics = pythonClient.getDashboardMetrics(top_n)
-        return ResponseEntity.ok(metrics)
+    fun getDashboardMetrics(@RequestParam(defaultValue = "10") top_n: Int): ResponseEntity<*> {
+        return try {
+            val metrics = pythonClient.getDashboardMetrics(top_n)
+            ResponseEntity.ok(metrics)
+        } catch (e: Exception) {
+            ResponseEntity.status(502).body(mapOf(
+                "error" to "Dashboard-Metriken konnten nicht geladen werden: ${e.message}"
+            ))
+        }
     }
 
     @GetMapping("/reports/export.csv")
-    fun proxyCsvReport(): ResponseEntity<ByteArray> {
-        val bytes = pythonClient.downloadCsvReport()
-            ?: return ResponseEntity.status(502).body(null)
+    fun proxyCsvReport(): ResponseEntity<*> {
+        return try {
+            val bytes = pythonClient.downloadCsvReport()
+                ?: return ResponseEntity.status(502).body(mapOf(
+                    "error" to "CSV-Report konnte nicht vom Python-Backend geladen werden"
+                ))
 
-        return ResponseEntity.ok()
-            .header("Content-Disposition", "attachment; filename=job_mining_data_report.csv")
-            .contentType(MediaType.TEXT_PLAIN)
-            .body(bytes)
+            ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=job_mining_data_report.csv")
+                .contentType(MediaType.TEXT_PLAIN)
+                .body(bytes)
+        } catch (e: Exception) {
+            ResponseEntity.status(502).body(mapOf(
+                "error" to "Fehler beim Laden des CSV-Reports: ${e.message}"
+            ))
+        }
     }
 
     @GetMapping("/reports/export.pdf")
-    fun proxyPdfReport(): ResponseEntity<ByteArray> {
-        val bytes = pythonClient.downloadPdfReport()
-            ?: return ResponseEntity.status(502).body(null)
+    fun proxyPdfReport(): ResponseEntity<*> {
+        return try {
+            val bytes = pythonClient.downloadPdfReport()
+                ?: return ResponseEntity.status(502).body(mapOf(
+                    "error" to "PDF-Report konnte nicht vom Python-Backend geladen werden"
+                ))
 
-        return ResponseEntity.ok()
-            .header("Content-Disposition", "attachment; filename=job_mining_report.pdf")
-            .contentType(MediaType.APPLICATION_PDF)
-            .body(bytes)
+            ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=job_mining_report.pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(bytes)
+        } catch (e: Exception) {
+            ResponseEntity.status(502).body(mapOf(
+                "error" to "Fehler beim Laden des PDF-Reports: ${e.message}"
+            ))
+        }
     }
 
     // In JobController.kt hinzufügen
@@ -139,27 +195,39 @@ class JobController(
     }
 
     @PostMapping("/admin/sync-python-knowledge")
-    fun syncPythonKnowledge(): ResponseEntity<String> {
-        // Hier benutzt du die "Fernbedienung", um Python den Befehl zu senden
-        val result = pythonClient.triggerKnowledgeRefresh()
-        return ResponseEntity.ok(result)
+    fun syncPythonKnowledge(): ResponseEntity<*> {
+        return try {
+            val result = pythonClient.triggerKnowledgeRefresh()
+            ResponseEntity.ok(mapOf(
+                "status" to "success",
+                "message" to result
+            ))
+        } catch (e: Exception) {
+            ResponseEntity.status(502).body(mapOf(
+                "error" to "Knowledge-Refresh fehlgeschlagen: ${e.message}"
+            ))
+        }
     }
-
-    // In JobController.kt (oder DomainRuleController)
 
     @Operation(summary = "ADMIN: System-Status prüfen")
     @GetMapping("/admin/system-health")
-    fun checkSystemHealth(): ResponseEntity<Map<String, Any>> {
-        // FIX: Hier rufen wir jetzt den Client auf, statt selbst HTTP zu machen!
-        // Der Client hat Zugriff auf restTemplate und Url.
-        val pythonStatus = pythonClient.checkHealth()
+    fun checkSystemHealth(): ResponseEntity<*> {
+        return try {
+            val pythonStatus = pythonClient.checkHealth()
 
-        val fullStatus = mapOf(
-            "kotlin_backend" to "ONLINE",
-            "database" to "CONNECTED",
-            "python_worker" to pythonStatus
-        )
-        return ResponseEntity.ok(fullStatus)
+            val fullStatus = mapOf(
+                "kotlin_backend" to "ONLINE",
+                "database" to "CONNECTED",
+                "python_worker" to pythonStatus
+            )
+            ResponseEntity.ok(fullStatus)
+        } catch (e: Exception) {
+            ResponseEntity.status(500).body(mapOf(
+                "error" to "System-Health-Check fehlgeschlagen: ${e.message}",
+                "kotlin_backend" to "ONLINE",
+                "python_worker" to mapOf("status" to "ERROR", "message" to e.message)
+            ))
+        }
     }
 
 

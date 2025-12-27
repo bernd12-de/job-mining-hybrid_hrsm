@@ -9,9 +9,6 @@ import de.layher.jobmining.kotlinapi.infrastructure.JobPostingRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-// Konstante für den Rule-Typ (optional, aber Best Practice)
-const val RULE_TYPE_INDUSTRY_MAPPING = "INDUSTRY_MAPPING"
-
 @Service
 class DomainRuleService(
     private val repository: DomainRuleRepository,
@@ -45,13 +42,13 @@ class DomainRuleService(
         val successRate = if (totalJobs > 0) (segmentedCount.toDouble() / totalJobs * 100) else 100.0
 
         return mapOf(
-            "total_skills" to escoDataRepository.findAllLoadedSkills().size,
+            "total_skills" to skillsSize,
             "analysis_quality" to mapOf(
                 "total_analyzed_jobs" to totalJobs,
-                "segmentation_success_rate" to if (totalJobs > 0) (segmentedCount.toDouble() / totalJobs * 100) else 100.0,
+                "segmentation_success_rate" to successRate,
                 "warning" to if (segmentedCount < totalJobs) "Achtung: Einige Analysen nutzen Rohtext-Fallback (Precision-Risiko)" else "Optimal"
             ),
-            "ssot_skills_total" to escoDataRepository.findAllLoadedSkills().size
+            "ssot_skills_total" to skillsSize
         )
     }
 
@@ -71,7 +68,7 @@ class DomainRuleService(
     // 🚨 FIX: Diese Methode wird vom HybridCompetenceService aufgerufen
     fun isBlacklisted(term: String): Boolean {
         // Sucht in der DB nach einem Eintrag vom Typ BLACKLIST mit diesem Key
-        return repository.findByRuleTypeAndRuleKey("BLACKLIST", term.lowercase()).isNotEmpty()
+        return repository.findByRuleTypeAndRuleKey(RULE_TYPE_BLACKLIST, term.lowercase()).isNotEmpty()
     }
 
     /**
@@ -103,17 +100,4 @@ class DomainRuleService(
             )
         }
     }
-
-
-
-
-//    @Transactional(readOnly = true)
-//    fun getActiveRoleMappings(): Map<String, String> {
-//        return repository.findAllByRuleTypeAndIsActiveTrue(RULE_TYPE_ROLE_MAPPING)
-//            .associate { it.ruleKey to (it.ruleValue ?: "") }
-//    }
-
-
-
-
 }

@@ -25,7 +25,11 @@ class KotlinRuleClient:
         self.esco_source = "data/esco"
 
         # Sicherstellen, dass der Fallback-Ordner existiert
-        os.makedirs(self.fallback_path, exist_ok=True)
+        try:
+            os.makedirs(self.fallback_path, exist_ok=True)
+        except Exception as e:
+            print(f"⚠️ Warnung: Konnte Fallback-Ordner nicht erstellen: {e}")
+        
         print(f"🔗 KotlinRuleClient initialisiert. Basis-URL: {self.base_url}")
 
     def get_esco_full(self):
@@ -103,13 +107,20 @@ class KotlinRuleClient:
             response.raise_for_status()
             data = response.json()
             # Cache update
-            self._save_to_json(filename, data)
+            try:
+                self._save_to_json(filename, data)
+            except Exception as e:
+                print(f"⚠️ Warnung: Cache-Speicherung fehlgeschlagen: {e}")
             return set(data)
-        except Exception as e:
+        except (requests.exceptions.RequestException, ConnectionError, TimeoutError) as e:
             print(f"❌ API-Fehler bei Blacklist: {e}")
             # Nutzt _get_static_fallback_blacklist_as_list zur Generierung der Datei, falls sie fehlt
-            data = self._load_or_create_fallback(filename, generation_method=self._get_static_fallback_blacklist_as_list)
-            return set(data) if data else set()
+            try:
+                data = self._load_or_create_fallback(filename, generation_method=self._get_static_fallback_blacklist_as_list)
+                return set(data) if data else set()
+            except Exception as e:
+                print(f"❌ Fallback-Laden fehlgeschlagen: {e}")
+                return set()
 
     def fetch_role_mappings(self) -> Dict[str, str]:
         """Holt Rollen-Mappings."""
@@ -120,11 +131,18 @@ class KotlinRuleClient:
             response = requests.get(endpoint, timeout=5)
             response.raise_for_status()
             data = response.json()
-            self._save_to_json(filename, data)
+            try:
+                self._save_to_json(filename, data)
+            except Exception as e:
+                print(f"⚠️ Warnung: Cache-Speicherung fehlgeschlagen: {e}")
             return data
-        except Exception as e:
+        except (requests.exceptions.RequestException, ConnectionError, TimeoutError) as e:
             print(f"❌ API-Fehler bei Role-Mappings: {e}")
-            return self._load_or_create_fallback(filename, generation_method=self._get_static_fallback_role_mappings)
+            try:
+                return self._load_or_create_fallback(filename, generation_method=self._get_static_fallback_role_mappings)
+            except Exception as e:
+                print(f"❌ Fallback-Laden fehlgeschlagen: {e}")
+                return {}
 
     def fetch_industry_mappings(self) -> Dict[str, str]:
         """Holt Branchen-Mappings."""
@@ -135,11 +153,18 @@ class KotlinRuleClient:
             response = requests.get(endpoint, timeout=5)
             response.raise_for_status()
             data = response.json()
-            self._save_to_json(filename, data)
+            try:
+                self._save_to_json(filename, data)
+            except Exception as e:
+                print(f"⚠️ Warnung: Cache-Speicherung fehlgeschlagen: {e}")
             return data
-        except Exception as e:
+        except (requests.exceptions.RequestException, ConnectionError, TimeoutError) as e:
             print(f"❌ API-Fehler bei Industry-Mappings: {e}")
-            return self._load_or_create_fallback(filename, generation_method=self._get_static_fallback_industry_mappings)
+            try:
+                return self._load_or_create_fallback(filename, generation_method=self._get_static_fallback_industry_mappings)
+            except Exception as e:
+                print(f"❌ Fallback-Laden fehlgeschlagen: {e}")
+                return {}
 
     # --- HELPER & GENERATOREN ---
 

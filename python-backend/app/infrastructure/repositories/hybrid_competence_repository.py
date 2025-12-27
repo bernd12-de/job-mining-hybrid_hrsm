@@ -40,6 +40,8 @@ class HybridCompetenceRepository(ICompetenceRepository):
         self._load_data()
         # Baue Index für schnellen Lookup
         self._build_esco_index()
+        # Lade digitale Skills aus ESCO Collection
+        self._load_digital_skills()
         # Lade lokale Domänen (Ebene 4/5)
         self._load_local_domains_v2()
         # Sync für Legacy Sets (fachbuch / academia)

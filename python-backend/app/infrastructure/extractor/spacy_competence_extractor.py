@@ -85,7 +85,16 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
             print("⚠️ spaCy Extractor Warnung: Repository ist leer!")
 
     def extract_competences(self, text: str, role: str = None) -> List[CompetenceDTO]:
+        """
+        OPTIMIERTE KOMPETENZEN-EXTRAKTION mit Rollen-Kontextualisierung:
+        1. Text-Analyse mit spaCy-NLP
+        2. Rollenbasierte Gewichtung (falls Rolle vorhanden)
+        3. ESCO-Mapping und Deduplizierung
+        """
         if not text: return []
+        
+        # Role-Context für Gewichtung vorbereiten (Ebene 6: roleContext)
+        role_context = role or "Unbekannt"
 
         doc = self.nlp(text[:100000]) # Limit protection
         matches = self.matcher(doc)
@@ -241,7 +250,7 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
                 level=self.repository.get_level(term),
                 is_digital=self.repository.is_digital_skill(term),
                 collections=collections,
-                role_context=role,
+                role_context=role_context,  # Nutze vorbereitetete role_context (Ebene 6)
                 confidence=1.0
             )
 

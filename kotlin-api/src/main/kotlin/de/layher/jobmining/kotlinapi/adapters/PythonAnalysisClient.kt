@@ -119,7 +119,7 @@ class PythonAnalysisClient(
         } catch (e: HttpStatusCodeException) {
             // Graceful Error Handling: 4xx = Client-Fehler (z.B. zu wenig Text), 5xx = Server-Fehler
             val pythonErrorDetail = try {
-                e.responseBodyAsString.substringAfter("{\"detail\":\"").substringBeforeLast("\"}"))
+                e.responseBodyAsString.substringAfter("{\"detail\":\"").substringBeforeLast("\"}")
             } catch (ex: Exception) {
                 e.responseBodyAsString
             }
