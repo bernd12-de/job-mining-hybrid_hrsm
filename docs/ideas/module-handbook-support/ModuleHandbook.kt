@@ -10,6 +10,9 @@ import java.time.LocalDate
  * Domain-Entity für Modulhandbücher von Universitäten/Fachhochschulen
  *
  * BEISPIEL-CODE - Zeigt wie die Struktur aussehen könnte
+ *
+ * HINWEIS: Benötigt Competence-Entity im selben Package oder Import:
+ * import de.layher.jobmining.kotlinapi.domain.Competence
  */
 @Entity
 data class ModuleHandbook(
