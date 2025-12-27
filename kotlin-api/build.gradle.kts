@@ -26,7 +26,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     // NEU: Hinzufügen der OpenAPI (Swagger) Abhängigkeiten
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
     // NEU: Health & Monitoring
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     // Grundlegende Exposed-Funktionen

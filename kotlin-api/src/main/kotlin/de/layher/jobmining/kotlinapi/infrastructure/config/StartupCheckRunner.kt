@@ -134,19 +134,38 @@ class StartupCheckRunner(
             val metaData = connection.metaData
             val dbProduct = metaData.databaseProductName
             val dbVersion = metaData.databaseProductVersion
-            connection.close()
-
+            val dbName = metaData.url.substringAfterLast("/").substringBefore("?")
+            
             // B) Daten-Test (Sind die V4 Regeln da?)
             val ruleCount = domainRuleRepository.count()
+            
+            // C) Zähle Daten in allen wichtigen Tabellen
+            val statement = connection.createStatement()
+            val jobCount = try {
+                val rs = statement.executeQuery("SELECT COUNT(*) FROM job_postings")
+                if (rs.next()) rs.getLong(1) else 0L
+            } catch (e: Exception) { 0L }
+            
+            val escoCount = try {
+                val rs = statement.executeQuery("SELECT COUNT(*) FROM esco_data")
+                if (rs.next()) rs.getLong(1) else 0L
+            } catch (e: Exception) { 0L }
+            
+            statement.close()
+            connection.close()
 
             if (ruleCount > 0) {
                 // Alles perfekt: Verbunden UND Daten da
                 println("✅ ONLINE ($dbProduct $dbVersion)")
                 println(String.format("%-40s | ✅ DATEN-CHECK: %d Regeln geladen (V4 OK)", "", ruleCount))
+                println(String.format("%-40s | 📊 DB '$dbName': %d Jobs | %d ESCO-Skills | %d Rules", 
+                    "", jobCount, escoCount, ruleCount))
             } else {
                 // Verbunden, aber Tabelle leer (V4 fehlgeschlagen oder Tabelle falsch gemappt)
                 println("⚠️ LEER ($dbProduct)")
                 println(String.format("%-40s | ❌ WARNUNG: Tabelle 'domain_rule' ist leer!", ""))
+                println(String.format("%-40s | 📊 DB '$dbName': %d Jobs | %d ESCO-Skills", 
+                    "", jobCount, escoCount))
             }
 
         } catch (e: Exception) {

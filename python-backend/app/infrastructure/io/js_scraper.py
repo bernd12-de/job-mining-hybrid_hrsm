@@ -12,12 +12,19 @@ async def _render_and_scrape_async(url: str) -> str:
     """
     Rendert eine URL mit JavaScript und extrahiert den Haupttext (Playwright).
     """
-    TIMEOUT_SECONDS = 20
+    TIMEOUT_SECONDS = 30
 
     try:
         async with async_playwright() as p:
             # Wähle Chromium als schnellen, zuverlässigen Browser
-            browser = await p.chromium.launch()
+            browser = await p.chromium.launch(
+                headless=True,
+                args=[
+                    "--no-sandbox",
+                    "--disable-dev-shm-usage",
+                    "--disable-gpu",
+                ],
+            )
             page = await browser.new_page()
 
             print(f"-> Playwright: Navigiere zu {url}")
@@ -26,8 +33,8 @@ async def _render_and_scrape_async(url: str) -> str:
             await page.goto(url, wait_until="networkidle", timeout=TIMEOUT_SECONDS * 1000)
 
             # Extrahiere den gesamten sichtbaren Text vom Body
-            # inner_text() liefert den gerenderten Text, den der Benutzer sieht
-            raw_text = await page.main_frame.inner_text()
+            # inner_text('body') liefert den gerenderten Text der Seite
+            raw_text = await page.inner_text('body')
 
             await browser.close()
 

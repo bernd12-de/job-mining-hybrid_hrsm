@@ -18,6 +18,7 @@ from app.infrastructure.extractor.fuzzy_competence_extractor import FuzzyCompete
 from app.infrastructure.extractor.competence_extractor import CompetenceExtractor
 from app.infrastructure.extractor.discovery_extractor import DiscoveryExtractor
 from app.infrastructure.extractor.metadata_extractor import MetadataExtractor
+from app.infrastructure.exporter import save_result, rebuild_summary
 from app.infrastructure.io.job_directory_processor import JobDirectoryProcessor
 
 # Domain Services
@@ -169,7 +170,13 @@ async def scrape_url_endpoint(url_input: URLInput):
     try:
         if not url_input.url or not url_input.url.strip():
             raise HTTPException(status_code=400, detail="URL fehlt oder ist leer")
-        return scrape_and_analyze_url(url_input, manager=WORKFLOW_MANAGER)
+        result = await scrape_and_analyze_url(url_input, manager=WORKFLOW_MANAGER)
+        try:
+            save_result(result)
+            rebuild_summary()
+        except Exception as e:
+            logger.warning(f"Export fehlgeschlagen: {e}")
+        return result
     except HTTPException:
         raise
     except Exception as e:
@@ -220,7 +227,6 @@ def get_role_mappings():
         "mappings": mappings
     }
 
-
 # --- DASHBOARD / REPORTING ENDPOINTS ---
 from fastapi.responses import StreamingResponse
 from app.infrastructure.reporting import build_dashboard_metrics, generate_csv_report, generate_pdf_report
@@ -253,6 +259,12 @@ async def trigger_batch():
     logger.info("📦 [POST /batch-process] Starte...")
     try:
         results = await DIRECTORY_PROCESSOR.process_all_jobs()
+        try:
+            for r in results:
+                save_result(r)
+            rebuild_summary()
+        except Exception as e:
+            logger.warning(f"Batch-Export fehlgeschlagen: {e}")
         logger.info(f"📦 Batch fertig: {len(results)} Dateien analysiert.")
         return results
     except Exception as e:
@@ -302,7 +314,6 @@ def refresh_knowledge():
             skills_count = len(COMPETENCE_REPOSITORY.get_all_skills())
         except Exception as e:
             logger.error(f"Fehler beim Zählen der Skills: {e}")
-            errors.append(f"count_skills: {str(e)}")
 
         result = {
             "status": "refreshed" if not errors else "partial",

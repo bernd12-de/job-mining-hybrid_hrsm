@@ -1,0 +1,18 @@
+Software-Entwickler (m/w/d) Python & Kotlin
+
+Ihre Aufgaben:
+- Entwicklung von Backend-Services mit Python und Kotlin
+- Datenbanken: PostgreSQL, MongoDB
+- API-Design und REST-Schnittstellen
+- Agile Softwareentwicklung im Team
+
+Ihr Profil:
+- Studium der Informatik oder vergleichbar
+- Erfahrung mit FastAPI, Spring Boot
+- Kenntnisse in Docker und Kubernetes
+- Teamfähigkeit und Kommunikationsstärke
+
+Wir bieten:
+- Flexible Arbeitszeiten
+- Home-Office möglich
+- Attraktives Gehalt

@@ -19,6 +19,10 @@ REQUIRED_PACKAGES = {
     'python-multipart': 'python-multipart',
     'pandas': 'pandas',
     'numpy': 'numpy',
+}
+
+# Dashboard-Pakete (werden nur bei Bedarf installiert)
+DASHBOARD_PACKAGES = {
     'streamlit': 'streamlit',
     'plotly': 'plotly',
 }
@@ -83,6 +87,24 @@ def check_and_install_packages(required=True):
         logger.info(f"✅ Alle {'kritischen' if required else 'optionalen'} Pakete vorhanden")
     
     return True
+
+def check_dashboard_requirements():
+    """Prüft und installiert Dashboard-Abhängigkeiten bei Bedarf"""
+    logger.info("🎨 Prüfe Dashboard-Abhängigkeiten...")
+    missing = []
+    
+    for import_name, pip_name in DASHBOARD_PACKAGES.items():
+        if not check_package(import_name):
+            missing.append((import_name, pip_name))
+    
+    if missing:
+        logger.info(f"📦 Installiere {len(missing)} Dashboard-Paket(e)...")
+        for import_name, pip_name in missing:
+            install_package(import_name, pip_name)
+        return True
+    else:
+        logger.info("✅ Dashboard-Pakete bereits installiert")
+        return True
 
 def verify_system():
     """Verifiziert die komplette System-Installation"""
