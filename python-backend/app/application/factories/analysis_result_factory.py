@@ -48,6 +48,7 @@ class AnalysisResultFactory:
             posting_date: str = "2024-12-01",
             region: str = "Unbekannt",
             is_segmented: bool = False,
+            source_url: Optional[str] = None,
             raw_text_hash: Optional[str] = None
     ) -> AnalysisResultDTO:
         """Baut das finale AnalysisResultDTO für die Datenbank/Kotlin."""
@@ -67,5 +68,6 @@ class AnalysisResultFactory:
             raw_text=raw_text,
             raw_text_hash=raw_text_hash,
             is_segmented=is_segmented,
+            source_url=source_url,
             competences=competences
         )

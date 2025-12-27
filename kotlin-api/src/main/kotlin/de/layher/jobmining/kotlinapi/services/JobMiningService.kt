@@ -58,7 +58,8 @@ class JobMiningService(
             postingDate = LocalDate.parse(resultDto.postingDate),
             region = resultDto.region,
             industry = resultDto.industry.take(500),
-            isSegmented = resultDto.is_segmented // Ebene 6 Status
+            isSegmented = resultDto.is_segmented, // Ebene 6 Status
+            sourceUrl = resultDto.sourceUrl
         )
 
         jobPosting.competences = resultDto.competences.map { dto ->
@@ -92,7 +93,8 @@ class JobMiningService(
             postingDate = LocalDate.parse(resultDto.postingDate),
             region = resultDto.region,
             industry = resultDto.industry,
-            isSegmented = resultDto.is_segmented
+            isSegmented = resultDto.is_segmented,
+            sourceUrl = resultDto.sourceUrl
         )
 
         jobPosting.competences = resultDto.competences.map { dto ->
@@ -129,7 +131,8 @@ class JobMiningService(
                     postingDate = LocalDate.parse(resultDto.postingDate),
                     region = resultDto.region,
                     industry = resultDto.industry.take(500),
-                    isSegmented = resultDto.is_segmented
+                    isSegmented = resultDto.is_segmented,
+                    sourceUrl = resultDto.sourceUrl
                 )
 
                 jobPosting.competences = resultDto.competences.map { dto ->

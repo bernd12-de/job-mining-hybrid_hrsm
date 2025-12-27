@@ -30,7 +30,7 @@ class Competence(BaseModel):
     preferred_label: str
     esco_uri: str
     alt_labels: List[str] = Field(default_factory=list)
-    is_digital: Optional[bool] = None  # Optional für Legacy-Kompatibilität
+    is_digital: bool = False  # NOT NULL mit Default False
 
 
 class CompetenceDTO(BaseModel):
@@ -89,6 +89,7 @@ class AnalysisResultDTO(BaseModel):
     
     # Status
     is_segmented: bool = False  # True wenn Aufgaben/Anforderungen getrennt
+    source_url: Optional[str] = None  # Quelle für Web-Scraping (URLs)
     
     # Erkannte Kompetenzen
     competences: List[CompetenceDTO] = Field(default_factory=list)

@@ -29,6 +29,9 @@ class JobPosting(
     @Column(name = "is_segmented", nullable = false)
     var isSegmented: Boolean = false,
 
+    @Column(name = "source_url", length = 2048)
+    val sourceUrl: String? = null,
+
     @Column(nullable = false, length = 255)
     val region: String,
     @Column(nullable = false, length = 512)

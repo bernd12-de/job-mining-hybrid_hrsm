@@ -819,7 +819,7 @@
     "term": "studium",
     "role": "Software Engineer",
     "context": "segmented",
-    "count": 11
+    "count": 15
   },
   {
     "term": "ausbildung",
@@ -1605,7 +1605,7 @@
     "term": "erfahrung",
     "role": "Software Engineer",
     "context": "segmented",
-    "count": 11
+    "count": 17
   },
   {
     "term": "spacy",
@@ -1617,7 +1617,7 @@
     "term": "kenntnisse",
     "role": "Software Engineer",
     "context": "segmented",
-    "count": 154
+    "count": 160
   },
   {
     "term": "kotlin",
@@ -1629,19 +1629,19 @@
     "term": "spring",
     "role": "Software Engineer",
     "context": "segmented",
-    "count": 11
+    "count": 17
   },
   {
     "term": "boot",
     "role": "Software Engineer",
     "context": "segmented",
-    "count": 11
+    "count": 15
   },
   {
     "term": "teamfähigkeit",
     "role": "Software Engineer",
     "context": "segmented",
-    "count": 11
+    "count": 17
   },
   {
     "term": "motivation",
@@ -2145,7 +2145,7 @@
     "term": "informatik",
     "role": "Software Engineer",
     "context": "segmented",
-    "count": 22
+    "count": 26
   },
   {
     "term": "elektrotechnik",
@@ -2758,5 +2758,59 @@
     "role": "Project Manager",
     "context": "segmented",
     "count": 1
+  },
+  {
+    "term": "vergleichbar",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "fastapi",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "docker",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "kubernetes",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "kommunikationsstärke",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "java",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "framework",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "jenkins",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "gitlab",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 2
   }
 ]

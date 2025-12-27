@@ -73,6 +73,9 @@ data class AnalysisResultDTO @JsonCreator constructor(
     @JsonProperty("is_segmented")
     val is_segmented: Boolean = false,
 
+    @JsonProperty("source_url")
+    val sourceUrl: String? = null,
+
     @JsonProperty("competences") // Das Feld war bereits korrekt annotiert
     val competences: List<CompetenceDTO>
 

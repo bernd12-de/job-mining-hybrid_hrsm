@@ -79,10 +79,11 @@ class KotlinRuleClient:
 
                 if label:
                     # 3. FIX: .append() nutzen statt überschreiben (=)
+                    # 4. FIX: Duplikat-Felder digital/is_digital vereinheitlichen
                     normalized.append({
                         "label": label,
                         "uri": item.get("esco_uri") or item.get("uri"),
-                        "is_digital": item.get("is_digital", False),
+                        "is_digital": item.get("is_digital") or item.get("digital", False),
                         "level": item.get("level", 2)
                     })
 

@@ -52,6 +52,17 @@ class HybridCompetenceRepository(ICompetenceRepository):
         self._load_custom_skills()
         self._load_dynamic_blacklist()
 
+    def _load_digital_skills(self):
+        """Markiert Skills aus ESCO 'digital' Collection als digital."""
+        digital_uri = "http://data.europa.eu/esco/concept-scheme/digital"
+        count = 0
+        for comp in self._all_competences:
+            if hasattr(comp, 'collections') and comp.collections:
+                if digital_uri in comp.collections:
+                    comp.is_digital = True
+                    count += 1
+        print(f"✅ {count} digitale Skills aus ESCO Collections markiert.")
+
     def _load_data(self):
         """Holt Daten von Kotlin. FIX: Tolerant gegen fehlende Keys."""
         try:

@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import logging
+import subprocess
+import time
+import os
+from datetime import datetime
 
 # Logging konfigurieren
 logging.basicConfig(level=logging.INFO)
@@ -15,7 +19,170 @@ except ImportError as e:
     st.stop()
 
 st.set_page_config(page_title="Job Mining Dashboard", layout="wide")
+
+# ========================================
+# 🔐 PASSWORT-SCHUTZ FÜR DOCKER-MANAGEMENT
+# ========================================
+ADMIN_PASSWORD = os.getenv("DASHBOARD_ADMIN_PASSWORD", "admin123")
+
+if 'authenticated' not in st.session_state:
+    st.session_state.authenticated = False
+
+# ========================================
+# 🐳 DOCKER MANAGEMENT FUNCTIONS
+# ========================================
+def get_container_status():
+    """Holt den Status aller Docker Container"""
+    try:
+        result = subprocess.run(
+            ["docker", "compose", "ps", "--format", "json"],
+            cwd="/workspaces/job-mining-kotlin-python",
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode == 0:
+            import json
+            containers = []
+            for line in result.stdout.strip().split('\n'):
+                if line:
+                    try:
+                        containers.append(json.loads(line))
+                    except:
+                        pass
+            return containers
+        return []
+    except Exception as e:
+        logger.error(f"Fehler beim Abrufen des Container-Status: {e}")
+        return []
+
+def get_container_logs(service_name, lines=100):
+    """Holt Logs eines spezifischen Services"""
+    try:
+        result = subprocess.run(
+            ["docker", "compose", "logs", "--tail", str(lines), service_name],
+            cwd="/workspaces/job-mining-kotlin-python",
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        return result.stdout if result.returncode == 0 else f"Fehler beim Abrufen der Logs: {result.stderr}"
+    except Exception as e:
+        return f"Exception: {str(e)}"
+
+def restart_container(service_name):
+    """Startet einen Container neu"""
+    try:
+        result = subprocess.run(
+            ["docker", "compose", "restart", service_name],
+            cwd="/workspaces/job-mining-kotlin-python",
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        return result.returncode == 0, result.stdout + result.stderr
+    except Exception as e:
+        return False, str(e)
+
+# ========================================
+# 📊 MAIN DASHBOARD
+# ========================================
 st.title("Job Mining — Dashboard")
+
+# ========================================
+# 🔐 ADMIN PANEL (mit Passwort-Schutz)
+# ========================================
+with st.sidebar:
+    st.header("🔧 Admin Panel")
+    
+    if not st.session_state.authenticated:
+        password_input = st.text_input("Admin Passwort", type="password", key="admin_pw")
+        if st.button("Login"):
+            if password_input == ADMIN_PASSWORD:
+                st.session_state.authenticated = True
+                st.rerun()
+            else:
+                st.error("❌ Falsches Passwort!")
+    else:
+        st.success("✅ Authentifiziert")
+        if st.button("Logout"):
+            st.session_state.authenticated = False
+            st.rerun()
+        
+        st.markdown("---")
+        st.subheader("🐳 Docker Management")
+        
+        # Container Status
+        containers = get_container_status()
+        if containers:
+            for container in containers:
+                service = container.get('Service', 'unknown')
+                state = container.get('State', 'unknown')
+                status_icon = "🟢" if state == "running" else "🔴"
+                st.text(f"{status_icon} {service}: {state}")
+        else:
+            st.warning("⚠️ Keine Container gefunden")
+        
+        st.markdown("---")
+        st.subheader("🔄 Container Neustarten")
+        
+        service_to_restart = st.selectbox(
+            "Service auswählen",
+            ["python-backend", "kotlin-api", "jobmining-db", "streamlit"],
+            key="restart_service"
+        )
+        
+        if st.button(f"🔄 Restart {service_to_restart}", type="primary"):
+            with st.spinner(f"Starte {service_to_restart} neu..."):
+                success, output = restart_container(service_to_restart)
+                if success:
+                    st.success(f"✅ {service_to_restart} erfolgreich neugestartet!")
+                    time.sleep(2)
+                    st.rerun()
+                else:
+                    st.error(f"❌ Fehler beim Neustart: {output}")
+
+# ========================================
+# 📜 LIVE LOGS VIEWER
+# ========================================
+st.markdown("---")
+st.header("📜 Live Logs")
+
+log_tab1, log_tab2, log_tab3 = st.tabs(["🐍 Python Backend", "☕ Kotlin API", "🗄️ Database"])
+
+with log_tab1:
+    st.subheader("Python Backend Logs")
+    if st.button("🔄 Aktualisieren", key="refresh_python"):
+        st.rerun()
+    
+    log_lines = st.slider("Anzahl Zeilen", 10, 500, 100, key="python_lines")
+    logs = get_container_logs("python-backend", log_lines)
+    st.code(logs, language="log")
+
+with log_tab2:
+    st.subheader("Kotlin API Logs")
+    if st.button("🔄 Aktualisieren", key="refresh_kotlin"):
+        st.rerun()
+    
+    log_lines = st.slider("Anzahl Zeilen", 10, 500, 100, key="kotlin_lines")
+    logs = get_container_logs("kotlin-api", log_lines)
+    st.code(logs, language="log")
+
+with log_tab3:
+    st.subheader("PostgreSQL Database Logs")
+    if st.button("🔄 Aktualisieren", key="refresh_db"):
+        st.rerun()
+    
+    log_lines = st.slider("Anzahl Zeilen", 10, 500, 100, key="db_lines")
+    logs = get_container_logs("jobmining-db", log_lines)
+    st.code(logs, language="log")
+
+st.markdown("---")
+
+# ========================================
+# 📊 METRICS & ANALYTICS
+# ========================================
+st.header("📊 Metriken & Analytics")
 
 # Fehlerbehandlung für Metrik-Generierung
 try:

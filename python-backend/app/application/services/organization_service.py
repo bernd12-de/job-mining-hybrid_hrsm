@@ -34,23 +34,14 @@ class OrganizationService:
         # Primäre Regeln aus Kotlin, Fallback aus lokaler JSON, dann heuristik
         try:
             primary_mappings = self.rule_client.fetch_industry_mappings()
-        except Exception:
-            primary_mappings = {}
-
-        self.industry_mappings: Dict[str, str] = primary_mappings or self._load_fallback_industry_mappings()
-        self.industry_keywords = self._load_mappings()
-        print(f"✅ {len(self.industry_mappings)} Branchen-Regeln aktiv (inkl. Fallback).")
-
-        try:
-            # Jetzt existiert 'self.rule_client' und dieser Aufruf funktioniert:
-            #self.industry_mappings = self.rule_client.fetch_industry_mappings()
-            self.industry_mappings: Dict[str, str] = rule_client.fetch_industry_mappings()
+            self.industry_mappings = primary_mappings
             self.industry_keywords = self._load_mappings()
-            print(f"✅ {len(self.industry_mappings)} Branchen-Regeln geladen.")
-            print(f"✅ {len(self.industry_keywords)} Branchen-Regeln geladen.")
+            print(f"✅ {len(self.industry_mappings)} Branchen-Regeln aktiv (inkl. Fallback).")
         except Exception as e:
             print(f"⚠️ Fehler bei Branchen-Mappings: {e}")
-            self.industry_mappings = {} # Fallback
+            self.industry_mappings = self._load_fallback_industry_mappings()
+            self.industry_keywords = self._load_mappings()
+            print(f"✅ {len(self.industry_mappings)} Fallback-Branchen-Regeln geladen.")
 
 
 

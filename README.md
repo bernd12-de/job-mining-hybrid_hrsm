@@ -8,6 +8,25 @@
 
 ---
 
+## 🐳 Quick Start: Docker Management
+
+**Neu implementiert:** Live-Logs & Container-Restart per Knopfdruck!
+
+```bash
+# Interaktives Management-Menü
+./docker-manager.sh
+
+# Live-Logs im Terminal
+./docker-logs-live.sh python-backend
+
+# Web-Dashboard (Passwort: admin123)
+# http://localhost:8501
+```
+
+📚 **Vollständige Dokumentation:** [DOCKER_MANAGEMENT_GUIDE.md](DOCKER_MANAGEMENT_GUIDE.md)
+
+---
+
 ## ⚠️ Was war kaputt (alte Version)
 
 Ihr System hatte diese Probleme:
@@ -20,6 +39,8 @@ Ihr System hatte diese Probleme:
 | ❌ Syntaxfehler in Kotlin | `PythonAnalysisClient.kt:122:99` | ✅ Behoben |
 | ❌ Inkonsistente Architektur | Multiple Datenmodelle | ✅ Clean Architecture |
 | ❌ Async/Scraping Fehler | `RuntimeWarning: coroutine never awaited` | ✅ Vereinfacht |
+| ❌ URL als Title gespeichert | SQL `VARCHAR(1024)` zu kurz | ✅ `source_url` Feld hinzugefügt |
+| ❌ ValidationError `is_digital` | `none is not an allowed value` | ✅ Default `False` gesetzt |
 
 ---
 
@@ -45,6 +66,8 @@ CLEAN ARCHITECTURE
 - ✅ **Docker-ready** für Production
 - ✅ **Null kaputte Features**
 - ✅ **Type-safe** mit Pydantic
+- ✅ **🆕 Docker Management Dashboard** mit Passwortschutz
+- ✅ **🆕 Live-Log-Streaming** im Terminal & Web
 
 ---
 

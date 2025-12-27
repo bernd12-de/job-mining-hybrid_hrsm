@@ -72,7 +72,7 @@ class JobMiningWorkflowManager(IJobMiningWorkflowManager):
         try:
             # Auch hier Cleaning sicherheitshalber
             cleaned_text = text.replace('\x00', '')
-            return self._execute_pipeline(cleaned_text, source_name=source_name)
+            return self._execute_pipeline(cleaned_text, source_name=source_name, source_url=source_name if source_name.startswith('http') else None)
         except Exception as e:
             logger.error(f"❌ Fehler bei run_analysis_from_scraped_text für '{source_name}': {e}", exc_info=True)
             raise ValueError(f"Analyse-Fehler für {source_name}: {str(e)}")
@@ -81,7 +81,7 @@ class JobMiningWorkflowManager(IJobMiningWorkflowManager):
     def _run_analysis_from_text(self, text: str, source_name: str) -> AnalysisResultDTO:
         return self.run_analysis_from_scraped_text(text, source_name)
 
-    def _execute_pipeline(self, text: str, source_name: str) -> AnalysisResultDTO:
+    def _execute_pipeline(self, text: str, source_name: str, source_url: Optional[str] = None) -> AnalysisResultDTO:
         """
         Die KERN-LOGIK (SSoT).
         Hier läuft der CRISP-DM Prozess für ein einzelnes Dokument durch.
@@ -94,7 +94,7 @@ class JobMiningWorkflowManager(IJobMiningWorkflowManager):
                 meta = self.metadata_extractor.extract_all(text, filename=source_name)
             except Exception as e:
                 logger.warning(f"⚠️ Metadaten-Extraktion fehlgeschlagen für '{source_name}': {e}")
-                meta = {'job_title': source_name, 'posting_date': '2024-12-01'}
+                meta = {'job_title': 'Unbekannte Position', 'posting_date': '2024-12-01'}
 
             # --- 💎 GOLD: Smarte Segmentierung integriert ---
             tasks = meta.get('tasks_clean', '')
@@ -185,13 +185,14 @@ class JobMiningWorkflowManager(IJobMiningWorkflowManager):
             try:
                 # Nutzt die Factory, um Zirkelbezüge zu vermeiden.
                 return AnalysisResultFactory.create_result(
-                    title=meta.get('job_title') or source_name,
+                    title=meta.get('job_title') or 'Unbekannte Position',
                     job_role=role,
                     industry=industry,
                     region=meta.get('region', "Unbekannt"),
                     posting_date=posting_date,
                     raw_text=text,
                     is_segmented=meta.get('is_segmented', False),
+                    source_url=source_url,
                     competences=competences
                 )
             except Exception as e:
