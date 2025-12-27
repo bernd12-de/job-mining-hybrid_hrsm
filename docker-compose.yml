@@ -28,6 +28,7 @@ services:
   # 2. Python Analysis Engine
   python-backend:
     build: ./python-backend
+    restart: unless-stopped
     ports:
       - "8000:8000"
     environment:

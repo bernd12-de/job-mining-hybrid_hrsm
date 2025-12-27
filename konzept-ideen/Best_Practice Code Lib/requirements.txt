@@ -1,0 +1,20 @@
+# requirements.txt (Für lokale 'pip install -r')
+
+# Alle Pakete aus app und build + Pytest
+pandas
+numpy==1.26.4
+SQLAlchemy
+spacy
+sentence-transformers
+scikit-learn
+python-Levenshtein
+#mysqlclient
+
+fastapi
+uvicorn[standard]
+streamlit
+python-docx
+PyPDF2
+
+# Testing Framework (für lokale Ausführung)
+pytest

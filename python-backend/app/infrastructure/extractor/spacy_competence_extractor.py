@@ -71,14 +71,22 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
         # Patterns aus dem Repository laden (SSoT)
         labels = self.repository.get_all_identifiable_labels()
         if labels:
-            # Nur Labels verwenden, die mindestens 3 Zeichen sind und keine zu generischen Wörter sind
-            generic_words = {'und', 'oder', 'der', 'die', 'das', 'den', 'des', 'dem', 'ein', 'eine', 'einen', 
-                           'einer', 'einem', 'eines', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-                           'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'}
-            filtered_labels = [l for l in labels if len(l) >= 3 and l.lower() not in generic_words]
+            # Nur Labels verwenden, die mindestens 2 Zeichen sind und keine zu generischen Wörter sind
+            generic_words = {
+                # Deutsche Stopwords
+                'und', 'oder', 'der', 'die', 'das', 'den', 'des', 'dem', 'ein', 'eine', 'einen', 
+                'einer', 'einem', 'eines', 'von', 'zu', 'im', 'am', 'ist', 'sind', 'war', 'waren',
+                # Englische Stopwords (verhindert LinkedIn-UI-Extraktion)
+                'the', 'a', 'an', 'of', 'in', 'on', 'at', 'for', 'with', 'is', 'are', 'was', 'were',
+                'be', 'been', 'being', 'our', 'your', 'their', 'this', 'that', 'these', 'those',
+                'to', 'from', 'by', 'as', 'or', 'and', 'but', 'if', 'so', 'we', 'you', 'they',
+                # UI-Fragmente (LinkedIn-Artifact-Prevention)
+                'button', 'click', 'menu', 'link', 'page', 'site', 'firm', 'interaction', 'position'
+            }
+            filtered_labels = [l for l in labels if len(l) >= 2 and l.lower() not in generic_words]  # ✅ Erlaubt R, C, Go
             
             # Erzeuge Patterns OHNE zu viele Varianten (verhindert Explosionen)
-            patterns = [self.nlp.make_doc(l) for l in filtered_labels[:10000]]  # Max 10k patterns
+            patterns = [self.nlp.make_doc(l) for l in filtered_labels]  # ✅ Alle Skills nutzen
             self.matcher.add("KNOWLEDGE_BASE", patterns)
             print(f"✅ spaCy Extractor geladen mit {len(patterns)} Begriffen (gefiltert von {len(labels)} Gesamt).")
         else:
@@ -136,7 +144,7 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
             term_lower = term.lower().strip()
 
             # Einfache Filter: zu kurze Tokens oder keine Buchstaben ignorieren
-            if len(term_lower) < 3 or not any(c.isalpha() for c in term_lower):
+            if len(term_lower) < 2 or not any(c.isalpha() for c in term_lower):  # ✅ Erlaubt R, C
                 continue
 
             # Prüfe auf exakten Kandidaten (oder kompakte Variante ohne Leerzeichen)
@@ -260,9 +268,9 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
 
             results.append(dto)
 
-        # Fallback: Verwende einfachen Fuzzy/Substrings-Abgleich über n-grams, falls nichts gefunden wurde
-        if not results:
-            try:
+        # ✅ Fallback: Läuft IMMER (nicht nur bei len=0), um zusätzliche Skills zu finden
+        fallback_results = []
+        try:
                 from rapidfuzz import fuzz
 
                 labels = self.repository.get_all_identifiable_labels()
@@ -367,8 +375,11 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
                                     break
                         if found:
                             break
-            except Exception:
-                pass
+            
+            # ✅ Kombiniere Hauptresultate + Fallback
+            results.extend(fallback_results)
+            
+        except Exception:
+            pass
 
-        return results
         return results

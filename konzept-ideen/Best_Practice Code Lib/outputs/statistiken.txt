@@ -1,0 +1,185 @@
+================================================================================
+JOB MINING PROJEKT - STATISTIK-ZUSAMMENFASSUNG
+================================================================================
+
+Generiert: 2025-10-25 18:54:00
+
+================================================================================
+ÜBERSICHT
+================================================================================
+
+Gesamt Stellenanzeigen: 43
+Gesamt Kompetenzen: 132
+Ø Kompetenzen pro Anzeige: 3.1
+
+================================================================================
+TOP 10 UNTERNEHMEN
+================================================================================
+
+  Unbekannt: 23x
+  Accenture: 3x
+  Springer Fachmedien München GmbH: 2x
+  Motel One GmbH: 1x
+  Berufliche Bildung AG: 1x
+  Randstad Digital Germany AG: 1x
+  Polo Einzelhandels GmbH: 1x
+  Constantin Medien AG: 1x
+  Career Partner GmbH: 1x
+  Omnicom Media Group: 1x
+
+================================================================================
+TOP 10 STANDORTE
+================================================================================
+
+  Hamburg: 12x
+  München: 10x
+  Berlin: 7x
+  Hamburg (Remote möglich): 5x
+  Nicht angegeben: 4x
+  Remote: 3x
+  Frankfurt: 1x
+  Berlin (Remote möglich): 1x
+
+================================================================================
+JOB-KATEGORIEN
+================================================================================
+
+  UX/UI Design: 25x
+  UX Research: 12x
+  Other: 8x
+  Product Management: 5x
+  Agile Coaching: 5x
+  Business Analysis: 4x
+
+================================================================================
+TOP 30 KOMPETENZEN
+================================================================================
+
+  Prototyping: 12x
+  User Research: 11x
+  Figma: 10x
+  HTML5: 8x
+  Scrum: 8x
+  Wireframing: 6x
+  Journey Mapping: 6x
+  User Interviews: 5x
+  Design Thinking: 5x
+  Sketch: 5x
+  SAFe: 4x
+  Jira: 4x
+  JavaScript: 4x
+  Confluence: 3x
+  InVision: 3x
+  Miro: 3x
+  Interaction Design: 3x
+  CSS3: 3x
+  Kanban: 2x
+  Google Analytics: 2x
+  TypeScript: 2x
+  Go: 2x
+  Adobe XD: 2x
+  UI Design: 2x
+  Design Systems: 2x
+  Axure: 2x
+  Usability Testing: 2x
+  Personas: 2x
+  Java: 1x
+  Docker: 1x
+
+================================================================================
+KOMPETENZEN NACH KATEGORIE
+================================================================================
+
+
+Agile Framework (4 Nennungen):
+--------------------------------------------------------------------------------
+  SAFe: 4x
+
+Agile Method (10 Nennungen):
+--------------------------------------------------------------------------------
+  Scrum: 8x
+  Kanban: 2x
+
+Agile Practice (1 Nennungen):
+--------------------------------------------------------------------------------
+  User Stories: 1x
+
+Analytics (2 Nennungen):
+--------------------------------------------------------------------------------
+  Google Analytics: 2x
+
+Collaboration (3 Nennungen):
+--------------------------------------------------------------------------------
+  Miro: 3x
+
+Container (1 Nennungen):
+--------------------------------------------------------------------------------
+  Docker: 1x
+
+Design Activity (18 Nennungen):
+--------------------------------------------------------------------------------
+  Prototyping: 12x
+  Wireframing: 6x
+
+Design Method (5 Nennungen):
+--------------------------------------------------------------------------------
+  Design Thinking: 5x
+
+Design Skill (8 Nennungen):
+--------------------------------------------------------------------------------
+  Interaction Design: 3x
+  UI Design: 2x
+  Design Systems: 2x
+  Visual Design: 1x
+
+Documentation (3 Nennungen):
+--------------------------------------------------------------------------------
+  Confluence: 3x
+
+Frontend Framework (2 Nennungen):
+--------------------------------------------------------------------------------
+  React: 1x
+  Next.js: 1x
+
+Programming Language (10 Nennungen):
+--------------------------------------------------------------------------------
+  JavaScript: 4x
+  TypeScript: 2x
+  Go: 2x
+  Java: 1x
+  Python: 1x
+
+Project Management (4 Nennungen):
+--------------------------------------------------------------------------------
+  Jira: 4x
+
+Research Artifact (2 Nennungen):
+--------------------------------------------------------------------------------
+  Personas: 2x
+
+Research Method (24 Nennungen):
+--------------------------------------------------------------------------------
+  User Research: 11x
+  Journey Mapping: 6x
+  User Interviews: 5x
+  Usability Testing: 2x
+
+Testing Method (1 Nennungen):
+--------------------------------------------------------------------------------
+  A/B Testing: 1x
+
+UX Tools (23 Nennungen):
+--------------------------------------------------------------------------------
+  Figma: 10x
+  Sketch: 5x
+  InVision: 3x
+  Adobe XD: 2x
+  Axure: 2x
+  Framer: 1x
+
+Web Technology (11 Nennungen):
+--------------------------------------------------------------------------------
+  HTML5: 8x
+  CSS3: 3x
+
+================================================================================

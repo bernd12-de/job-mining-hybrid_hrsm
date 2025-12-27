@@ -1,12 +1,12 @@
 import json, os, re
 
-# BEST PRACTICE FILTER LISTEN: Eliminiert das Rauschen!
+# ✅ Bereinigte Blacklist: Nur wirklich generische Begriffe
+# ENTFERNT: r, management, analyse, strategie, informatik, digitalisierung, projektleitung, agil, prozess, technik
 GENERIC_SKILLS_BLACKLIST = {
     "kenntnisse", "fähigkeiten", "kommunikation", "deutsch", "englisch",
-    "r", "bau", "ski", "sport", "medien", "wissenschaft", "erfahrung",
-    "agil", "strategie", "prozess", "management", "analyse", "projektleitung",
-    "kunden", "lösung", "team", "technik", "bereich", "verantwortung übernehmen",
-    "beratung", "dienstleistungen", "informatik", "digitalisierung"
+    "bau", "ski", "sport", "medien", "wissenschaft", "erfahrung",
+    "kunden", "lösung", "team", "bereich", "verantwortung übernehmen",
+    "beratung", "dienstleistungen"
 }
 PRONOUNS = {"wir","du","ihr","euch","uns","dein","mein"}
 
@@ -21,8 +21,8 @@ def extract_skills(text: str):
     """ Extrahiert Skills mit Aliasing und Eliminiert ESCO-Rauschen. """
     if not text: return []
     aliases = load_esco_alias()
-    # KERN-FIX: Mindestens 3 Zeichen, um 's', 'öl', 'r' zu vermeiden
-    tokens = re.findall(r"[A-Za-zÄÖÜäöüß+.#\-]{3,}", text.lower())
+    # ✅ KERN-FIX: Mindestens 2 Zeichen, erlaubt R, C, Go
+    tokens = re.findall(r"[A-Za-zÄÖÜäöüß+.#\-]{2,}", text.lower())
 
     out = []
     for t in tokens:

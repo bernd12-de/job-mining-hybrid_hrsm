@@ -198,37 +198,57 @@ class HybridCompetenceRepository(ICompetenceRepository):
         return self.get_all_identifiable_labels()
 
     def get_level(self, term: str) -> int:
-        """Determine level priority:
-        5 = Academia (modulhandbuch), 4 = Fachbuch, 2/3 = ESCO, default = 2
+        """Determine level priority (7-Ebenen-Konzept):
+        Level 7 = Zeitreihen/Validierung (nicht implementiert)
+        Level 6 = Segmentierung & Kontext (nicht als numerischer Level)
+        Level 5 = Academia (modulhandbuch)
+        Level 4 = Fachbuch
+        Level 3 = ESCO Digital Skills
+        Level 2 = ESCO Standard
+        Level 1 = Discovery (neue, unbekannte Skills)
         """
         if not term:
             return 2
         t = term.lower().strip()
 
-        # 1) Academia (level 5)
+        # 1) Academia (level 5) - Höchste Priorität für akademische Domänen
         if t in self._academia_skills:
             return 5
 
-        # 2) Fachbuch (level 4)
+        # 2) Fachbuch (level 4) - Domänen-spezifische Skills
         if t in self._fachbuch_skills:
             return 4
 
-        # 3) ESCO lookup
+        # 3) ESCO lookup mit Digital-Flag
         if t in self.esco_data:
             try:
-                return int(self.esco_data[t].get('level', 2))
+                meta = self.esco_data[t]
+                # Level 3 für digitale ESCO Skills
+                if meta.get('is_digital', False):
+                    return 3
+                # Level 2 für Standard ESCO Skills
+                return int(meta.get('level', 2))
             except Exception:
                 return 2
 
-        # 4) Heuristik: substring match against ESCO labels
+        # 4) Custom Domains Check
+        for domain_name, domain_data in self.custom_domains.items():
+            for comp in domain_data.get('competences', []):
+                if comp.get('name', '').lower().strip() == t:
+                    return domain_data.get('level', 2)
+
+        # 5) Heuristik: substring match against ESCO labels
         for k, v in self.esco_data.items():
-            if t == k or t in k or k in t:
+            if t == k or (len(t) > 3 and (t in k or k in t)):
                 try:
+                    # Digital-Check auch bei Heuristik
+                    if v.get('is_digital', False):
+                        return 3
                     return int(v.get('level', 2))
                 except Exception:
                     return 2
 
-        # Fallback
+        # Fallback: Level 2 (Standard ESCO)
         return 2
 
     def get_data_by_label(self, label: str) -> Dict:
@@ -280,11 +300,19 @@ class HybridCompetenceRepository(ICompetenceRepository):
 
         Tries multiple candidate base paths: current working directory first (useful for tests),
         then the repository-relative path (production / container use).
+        
+        Erkennt automatisch Level basierend auf Pfad:
+        - fachbuecher/ oder fachbuch/ → Level 4
+        - modulhandbuecher/ oder academia/ → Level 5
+        - Ansonsten aus JSON-Metadaten
         """
         self.custom_domains = {}
         candidate_paths = [
             os.path.join(os.getcwd(), 'data', 'job_domains'),
-            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), 'data', 'job_domains')
+            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), 'data', 'job_domains'),
+            # Zusätzliche Pfade für Fachbücher/Academia
+            os.path.join(os.getcwd(), 'data', 'fachbuecher'),
+            os.path.join(os.getcwd(), 'data', 'modulhandbuecher')
         ]
 
         base = None
@@ -294,9 +322,12 @@ class HybridCompetenceRepository(ICompetenceRepository):
                 break
 
         if not base:
-            # nothing to load
+            print("⚠️ Keine lokalen Domain-Dateien gefunden in:", candidate_paths)
             return
 
+        loaded_count = 0
+        level_counts = {4: 0, 5: 0, 'other': 0}
+        
         for fname in os.listdir(base):
             if not fname.endswith('.json'):
                 continue
@@ -305,25 +336,85 @@ class HybridCompetenceRepository(ICompetenceRepository):
                 with open(path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                 domain_name = data.get('domain', os.path.splitext(fname)[0])
+                comp_count = len(data.get('competences', []))
+                
+                # Auto-detect Level basierend auf Pfad oder Dateiname
+                if 'level' not in data:
+                    if 'fachbuch' in base.lower() or 'fachbuch' in fname.lower():
+                        data['level'] = 4
+                        print(f"  📚 {fname}: Level 4 (auto) | {comp_count} Skills")
+                    elif 'modulhandbuch' in base.lower() or 'academia' in base.lower() or 'modulhandbuch' in fname.lower():
+                        data['level'] = 5
+                        print(f"  🎓 {fname}: Level 5 (auto) | {comp_count} Skills")
+                    else:
+                        data['level'] = 2  # Default für unspezifische Domains
+                        print(f"  📁 {fname}: Level 2 (default) | {comp_count} Skills")
+                else:
+                    level = data['level']
+                    emoji = "📚" if level == 4 else "🎓" if level == 5 else "📁"
+                    print(f"  {emoji} {fname}: Level {level} | {comp_count} Skills")
+                
                 self.custom_domains[domain_name] = data
+                loaded_count += 1
+                
+                # Zähle nach Level
+                lvl = data.get('level', 2)
+                if lvl == 4:
+                    level_counts[4] += 1
+                elif lvl == 5:
+                    level_counts[5] += 1
+                else:
+                    level_counts['other'] += 1
+                    
             except Exception as e:
                 print(f"⚠️ Fehler beim Laden der Domain {fname}: {e}")
+        
+        if loaded_count > 0:
+            print(f"✅ {loaded_count} Custom Domains geladen: {level_counts[4]} x Level 4, {level_counts[5]} x Level 5, {level_counts['other']} x Andere")
 
     def _sync_legacy_sets(self):
-        """Populate legacy sets for backward-compatible lookup (fachbuch / academia)."""
+        """Populate legacy sets for backward-compatible lookup (fachbuch / academia).
+        
+        Extrahiert Skills aus custom_domains basierend auf Level:
+        - Level 4 → _fachbuch_skills
+        - Level 5 → _academia_skills
+        """
         self._fachbuch_skills = set()
         self._academia_skills = set()
-        for domain, data in self.custom_domains.items():
+        
+        domain_breakdown = []
+        
+        for domain_name, data in self.custom_domains.items():
             lvl = data.get('level', 2)
-            for comp in data.get('competences', []):
-                name = comp.get('name')
+            competences = data.get('competences', [])
+            
+            domain_skills = 0
+            for comp in competences:
+                # Unterstütze verschiedene Formate
+                name = comp.get('name') or comp.get('preferredLabel') or comp.get('label')
                 if not name:
                     continue
+                    
                 name_low = name.lower().strip()
+                
                 if lvl == 4:
                     self._fachbuch_skills.add(name_low)
-                if lvl == 5:
+                    domain_skills += 1
+                elif lvl == 5:
                     self._academia_skills.add(name_low)
+                    domain_skills += 1
+            
+            if lvl in [4, 5] and domain_skills > 0:
+                domain_breakdown.append(f"    {domain_name[:40]}: {domain_skills} Skills")
+        
+        if self._fachbuch_skills or self._academia_skills:
+            print(f"✅ Legacy Sets synchronisiert:")
+            print(f"   📚 Fachbuch (L4): {len(self._fachbuch_skills)} unique Skills")
+            print(f"   🎓 Academia (L5): {len(self._academia_skills)} unique Skills")
+            if domain_breakdown:
+                print(f"\n   Breakdown pro Domain:")
+                for line in domain_breakdown:
+                    print(line)
 
     def is_known(self, term: str) -> bool:
         """Check if a given term is known in ESCO or custom skills.
@@ -354,6 +445,47 @@ class HybridCompetenceRepository(ICompetenceRepository):
         return term.lower().strip() in {t.lower() for t in self._blacklist}
 
     def is_digital_skill(self, term: str) -> bool:
+        """Prüft, ob ein Skill als digital klassifiziert ist.
+        
+        Reihenfolge:
+        1) ESCO Digital Collection Flag (aus Metadaten)
+        2) Keyword-basierte Heuristik (mit Wortgrenzen)
+        3) Substring-Match in bekannten digitalen Skills
+        """
         if not term:
             return False
-        return self.esco_data.get(term.lower().strip(), {}).get('is_digital', False)
+        
+        t = term.lower().strip()
+        
+        # 1) Direct ESCO lookup
+        if t in self.esco_data:
+            if self.esco_data[t].get('is_digital', False):
+                return True
+        
+        # 2) Keyword-basierte Heuristik für digitale Skills
+        # WICHTIG: Verwende Wortgrenzen, um False Positives zu vermeiden
+        digital_keywords = [
+            'software', 'digital', 'programm', 'data science', 'daten',
+            'cloud', 'machine learning', 'python', 'java', 'javascript',
+            'web', 'cyber', 'algorithmus', 'api', 'datenbank', 'database',
+            'coding', 'automation', 'automatisierung', 'agile', 'scrum',
+            'devops', 'sap', 'erp', 'crm', 'excel', 'power bi', 'tableau',
+            'sql', 'html', 'css', 'react', 'angular', 'vue', 'docker',
+            'kubernetes', 'aws', 'azure', 'gcp', 'ki ', 'ai '
+        ]
+        
+        # Verwende Wortgrenzen für genauere Erkennung
+        import re
+        for keyword in digital_keywords:
+            # Exakte Matches mit Wortgrenzen
+            pattern = r'\b' + re.escape(keyword.strip()) + r'\b'
+            if re.search(pattern, t):
+                return True
+        
+        # 3) Substring-Match in bekannten digitalen ESCO Skills
+        for k, v in self.esco_data.items():
+            if v.get('is_digital', False) and len(t) > 3:
+                if t in k or k in t:
+                    return True
+        
+        return False

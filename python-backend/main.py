@@ -300,14 +300,15 @@ def refresh_knowledge():
                 logger.error(f"Fehler beim Laden der Blacklist: {e}")
                 errors.append(f"_load_dynamic_blacklist: {str(e)}")
 
-        # Extractor neu initialisieren
-        try:
-            global COMPETENCE_EXTRACTOR, WORKFLOW_MANAGER
-            COMPETENCE_EXTRACTOR = SpaCyCompetenceExtractor(repository=COMPETENCE_REPOSITORY)
-            WORKFLOW_MANAGER.competence_extractor = COMPETENCE_EXTRACTOR
-        except Exception as e:
-            logger.error(f"Fehler beim Neuinitialisieren des Extractors: {e}")
-            errors.append(f"extractor_init: {str(e)}")
+        # WICHTIG: Extractor NICHT neu initialisieren! Das führt zu Memory-Problemen und Container-Crash.
+        # Der Extractor wird die neuen Daten automatisch über das Repository verwenden.
+        # try:
+        #     global COMPETENCE_EXTRACTOR, WORKFLOW_MANAGER
+        #     COMPETENCE_EXTRACTOR = SpaCyCompetenceExtractor(repository=COMPETENCE_REPOSITORY)
+        #     WORKFLOW_MANAGER.competence_extractor = COMPETENCE_EXTRACTOR
+        # except Exception as e:
+        #     logger.error(f"Fehler beim Neuinitialisieren des Extractors: {e}")
+        #     errors.append(f"extractor_init: {str(e)}")
 
         skills_count = 0
         try:

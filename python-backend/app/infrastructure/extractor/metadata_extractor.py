@@ -79,12 +79,25 @@ class MetadataExtractor:
             inferred_level = 5
             source_domain = f"Academia: {filename}"
 
+        # Erkenne Kategorie und nutze sie für industry
+        job_category = self._extract_job_category(text)
+        
+        # ✅ Industry-Mapping: Nutze Kategorie statt Firmenerkennung
+        industry_mapping = {
+            "IT & Softwareentwicklung": "IT & Software",
+            "UX/UI Design": "Design & Kreativ",
+            "Management & Beratung": "Management",
+            "Finanzen & Controlling": "Finanzen",
+            "Assistenz & Office": "Administration",
+            "Sonstige Fachgebiete": self._extract_organization(text)  # Fallback: Firmenname
+        }
+        
         # RETURN: Mappt exakt auf die Variablen in Kotlin
         return {
             "job_title": self._extract_title(text, filename),
-            "job_role": self._extract_job_category(text), # Mappt auf AnalysisResultDTO.jobRole
-            "region": self._extract_location(text),       # Mappt auf AnalysisResultDTO.region
-            "industry": self._extract_organization(text), # Hier als Branche/Firma genutzt
+            "job_role": job_category,                          # Mappt auf AnalysisResultDTO.jobRole
+            "region": self._extract_location(text),            # Mappt auf AnalysisResultDTO.region
+            "industry": industry_mapping.get(job_category, job_category),  # ✅ Aus Kategorie abgeleitet
             "posting_date": iso_date or "2024-01-01",
             "is_segmented": is_segmented,
             "processing_text": clean_segment if is_segmented else filtered_text,

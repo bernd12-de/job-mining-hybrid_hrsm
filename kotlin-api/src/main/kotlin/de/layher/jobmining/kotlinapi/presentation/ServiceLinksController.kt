@@ -32,9 +32,15 @@ class ServiceLinksController(
         description = """
             Liefert URLs zu allen verfügbaren UIs und Dashboards:
             - Swagger UI (diese API-Dokumentation)
-            - Streamlit Dashboard (Visualisierung & Reports)
-            - Python FastAPI Docs (Backend-API)
+            - Streamlit Dashboard (🔐 Passwort-geschützt: admin123, Visualisierung & Docker Management)
+            - Python FastAPI Docs (Backend-API mit NLP-Engine)
             - Actuator Health (System-Status)
+            
+            ⚠️ WICHTIG - KERNFUNKTION:
+            POST /api/v1/jobs/upload - Stellenanzeige hochladen (PDF/DOCX)
+            
+            Hinweis: Bei GitHub Codespaces URLs anpassen:
+            localhost → https://CODESPACE_NAME-PORT.app.github.dev
         """
     )
     fun getServiceLinks(): ServiceLinksResponse {
@@ -50,7 +56,7 @@ class ServiceLinksController(
                 ),
                 ServiceLink(
                     name = "Streamlit Dashboard",
-                    description = "Visualisierung: Top Skills, Zeitreihen, Domain-Mix, CSV/PDF-Reports",
+                    description = "🐳 Docker Management (Restart, Logs), Visualisierung & Reports | 🔐 Passwort: admin123",
                     url = "http://localhost:8501",
                     category = "Dashboard"
                 ),
@@ -85,7 +91,21 @@ class ServiceLinksController(
                     category = "Discovery"
                 )
             ),
-            info = "Alle Services laufen im lokalen Docker-Stack. Swagger UI bietet interaktive API-Tests."
+            info = """
+                ✅ Alle Services laufen im Docker-Stack. 
+                
+                🔧 KERN-ENDPOINTS:
+                • POST /api/v1/jobs/upload - Datei hochladen (PDF/DOCX)
+                • POST /api/v1/jobs/scrape - URL scrapen & analysieren
+                • GET /api/v1/jobs - Alle Jobs abrufen
+                
+                📊 DASHBOARD-FEATURES:
+                • Live-Logs von Python/Kotlin/DB
+                • Container-Restart per Knopf
+                • Analytics & Reports
+                
+                🔐 Dashboard-Passwort: admin123
+            """.trimIndent()
         )
     }
 }

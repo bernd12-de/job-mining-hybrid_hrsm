@@ -14,7 +14,7 @@ class FuzzyCompetenceExtractor(ICompetenceExtractor):
     verpasst wurden (Fuzzy Matching & Mapping-Tabellen).
     """
 
-    def __init__(self, repository, threshold: int = 90):
+    def __init__(self, repository, threshold: int = 82):  # ✅ Industrie-Standard
         self.repository = repository
         self.threshold = threshold
         # Wir laden alle bekannten Labels (ESCO + Fachbücher + Uni) als Referenz
