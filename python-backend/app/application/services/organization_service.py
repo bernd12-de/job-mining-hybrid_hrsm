@@ -31,16 +31,15 @@ class OrganizationService:
             ("Öffentlicher Sektor", r"behörde|verwaltung|amt|stadt|kommune|ministerium|oeffentlich|öffentlich"),
         ]
 
-        # Primäre Regeln aus Kotlin, Fallback aus lokaler JSON, dann heuristik
+        # Load mappings once from Kotlin API or fallback
         try:
-            primary_mappings = self.rule_client.fetch_industry_mappings()
-            self.industry_mappings = primary_mappings
-            self.industry_keywords = self._load_mappings()
-            print(f"✅ {len(self.industry_mappings)} Branchen-Regeln aktiv (inkl. Fallback).")
+            self.industry_mappings = self._load_mappings()
+            self.industry_keywords = self.industry_mappings
+            print(f"✅ {len(self.industry_mappings)} Branchen-Regeln aktiv.")
         except Exception as e:
             print(f"⚠️ Fehler bei Branchen-Mappings: {e}")
             self.industry_mappings = self._load_fallback_industry_mappings()
-            self.industry_keywords = self._load_mappings()
+            self.industry_keywords = self.industry_mappings
             print(f"✅ {len(self.industry_mappings)} Fallback-Branchen-Regeln geladen.")
 
 

@@ -34,9 +34,13 @@ if 'authenticated' not in st.session_state:
 def get_container_status():
     """Holt den Status aller Docker Container"""
     try:
+        # Verwende parent directory des Scripts (funktioniert in Container und lokal)
+        work_dir = os.path.dirname(os.path.abspath(__file__))
+        if work_dir.endswith('python-backend'):
+            work_dir = os.path.dirname(work_dir)
         result = subprocess.run(
             ["docker", "compose", "ps", "--format", "json"],
-            cwd="/workspaces/job-mining-kotlin-python",
+            cwd=work_dir,
             capture_output=True,
             text=True,
             timeout=5
@@ -59,9 +63,12 @@ def get_container_status():
 def get_container_logs(service_name, lines=100):
     """Holt Logs eines spezifischen Services"""
     try:
+        work_dir = os.path.dirname(os.path.abspath(__file__))
+        if work_dir.endswith('python-backend'):
+            work_dir = os.path.dirname(work_dir)
         result = subprocess.run(
             ["docker", "compose", "logs", "--tail", str(lines), service_name],
-            cwd="/workspaces/job-mining-kotlin-python",
+            cwd=work_dir,
             capture_output=True,
             text=True,
             timeout=10
@@ -73,9 +80,12 @@ def get_container_logs(service_name, lines=100):
 def restart_container(service_name):
     """Startet einen Container neu"""
     try:
+        work_dir = os.path.dirname(os.path.abspath(__file__))
+        if work_dir.endswith('python-backend'):
+            work_dir = os.path.dirname(work_dir)
         result = subprocess.run(
             ["docker", "compose", "restart", service_name],
-            cwd="/workspaces/job-mining-kotlin-python",
+            cwd=work_dir,
             capture_output=True,
             text=True,
             timeout=30
@@ -294,6 +304,44 @@ with col2:
     except Exception as e:
         logger.error(f"PDF-Report nicht verfügbar: {e}")
         st.error(f"PDF-Report nicht verfügbar: {e}")
+
+# ========================================
+# 📋 JOB-DATEN TABELLE
+# ========================================
+st.markdown("---")
+with st.expander("📋 Job-Daten Übersicht", expanded=False):
+    try:
+        import requests
+        # Hole Job-Daten von Kotlin-API
+        response = requests.get("http://kotlin-api:8080/api/v1/jobs", timeout=5)
+        if response.status_code == 200:
+            jobs_data = response.json()
+            if jobs_data:
+                # Erstelle DataFrame mit wichtigsten Feldern
+                df_jobs = pd.DataFrame([{
+                    'ID': job.get('id'),
+                    'Titel': job.get('title', 'N/A'),
+                    'Rolle': job.get('jobRole', 'N/A'),
+                    'Branche': job.get('industry', 'N/A'),
+                    'Region': job.get('region', 'N/A'),
+                    'Kompetenzen': len(job.get('competences', [])),
+                    'Erstellt': job.get('createdAt', 'N/A')[:10] if job.get('createdAt') else 'N/A'
+                } for job in jobs_data])
+                
+                st.dataframe(
+                    df_jobs,
+                    use_container_width=True,
+                    hide_index=True
+                )
+                st.caption(f"Gesamt: {len(jobs_data)} Jobs")
+            else:
+                st.info("Keine Jobs in der Datenbank gefunden.")
+        else:
+            st.warning(f"API-Fehler: Status {response.status_code}")
+    except requests.RequestException as e:
+        st.error(f"Verbindungsfehler zur Kotlin-API: {e}")
+    except Exception as e:
+        st.error(f"Fehler beim Laden der Job-Daten: {e}")
 
 st.markdown("---")
 st.caption("Minimaler Dashboard-Prototyp basierend auf dem RTFD-Spezifikationsbeispiel. Für Produktion: Authentifizierung, Pagination und Hintergrund-Jobs hinzufügen.")

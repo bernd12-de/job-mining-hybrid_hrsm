@@ -83,8 +83,13 @@ try:
     # Discovery extractor needs a reference to the manager
     DISCOVERY_EXT = DiscoveryExtractor(repository=COMPETENCE_REPOSITORY, manager=WORKFLOW_MANAGER)
 
-    # Now build the full CompetenceExtractor (passes: Spacy, Fuzzy, Discovery)
-    COMPETENCE_EXTRACTOR = CompetenceExtractor(spacy_ext=SPACY_EXT, fuzzy_ext=FUZZY_EXT, discovery_ext=DISCOVERY_EXT)
+    # Now build the full CompetenceExtractor - pass shared spaCy model to avoid duplicate loading
+    COMPETENCE_EXTRACTOR = CompetenceExtractor(
+        spacy_ext=SPACY_EXT, 
+        fuzzy_ext=FUZZY_EXT, 
+        discovery_ext=DISCOVERY_EXT,
+        nlp_model=SPACY_EXT.nlp  # Share the model to avoid loading twice
+    )
     # Inject the real competence extractor into the manager
     WORKFLOW_MANAGER.competence_extractor = COMPETENCE_EXTRACTOR
 

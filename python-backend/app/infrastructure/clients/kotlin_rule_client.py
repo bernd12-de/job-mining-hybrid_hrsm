@@ -258,7 +258,7 @@ class KotlinRuleClient:
     def _get_static_fallback_blacklist_as_list(self):
         return list({
             "kenntnisse", "fähigkeiten", "kommunikation", "deutsch", "englisch",
-            "team", "management", "analyse", "projektleitung", "erfahrung",
+            "team", "analyse", "projektleitung", "erfahrung",
             "und", "oder", "bei", "mit", "job", "suche"
         })
 

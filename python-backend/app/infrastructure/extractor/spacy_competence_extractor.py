@@ -85,10 +85,19 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
             }
             filtered_labels = [l for l in labels if len(l) >= 2 and l.lower() not in generic_words]  # ✅ Erlaubt R, C, Go
             
-            # Erzeuge Patterns OHNE zu viele Varianten (verhindert Explosionen)
-            patterns = [self.nlp.make_doc(l) for l in filtered_labels]  # ✅ Alle Skills nutzen
-            self.matcher.add("KNOWLEDGE_BASE", patterns)
-            print(f"✅ spaCy Extractor geladen mit {len(patterns)} Begriffen (gefiltert von {len(labels)} Gesamt).")
+            # PhraseMatcher Chunking: Verarbeite alle Skills in Batches
+            # spaCy PhraseMatcher hat kein hartes 10k Limit mehr in neueren Versionen,
+            # aber wir chunken trotzdem für bessere Performance
+            CHUNK_SIZE = 5000
+            total_patterns = 0
+            for i in range(0, len(filtered_labels), CHUNK_SIZE):
+                chunk = filtered_labels[i:i+CHUNK_SIZE]
+                patterns = [self.nlp.make_doc(l) for l in chunk]
+                # Verwende eindeutige IDs für chunks
+                self.matcher.add(f"KNOWLEDGE_BASE_{i//CHUNK_SIZE}", patterns)
+                total_patterns += len(patterns)
+            
+            print(f"✅ spaCy Extractor geladen mit {total_patterns} Begriffen in {(len(filtered_labels)-1)//CHUNK_SIZE + 1} Chunks (gefiltert von {len(labels)} Gesamt).")
         else:
             print("⚠️ spaCy Extractor Warnung: Repository ist leer!")
 
@@ -375,10 +384,10 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
                                     break
                         if found:
                             break
-            
-            # ✅ Kombiniere Hauptresultate + Fallback
-            results.extend(fallback_results)
-            
+        
+                # ✅ Kombiniere Hauptresultate + Fallback
+                results.extend(fallback_results)
+        
         except Exception:
             pass
 

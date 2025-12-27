@@ -123,7 +123,7 @@
     "term": "kunden",
     "role": "Project Manager",
     "context": "segmented",
-    "count": 66
+    "count": 72
   },
   {
     "term": "kommunikation",
@@ -207,7 +207,7 @@
     "term": "durch",
     "role": "Project Manager",
     "context": "segmented",
-    "count": 13
+    "count": 17
   },
   {
     "term": "dein",
@@ -249,7 +249,7 @@
     "term": "dich",
     "role": "Project Manager",
     "context": "segmented",
-    "count": 48
+    "count": 56
   },
   {
     "term": "produktes",
@@ -273,7 +273,7 @@
     "term": "deine",
     "role": "Project Manager",
     "context": "segmented",
-    "count": 39
+    "count": 47
   },
   {
     "term": "digitale",
@@ -303,7 +303,7 @@
     "term": "manager",
     "role": "Project Manager",
     "context": "segmented",
-    "count": 24
+    "count": 28
   },
   {
     "term": "ransformation",
@@ -315,7 +315,7 @@
     "term": "hamburg",
     "role": "Project Manager",
     "context": "segmented",
-    "count": 24
+    "count": 32
   },
   {
     "term": "details",
@@ -375,7 +375,7 @@
     "term": "einrichten",
     "role": "Architect",
     "context": "segmented",
-    "count": 58
+    "count": 64
   },
   {
     "term": "through",
@@ -708,12 +708,6 @@
     "count": 48
   },
   {
-    "term": "development",
-    "role": "Software Engineer",
-    "context": "segmented",
-    "count": 180
-  },
-  {
     "term": "your",
     "role": "Software Engineer",
     "context": "segmented",
@@ -927,7 +921,7 @@
     "term": "innen",
     "role": "Architect",
     "context": "segmented",
-    "count": 68
+    "count": 74
   },
   {
     "term": "hast",
@@ -1017,7 +1011,7 @@
     "term": "sind",
     "role": "Architect",
     "context": "segmented",
-    "count": 44
+    "count": 50
   },
   {
     "term": "weitere",
@@ -1209,103 +1203,103 @@
     "term": "kenntnisse",
     "role": "Architect",
     "context": "segmented",
-    "count": 128
+    "count": 152
   },
   {
     "term": "ihrem",
     "role": "Architect",
     "context": "segmented",
-    "count": 64
+    "count": 76
   },
   {
     "term": "haben",
     "role": "Architect",
     "context": "segmented",
-    "count": 48
+    "count": 57
   },
   {
     "term": "profil",
     "role": "Architect",
     "context": "segmented",
-    "count": 48
+    "count": 57
   },
   {
     "term": "linkedin",
     "role": "Architect",
     "context": "segmented",
-    "count": 48
+    "count": 57
   },
   {
     "term": "über",
     "role": "Architect",
     "context": "segmented",
-    "count": 32
+    "count": 38
   },
   {
     "term": "product",
     "role": "Architect",
     "context": "segmented",
-    "count": 32
+    "count": 38
   },
   {
     "term": "ihre",
     "role": "Architect",
     "context": "segmented",
-    "count": 32
+    "count": 38
   },
   {
     "term": "hamburg",
     "role": "Architect",
     "context": "segmented",
-    "count": 32
+    "count": 38
   },
   {
     "term": "microsoft",
     "role": "Architect",
     "context": "segmented",
-    "count": 32
+    "count": 38
   },
   {
     "term": "bewerber",
     "role": "Architect",
     "context": "segmented",
-    "count": 32
+    "count": 38
   },
   {
     "term": "anforderungen",
     "role": "Architect",
     "context": "segmented",
-    "count": 16
+    "count": 19
   },
   {
     "term": "verfügen",
     "role": "Architect",
     "context": "segmented",
-    "count": 16
+    "count": 19
   },
   {
     "term": "skills",
     "role": "Architect",
     "context": "segmented",
-    "count": 16
+    "count": 19
   },
   {
     "term": "eines",
     "role": "Architect",
     "context": "segmented",
-    "count": 16
+    "count": 19
   },
   {
     "term": "owners",
     "role": "Architect",
     "context": "segmented",
-    "count": 16
+    "count": 19
   },
   {
     "term": "projektmanagers",
     "role": "Architect",
     "context": "segmented",
-    "count": 16
+    "count": 19
   },
   {
     "term": "deinem",
@@ -1881,7 +1875,7 @@
     "term": "unserer",
     "role": "Project Manager",
     "context": "segmented",
-    "count": 14
+    "count": 18
   },
   {
     "term": "digitalen",
@@ -2526,12 +2520,6 @@
     "count": 22
   },
   {
-    "term": "development",
-    "role": "Architect",
-    "context": "segmented",
-    "count": 22
-  },
-  {
     "term": "strauss",
     "role": "Architect",
     "context": "segmented",
@@ -2889,7 +2877,7 @@
     "term": "unsere",
     "role": "Project Manager",
     "context": "segmented",
-    "count": 2
+    "count": 6
   },
   {
     "term": "unter",
@@ -2925,7 +2913,7 @@
     "term": "jobs",
     "role": "Project Manager",
     "context": "segmented",
-    "count": 2
+    "count": 6
   },
   {
     "term": "process",
@@ -3202,5 +3190,71 @@
     "role": "Software Engineer",
     "context": "segmented",
     "count": 2
+  },
+  {
+    "term": "projektmanagement",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 14
+  },
+  {
+    "term": "adesso",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 8
+  },
+  {
+    "term": "vergleichbare",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "umgang",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "unser",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "associate-",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "project",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "strategisches",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "genders",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "arbeitgeber-website",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "positionen",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 4
   }
 ]
