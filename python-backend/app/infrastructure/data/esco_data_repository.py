@@ -39,7 +39,7 @@ class ESCODataRepository:
     def _load_base_skills(self):
         """Lädt preferredLabels und altLabels aus skills_de.csv."""
         path = os.path.join(self.data_path, "skills_de.csv")
-        df = pd.read_csv(path, delimiter=';') # Oder ',' je nach Export
+        df = pd.read_csv(path, delimiter=',')  # ESCO CSV files use comma delimiter
 
         for _, row in df.iterrows():
             uri = row['conceptUri']
