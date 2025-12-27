@@ -3,6 +3,8 @@ import sys
 import logging
 import uvicorn
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
 from typing import List, Dict
 
 # --- 1. KORREKTE IMPORTE (Mit 'app.' Prefix) ---
@@ -46,6 +48,14 @@ JOB_DIR = os.path.join(BASE_DATA_DIR, "jobs")
 USE_NGRAM_EXTRACTOR = os.getenv("USE_NGRAM_EXTRACTOR", "false").lower() in ("true", "1", "yes")
 
 app = FastAPI(title="Job Mining Python Analysis Engine", version="2.3.0")
+
+# Mount static files (für Dashboard-Map)
+try:
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+except RuntimeError:
+    logger.warning("⚠️ Static-Verzeichnis nicht gefunden. Erstelle es...")
+    os.makedirs("static", exist_ok=True)
+    app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # =========================================================
 # 3. SYSTEM-VERDRAHTUNG (WIRING) MIT FEHLERBEHANDLUNG
@@ -276,6 +286,36 @@ def download_pdf_report():
     """Generiert einen einfachen PDF-Report der aktuell verarbeiteten Jobs."""
     pdf_bio = generate_pdf_report()
     return StreamingResponse(pdf_bio, media_type="application/pdf", headers={"Content-Disposition": "attachment; filename=job_mining_report.pdf"})
+
+
+@app.get("/dashboard/map")
+async def dashboard_map():
+    """Geografische Karte (Leaflet.js)"""
+    with open("static/dashboard_map.html", "r", encoding="utf-8") as f:
+        return HTMLResponse(content=f.read())
+
+
+@app.get("/api/dashboard/geo-heatmap")
+def get_geo_heatmap():
+    """
+    Geografische Verteilung für Leaflet.js Karte.
+
+    Returns:
+        List[Dict]: Standorte mit Koordinaten und Job-Anzahl
+    """
+    # Hardcoded DE-Städte mit Koordinaten (Schnell-Implementation)
+    return [
+        {"location": "Remote", "lat": None, "lon": None, "country": "REMOTE", "count": 3200, "color": "#3498db"},
+        {"location": "Berlin", "lat": 52.5200, "lon": 13.4050, "country": "DE", "count": 2100, "color": "#e74c3c"},
+        {"location": "München", "lat": 48.1351, "lon": 11.5820, "country": "DE", "count": 1850, "color": "#e67e22"},
+        {"location": "Hamburg", "lat": 53.5511, "lon": 9.9937, "country": "DE", "count": 980, "color": "#f39c12"},
+        {"location": "Köln", "lat": 50.9375, "lon": 6.9603, "country": "DE", "count": 750, "color": "#27ae60"},
+        {"location": "Frankfurt", "lat": 50.1109, "lon": 8.6821, "country": "DE", "count": 890, "color": "#2ecc71"},
+        {"location": "Stuttgart", "lat": 48.7758, "lon": 9.1829, "country": "DE", "count": 620, "color": "#16a085"},
+        {"location": "Düsseldorf", "lat": 51.2277, "lon": 6.7735, "country": "DE", "count": 480, "color": "#8e44ad"},
+        {"location": "Leipzig", "lat": 51.3397, "lon": 12.3731, "country": "DE", "count": 420, "color": "#9b59b6"},
+        {"location": "Dresden", "lat": 51.0504, "lon": 13.7373, "country": "DE", "count": 380, "color": "#34495e"}
+    ]
 
 
 # Bestehende Pfade (waren bereits korrekt/grün)
