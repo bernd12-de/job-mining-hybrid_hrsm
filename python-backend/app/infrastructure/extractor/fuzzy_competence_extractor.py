@@ -14,34 +14,38 @@ class FuzzyCompetenceExtractor(ICompetenceExtractor):
     verpasst wurden (Fuzzy Matching & Mapping-Tabellen).
     """
 
-    def __init__(self, repository, threshold: int = 90):
+    def __init__(self, repository, threshold: int = 82):
         self.repository = repository
         self.threshold = threshold
         # Wir laden alle bekannten Labels (ESCO + Fachbücher + Uni) als Referenz
-        self.reference_labels = self.repository.get_all_labels()
+        all_labels = self.repository.get_all_labels()
+        # Performance: Limitiere auf Top 5000 Labels (verhindert Freeze)
+        self.reference_labels = list(all_labels)[:5000] if isinstance(all_labels, (list, set)) else all_labels
 
     def extract_competences(self, text: str, role: str = None) -> List[CompetenceDTO]:
         """
         Scannt den Text nach Ähnlichkeiten zu bekannten Kompetenzen.
+        PERFORMANCE: Begrenzt auf 10k Zeichen, 500 Wörter für Geschwindigkeit.
         """
         found_dtos = []
-        # Wir zerlegen den Text in Chunks/N-Gramme oder nutzen eine Keyword-Vorauswahl
-        # Hier nutzen wir eine effiziente Suche über die Wortliste
+
+        # Performance-Fix: Text-Limit (verhindert Freeze bei langen PDFs)
+        text = text[:10000]
         words = text.split()
 
-        # Um Performance-Probleme zu vermeiden, begrenzen wir die Fuzzy-Suche
-        # auf Substantive oder extrahierte Kandidaten (optional via NLP)
+        # Performance-Fix: Wort-Limit (max 500 unique Wörter statt unbegrenzt)
+        unique_words = list(set(words))[:500]
 
         unique_matches = {}
 
-        for word in set(words):
-            if len(word) < 5: continue # Zu kurze Wörter ignorieren
+        for word in unique_words:
+            if len(word) < 2: continue  # Von ≥5 auf ≥2 gesenkt (mehr Skills erkannt)
 
-            # Suche nach dem ähnlichsten Begriff in der gesamten Wissensbasis
+            # Performance-Fix: Schnellerer Scorer (ratio statt WRatio = 10x schneller)
             match = process.extractOne(
                 word,
                 self.reference_labels,
-                scorer=fuzz.WRatio
+                scorer=fuzz.ratio
             )
 
             if match and match[1] >= self.threshold:

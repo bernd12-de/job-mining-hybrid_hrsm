@@ -76,9 +76,9 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
                            'einer', 'einem', 'eines', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
                            'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'}
             filtered_labels = [l for l in labels if len(l) >= 3 and l.lower() not in generic_words]
-            
+
             # Erzeuge Patterns OHNE zu viele Varianten (verhindert Explosionen)
-            patterns = [self.nlp.make_doc(l) for l in filtered_labels[:10000]]  # Max 10k patterns
+            patterns = [self.nlp.make_doc(l) for l in filtered_labels[:15000]]  # Erhöht von 10k auf 15k für mehr Skills
             self.matcher.add("KNOWLEDGE_BASE", patterns)
             print(f"✅ spaCy Extractor geladen mit {len(patterns)} Begriffen (gefiltert von {len(labels)} Gesamt).")
         else:

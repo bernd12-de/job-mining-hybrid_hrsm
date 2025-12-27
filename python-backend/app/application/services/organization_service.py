@@ -38,19 +38,18 @@ class OrganizationService:
             primary_mappings = {}
 
         self.industry_mappings: Dict[str, str] = primary_mappings or self._load_fallback_industry_mappings()
-        self.industry_keywords = self._load_mappings()
-        print(f"✅ {len(self.industry_mappings)} Branchen-Regeln aktiv (inkl. Fallback).")
 
-        try:
-            # Jetzt existiert 'self.rule_client' und dieser Aufruf funktioniert:
-            #self.industry_mappings = self.rule_client.fetch_industry_mappings()
-            self.industry_mappings: Dict[str, str] = rule_client.fetch_industry_mappings()
-            self.industry_keywords = self._load_mappings()
-            print(f"✅ {len(self.industry_mappings)} Branchen-Regeln geladen.")
-            print(f"✅ {len(self.industry_keywords)} Branchen-Regeln geladen.")
-        except Exception as e:
-            print(f"⚠️ Fehler bei Branchen-Mappings: {e}")
-            self.industry_mappings = {} # Fallback
+        # Wenn IMMER NOCH leer → Hardcoded Defaults
+        if not self.industry_mappings:
+            self.industry_mappings = {
+                'IT & Software': r'Software|Entwicklung|Cloud|IT|Data|Informatik',
+                'Finanzen': r'Bank|Versicherung|Finance|Finanz'
+            }
+
+        # industry_keywords = gleiche Daten (kein extra Fetch nötig)
+        self.industry_keywords = self.industry_mappings
+
+        print(f"✅ {len(self.industry_mappings)} Branchen-Regeln geladen.")
 
 
 
