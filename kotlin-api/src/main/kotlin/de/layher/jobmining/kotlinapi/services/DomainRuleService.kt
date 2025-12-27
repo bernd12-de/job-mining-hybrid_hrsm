@@ -42,13 +42,13 @@ class DomainRuleService(
         val successRate = if (totalJobs > 0) (segmentedCount.toDouble() / totalJobs * 100) else 100.0
 
         return mapOf(
-            "total_skills" to skillsSize,
+            "total_skills" to allSkills.size,
             "analysis_quality" to mapOf(
                 "total_analyzed_jobs" to totalJobs,
                 "segmentation_success_rate" to successRate,
                 "warning" to if (segmentedCount < totalJobs) "Achtung: Einige Analysen nutzen Rohtext-Fallback (Precision-Risiko)" else "Optimal"
             ),
-            "ssot_skills_total" to skillsSize
+            "ssot_skills_total" to allSkills.size
         )
     }
 
