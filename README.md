@@ -48,7 +48,23 @@ CLEAN ARCHITECTURE
 
 ---
 
-## 🚀 Quick Start
+## � API-Dokumentation
+
+**Alle API-Endpoints sind dokumentiert in:**
+- 📖 [**API_ENDPOINTS.md**](./API_ENDPOINTS.md) - Markdown (GitHub-friendly)
+- 📄 [**API_ENDPOINTS.txt**](./API_ENDPOINTS.txt) - Plain Text (für Konsole)
+- 🌐 [**api-reference.html**](./api-reference.html) - HTML (browser-ready)
+- 🔧 [**show-api-endpoints.sh**](./show-api-endpoints.sh) - Bash Script (mit Service-Check)
+- 📚 [**DOCS_API_REFERENCE.md**](./DOCS_API_REFERENCE.md) - Index & Guide
+
+**Quick Links:**
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- Python FastAPI: `http://localhost:8000/docs`
+- HTML-Übersicht: Öffne `api-reference.html` im Browser
+
+---
+
+## �🚀 Quick Start
 
 ### 1. Setup (einmalig)
 ```bash

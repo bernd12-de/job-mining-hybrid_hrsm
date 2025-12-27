@@ -2,6 +2,7 @@ package de.layher.jobmining.kotlinapi.infrastructure.config
 
 import de.layher.jobmining.kotlinapi.adapters.PythonAnalysisClient
 import de.layher.jobmining.kotlinapi.infrastructure.DomainRuleRepository
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
@@ -22,18 +23,32 @@ class StartupCheckRunner(
     private val pythonBaseUrl: String
 ) : ApplicationRunner {
     private val restTemplate = RestTemplate()
+    private val logger = LoggerFactory.getLogger(javaClass)
+    
     override fun run(args: ApplicationArguments) { // FIX: Ohne '?'
         val ip = java.net.InetAddress.getLocalHost().hostAddress
-        println("\n" + "=".repeat(45))
-        println("🚀 SYSTEM-CHECK | KOTLIN-IP: $ip")
+        log("\n" + "=".repeat(45))
+        log("🚀 SYSTEM-CHECK | KOTLIN-IP: $ip")
 
         checkPython()
         checkApiPoints()
-        println("=".repeat(45) + "\n")
+        log("=".repeat(45) + "\n")
 
         checkDatabase()
 
-        println("-".repeat(100))
+        log("-".repeat(100))
+    }
+
+    private fun isRunningInDocker(): Boolean {
+        return java.io.File("/.dockerenv").exists()
+    }
+
+    private fun log(message: String) {
+        if (isRunningInDocker()) {
+            logger.info(message)
+        } else {
+            println(message)
+        }
     }
 
     private fun checkPython() {
@@ -43,10 +58,10 @@ class StartupCheckRunner(
             val response = restTemplate.getForEntity(pythonUrl, Map::class.java)
             val body = response.body
             if (body != null) {
-                println("✅ PYTHON-ENGINE: ${body["status"]} (Labels: ${body["esco_labels"]})")
+                log("✅ PYTHON-ENGINE: ${body["status"]} (Labels: ${body["esco_labels"]})")
             }
         } catch (e: Exception) {
-            println("⚠️ PYTHON-ENGINE: Offline auf Port 8000")
+            log("⚠️ PYTHON-ENGINE: Offline auf Port 8000")
         }
     }
 
@@ -54,12 +69,12 @@ class StartupCheckRunner(
     private fun checkApiPoints() {
         val myIp = InetAddress.getLocalHost().hostAddress
 
-        println("\n" + "=".repeat(100))
-        println(" 🚀 SYSTEM-INTEGRATION TEST | HOST: $myIp")
-        println(" 🎯 Ziel-Python: $pythonBaseUrl")
-        println("-".repeat(100))
-        println(String.format("%-40s | %-10s | %s", "ENDPUNKT (PFAD)", "METHODE", "LIVE-STATUS"))
-        println("-".repeat(100))
+        log("\n" + "=".repeat(100))
+        log(" 🚀 SYSTEM-INTEGRATION TEST | HOST: $myIp")
+        log(" 🎯 Ziel-Python: $pythonBaseUrl")
+        log("-".repeat(100))
+        log(String.format("%-40s | %-10s | %s", "ENDPUNKT (PFAD)", "METHODE", "LIVE-STATUS"))
+        log("-".repeat(100))
 
         // Hier definieren wir die Pfade, die im 'PythonAnalysisClient' genutzt werden.
         // Wir testen sie jetzt live gegen das laufende Python-System.
@@ -71,7 +86,7 @@ class StartupCheckRunner(
         checkEndpoint("/system/status", "GET")       // Health Check
         checkEndpoint("/role-mappings", "GET") // Testet ob der Controller auf die DB zugreifen kann
 
-        println("=".repeat(100) + "\n")
+        log("=".repeat(100) + "\n")
     }
 
     private fun checkEndpoint(path: String, method: String) {
@@ -121,7 +136,7 @@ class StartupCheckRunner(
             statusText = "Error: ${e.message}"
         }
 
-        println(String.format("%-40s | %-10s | %s %s", path, method, statusIcon, statusText))
+        log(String.format("%-40s | %-10s | %s %s", path, method, statusIcon, statusText))
     }
 
 
@@ -156,21 +171,21 @@ class StartupCheckRunner(
 
             if (ruleCount > 0) {
                 // Alles perfekt: Verbunden UND Daten da
-                println("✅ ONLINE ($dbProduct $dbVersion)")
-                println(String.format("%-40s | ✅ DATEN-CHECK: %d Regeln geladen (V4 OK)", "", ruleCount))
-                println(String.format("%-40s | 📊 DB '$dbName': %d Jobs | %d ESCO-Skills | %d Rules", 
+                log("✅ ONLINE ($dbProduct $dbVersion)")
+                log(String.format("%-40s | ✅ DATEN-CHECK: %d Regeln geladen (V4 OK)", "", ruleCount))
+                log(String.format("%-40s | 📊 DB '$dbName': %d Jobs | %d ESCO-Skills | %d Rules", 
                     "", jobCount, escoCount, ruleCount))
             } else {
                 // Verbunden, aber Tabelle leer (V4 fehlgeschlagen oder Tabelle falsch gemappt)
-                println("⚠️ LEER ($dbProduct)")
-                println(String.format("%-40s | ❌ WARNUNG: Tabelle 'domain_rule' ist leer!", ""))
-                println(String.format("%-40s | 📊 DB '$dbName': %d Jobs | %d ESCO-Skills", 
+                log("⚠️ LEER ($dbProduct)")
+                log(String.format("%-40s | ❌ WARNUNG: Tabelle 'domain_rule' ist leer!", ""))
+                log(String.format("%-40s | 📊 DB '$dbName': %d Jobs | %d ESCO-Skills", 
                     "", jobCount, escoCount))
             }
 
         } catch (e: Exception) {
-            println("❌ OFFLINE")
-            println(String.format("%-40s | Fehler: %s", "", e.message))
+            log("❌ OFFLINE")
+            log(String.format("%-40s | Fehler: %s", "", e.message))
         }
     }
 

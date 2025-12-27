@@ -2,7 +2,7 @@
 Domain Layer: Konsolidierte Entitäten für die Job-Mining-Analyse
 Architektur: Clean Architecture mit vollständiger Ebenen-Unterstützung (V2.0)
 """
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, validator
 from typing import List, Optional
 from datetime import date
 from enum import Enum
@@ -24,7 +24,8 @@ class Competence(BaseModel):
     Interne Repräsentation einer Kompetenz in der Wissensbasis (Repo).
     Basis für alle Matching-Operationen.
     """
-    model_config = {"extra": "allow"}
+    class Config:
+        extra = "allow"
 
     preferred_label: str
     esco_uri: str
@@ -60,8 +61,7 @@ class CompetenceDTO(BaseModel):
     # Ebene 6: Rollenkontext
     role_context: Optional[str] = None
 
-    @field_validator('level', mode='before')
-    @classmethod
+    @validator('level', pre=True)
     def transform_level(cls, v):
         """Normalisiert Ebenen-Angaben (z.B. 'Ebene 4' -> 4)"""
         if isinstance(v, str):

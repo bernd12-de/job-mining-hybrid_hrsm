@@ -6,7 +6,7 @@ services:
       context: ./kotlin-api
       dockerfile: Dockerfile
     ports:
-      - "8080:8080" # Erreichbar unter http://localhost:8080
+      - "8080:8080"
     environment:
       # Verlinkung zur Datenbank und zum Python-Service
       SPRING_DATASOURCE_URL: jdbc:postgresql://jobmining-db:5432/jobmining_db
@@ -52,19 +52,46 @@ services:
     depends_on:
       - python-backend
 
+  # 2c. API Health Check Monitor
+  api-health-check:
+    image: alpine:latest
+    command: >
+      sh -c "
+      apk add --no-cache bash curl &&
+      cp /mnt/check.sh /check.sh &&
+      chmod +x /check.sh &&
+      /check.sh
+      "
+    volumes:
+      - .:/mnt
+      - ./api-health-check.sh:/mnt/check.sh:ro
+    depends_on:
+      - kotlin-api
+      - python-backend
+    environment:
+      WAIT_TIMEOUT: 60
+      MAX_RETRIES: 60
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD", "bash", "/check.sh"]
+      interval: 60s
+      timeout: 30s
+      retries: 1
+      start_period: 10s
+
   # 3. PostgreSQL Database
   jobmining-db:
     image: postgres:15-alpine
     restart: always
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_DB: jobmining_db
       POSTGRES_USER: jobmining_user
       POSTGRES_PASSWORD: secret_password
     volumes:
       - jobmining-data:/var/lib/postgresql/data
-      # HIER WIRD DER PORT ZUM HOST-SYSTEM GEÖFFNET
-    ports:
-        - "5432:5432"
 #  (.venv) layher-ad@MacBookPro job-mining-kotlin-python % docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' job-mining-kotlin-python-jobmining-db-1
 #  172.18.0.2
 #NAME                                      IMAGE                COMMAND                  SERVICE        CREATED          STATUS          PORTS

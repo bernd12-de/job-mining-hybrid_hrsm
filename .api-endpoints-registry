@@ -1,0 +1,68 @@
+# Job Mining API - Endpoints Registry
+# Format: METHOD|PATH|DESCRIPTION|SERVICE
+# Diese Datei wird vom api-health-check.sh Script überprüft
+# Generiert: 2025-12-27
+
+# ============================================================================
+# KOTLIN API (Port 8080) - Spring Boot
+# ============================================================================
+
+# Job Management
+POST|/api/v1/jobs/upload|Upload PDF/DOCX Job-Dateien|kotlin
+POST|/api/v1/jobs/scrape|Web-Scraping und Analyse (mit renderJs param)|kotlin
+POST|/api/v1/jobs/batch-analyze|Batch-Analyse aus data/jobs/ Ordner|kotlin
+GET|/api/v1/jobs|Alle analysierten Jobs abrufen|kotlin
+
+# Reports & Analytics
+GET|/api/v1/jobs/reports/dashboard-metrics|Dashboard-Statistiken (top_n param)|kotlin
+GET|/api/v1/jobs/reports/competence-trends|Top Kompetenzen-Trends (limit param)|kotlin
+GET|/api/v1/jobs/reports/export.csv|CSV-Export aller Jobs|kotlin
+GET|/api/v1/jobs/reports/export.pdf|PDF-Report generieren|kotlin
+
+# Rule Management
+GET|/api/v1/rules/blacklist|Blacklist abrufen (generische Begriffe)|kotlin
+GET|/api/v1/rules/role-mappings|Rollen-Mappings (Developer → regex)|kotlin
+GET|/api/v1/rules/industry-mappings|Branchen-Mappings (IT → regex)|kotlin
+GET|/api/v1/rules/esco-full|Vollständige ESCO-Wissensbasis|kotlin
+GET|/api/v1/rules/stats|Regelstatistiken und Qualität|kotlin
+
+# Discovery & Competence Management
+GET|/api/discovery/candidates|Neue Kompetenzkandidaten zur Genehmigung|kotlin
+GET|/api/discovery/approved|Approuvierte Kompetenzen|kotlin
+GET|/api/discovery/ignore|Ignorierte/Blacklistete Begriffe|kotlin
+POST|/api/discovery/approve|Kompetenz genehmigen { term, canonicalLabel }|kotlin
+POST|/api/discovery/reject|Kompetenz ablehnen { term }|kotlin
+
+# Admin & Sync
+GET|/api/v1/jobs/admin/system-health|System-Status prüfen|kotlin
+POST|/api/v1/jobs/admin/sync-python-knowledge|Knowledge von Python synchronisieren|kotlin
+DELETE|/api/v1/jobs/admin/clear-all-data|⚠️ ALLE Daten löschen (DESTRUCTIVE)|kotlin
+
+# Service & System
+GET|/api/links|Alle verfügbaren Service-Links|kotlin
+GET|/actuator/health|Spring Boot Health-Check|kotlin
+
+# ============================================================================
+# PYTHON BACKEND (Port 8000) - FastAPI
+# ============================================================================
+
+# Job Analysis
+POST|/analyse/file|Lokale Datei analysieren (PDF/DOCX)|python
+POST|/analyse/scrape-url|URL scrapen + NLP-Analyse|python
+POST|/batch-process|Alle lokalen Jobs aus data/jobs/ verarbeiten|python
+
+# Knowledge Management
+GET|/system/status|Python-System Status und Metriken|python
+POST|/internal/admin/refresh-knowledge|Knowledge-Base neu laden (ESCO)|python
+
+# Reports & Export
+GET|/reports/dashboard-metrics|Dashboard-Metriken|python
+GET|/docs|FastAPI Swagger UI (interaktiv)|python
+
+# ============================================================================
+# NOTES
+# ============================================================================
+# - Endpoints werden beim Systemstart automatisch überprüft
+# - "DOWN" status = Endpoint nicht erreichbar (LOST)
+# - Alarms werden in api-health-check.log protokolliert
+# - Report wird in api-health-report-*.txt gespeichert
