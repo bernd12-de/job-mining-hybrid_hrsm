@@ -95,6 +95,75 @@
         .btn-back {
             margin-bottom: 20px;
         }
+
+        .filter-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+
+        .filter-group select {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .filter-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .competences-panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .competences-panel h5 {
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .competence-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .competence-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .x-marker {
+            color: #e74c3c;
+            font-weight: bold;
+            font-size: 1.5rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
     </style>
 </head>
 <body>
@@ -103,6 +172,39 @@
 
         <h1>🗺️ Geografische Verteilung der Stellenanzeigen</h1>
         <p class="subtitle">Interaktive Karte mit Leaflet.js - Deutschland-Fokus</p>
+
+        <!-- Filter-Panel -->
+        <div class="filter-panel">
+            <div class="filter-group">
+                <label for="year-filter">📅 Jahr auswählen</label>
+                <select id="year-filter">
+                    <option value="">Alle Jahre (2020-2025)</option>
+                    <option value="2020">2020</option>
+                    <option value="2021">2021</option>
+                    <option value="2022">2022</option>
+                    <option value="2023">2023</option>
+                    <option value="2024">2024</option>
+                    <option value="2025" selected>2025</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="role-filter">👥 Beruf auswählen</label>
+                <select id="role-filter">
+                    <option value="">Alle Berufe</option>
+                    <option value="Software Developer" selected>Software Developer</option>
+                    <option value="Data Scientist">Data Scientist</option>
+                    <option value="DevOps Engineer">DevOps Engineer</option>
+                    <option value="Project Manager">Project Manager</option>
+                    <option value="UI/UX Designer">UI/UX Designer</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Kompetenzen-Panel -->
+        <div class="competences-panel" id="competences-panel" style="display:none;">
+            <h5>🎯 Top-Kompetenzen für <span id="selected-role">Software Developer</span> (<span id="selected-year">2025</span>)</h5>
+            <div class="competence-list" id="competence-list"></div>
+        </div>
 
         <div class="stats-container">
             <div class="stat-card">
@@ -142,18 +244,52 @@
             maxZoom: 18
         }).addTo(map);
 
-        // Daten vom Backend laden
-        fetch('/api/dashboard/geo-heatmap')
-            .then(response => response.json())
-            .then(data => {
+        // Global markers array (zum Löschen bei Update)
+        let markers = [];
+
+        // X-Symbol-Marker erstellen
+        function createXMarkers(lat, lon, count, location, color) {
+            const xCount = Math.min(Math.ceil(count / 200), 10); // Max 10 X
+            const baseIcon = L.divIcon({
+                className: 'x-marker',
+                html: '✖'.repeat(xCount),
+                iconSize: [xCount * 20, 30]
+            });
+
+            const marker = L.marker([lat, lon], { icon: baseIcon }).addTo(map);
+
+            marker.bindPopup(`
+                <strong>${location}</strong><br>
+                ${count} Jobs<br>
+                <small>Dichte: ${'✖'.repeat(xCount)}</small>
+            `);
+
+            return marker;
+        }
+
+        // Daten laden und Karte aktualisieren
+        async function updateMap() {
+            const year = document.getElementById('year-filter').value;
+            const role = document.getElementById('role-filter').value;
+
+            // Alte Marker entfernen
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+
+            try {
+                // API-Call mit Filtern
+                const url = `/api/dashboard/geo-heatmap?year=${year}&role=${encodeURIComponent(role)}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
                 let totalJobs = 0;
                 let remoteJobs = 0;
                 let locations = 0;
 
-                // Legende & Statistiken
                 const legendContainer = document.getElementById('legend-items');
+                legendContainer.innerHTML = '';
 
-                data.forEach(point => {
+                data.locations.forEach(point => {
                     totalJobs += point.count;
 
                     if (point.location === 'Remote') {
@@ -161,22 +297,15 @@
                     } else {
                         locations++;
 
-                        // Marker auf Karte
-                        const marker = L.circleMarker([point.lat, point.lon], {
-                            radius: Math.sqrt(point.count) * 2,
-                            fillColor: point.color,
-                            color: '#fff',
-                            weight: 2,
-                            opacity: 1,
-                            fillOpacity: 0.7
-                        }).addTo(map);
-
-                        // Popup
-                        marker.bindPopup(`
-                            <strong>${point.location}</strong><br>
-                            ${point.count} Jobs<br>
-                            <small>${((point.count / totalJobs) * 100).toFixed(1)}% der Gesamt-Jobs</small>
-                        `);
+                        // X-Marker erstellen
+                        const marker = createXMarkers(
+                            point.lat,
+                            point.lon,
+                            point.count,
+                            point.location,
+                            point.color
+                        );
+                        markers.push(marker);
 
                         // Legende
                         const legendItem = document.createElement('div');
@@ -193,11 +322,33 @@
                 document.getElementById('total-jobs').textContent = totalJobs.toLocaleString('de-DE');
                 document.getElementById('total-locations').textContent = locations;
                 document.getElementById('remote-jobs').textContent = remoteJobs.toLocaleString('de-DE');
-            })
-            .catch(error => {
+
+                // Kompetenzen anzeigen (wenn Beruf ausgewählt)
+                if (role && data.competences) {
+                    document.getElementById('competences-panel').style.display = 'block';
+                    document.getElementById('selected-role').textContent = role;
+                    document.getElementById('selected-year').textContent = year || '2020-2025';
+
+                    const competenceList = document.getElementById('competence-list');
+                    competenceList.innerHTML = data.competences.map(comp =>
+                        `<div class="competence-badge">${comp.skill} (${comp.count})</div>`
+                    ).join('');
+                } else {
+                    document.getElementById('competences-panel').style.display = 'none';
+                }
+
+            } catch (error) {
                 console.error('Fehler beim Laden der Geo-Daten:', error);
-                document.getElementById('map').innerHTML = '<div class="alert alert-danger">Fehler beim Laden der Kartendaten!</div>';
-            });
+                alert('Fehler beim Laden der Kartendaten!');
+            }
+        }
+
+        // Filter-Events
+        document.getElementById('year-filter').addEventListener('change', updateMap);
+        document.getElementById('role-filter').addEventListener('change', updateMap);
+
+        // Initial laden
+        updateMap();
     </script>
 </body>
 </html>

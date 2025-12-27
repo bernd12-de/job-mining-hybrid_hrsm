@@ -5,7 +5,7 @@ import uvicorn
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 # --- 1. KORREKTE IMPORTE (Mit 'app.' Prefix) ---
 from app.domain.models import AnalysisResultDTO
@@ -296,15 +296,19 @@ async def dashboard_map():
 
 
 @app.get("/api/dashboard/geo-heatmap")
-def get_geo_heatmap():
+def get_geo_heatmap(year: Optional[str] = None, role: Optional[str] = None):
     """
-    Geografische Verteilung für Leaflet.js Karte.
+    Geografische Verteilung für Leaflet.js Karte mit Filter-Support.
+
+    Args:
+        year: Optional Jahr-Filter (2020-2025)
+        role: Optional Berufs-Filter (z.B. "Software Developer")
 
     Returns:
-        List[Dict]: Standorte mit Koordinaten und Job-Anzahl
+        Dict: {"locations": [...], "competences": [...]}
     """
-    # Hardcoded DE-Städte mit Koordinaten (Schnell-Implementation)
-    return [
+    # Base-Daten (Hardcoded DE-Städte mit Koordinaten)
+    base_locations = [
         {"location": "Remote", "lat": None, "lon": None, "country": "REMOTE", "count": 3200, "color": "#3498db"},
         {"location": "Berlin", "lat": 52.5200, "lon": 13.4050, "country": "DE", "count": 2100, "color": "#e74c3c"},
         {"location": "München", "lat": 48.1351, "lon": 11.5820, "country": "DE", "count": 1850, "color": "#e67e22"},
@@ -316,6 +320,122 @@ def get_geo_heatmap():
         {"location": "Leipzig", "lat": 51.3397, "lon": 12.3731, "country": "DE", "count": 420, "color": "#9b59b6"},
         {"location": "Dresden", "lat": 51.0504, "lon": 13.7373, "country": "DE", "count": 380, "color": "#34495e"}
     ]
+
+    # Filter anwenden (Simuliert: Jahr reduziert Zahlen, Beruf filtert)
+    year_factor = 1.0
+    if year == "2020":
+        year_factor = 0.4
+    elif year == "2021":
+        year_factor = 0.5
+    elif year == "2022":
+        year_factor = 0.6
+    elif year == "2023":
+        year_factor = 0.75
+    elif year == "2024":
+        year_factor = 0.9
+    elif year == "2025":
+        year_factor = 1.0
+
+    # Berufs-Filter (Simuliert: verschiedene Berufe haben unterschiedliche Verteilungen)
+    role_factor = 1.0
+    if role == "Data Scientist":
+        role_factor = 0.6  # Weniger Jobs als Software Developer
+    elif role == "DevOps Engineer":
+        role_factor = 0.5
+    elif role == "Project Manager":
+        role_factor = 0.4
+    elif role == "UI/UX Designer":
+        role_factor = 0.3
+
+    # Counts anpassen
+    filtered_locations = []
+    for loc in base_locations:
+        new_count = int(loc["count"] * year_factor * role_factor)
+        if new_count > 0:  # Nur Standorte mit Jobs zeigen
+            filtered_locations.append({
+                **loc,
+                "count": new_count
+            })
+
+    # Kompetenzen für gewählten Beruf (Simuliert)
+    competences = []
+    if role == "Software Developer":
+        competences = [
+            {"skill": "Python", "count": 1850},
+            {"skill": "Java", "count": 1620},
+            {"skill": "JavaScript", "count": 1480},
+            {"skill": "Docker", "count": 1320},
+            {"skill": "Kubernetes", "count": 980},
+            {"skill": "Git", "count": 1750},
+            {"skill": "SQL", "count": 1450},
+            {"skill": "React", "count": 920},
+            {"skill": "TypeScript", "count": 850},
+            {"skill": "AWS", "count": 780}
+        ]
+    elif role == "Data Scientist":
+        competences = [
+            {"skill": "Python", "count": 2100},
+            {"skill": "Machine Learning", "count": 1680},
+            {"skill": "R", "count": 920},
+            {"skill": "SQL", "count": 1450},
+            {"skill": "TensorFlow", "count": 780},
+            {"skill": "PyTorch", "count": 650},
+            {"skill": "Pandas", "count": 1320},
+            {"skill": "Statistics", "count": 890},
+            {"skill": "Data Visualization", "count": 720},
+            {"skill": "Deep Learning", "count": 680}
+        ]
+    elif role == "DevOps Engineer":
+        competences = [
+            {"skill": "Docker", "count": 1850},
+            {"skill": "Kubernetes", "count": 1620},
+            {"skill": "AWS", "count": 1280},
+            {"skill": "Terraform", "count": 980},
+            {"skill": "Jenkins", "count": 850},
+            {"skill": "Linux", "count": 1420},
+            {"skill": "CI/CD", "count": 1180},
+            {"skill": "Ansible", "count": 720},
+            {"skill": "Python", "count": 890},
+            {"skill": "Bash", "count": 680}
+        ]
+    elif role == "Project Manager":
+        competences = [
+            {"skill": "Agile", "count": 1680},
+            {"skill": "Scrum", "count": 1520},
+            {"skill": "Jira", "count": 980},
+            {"skill": "Projektplanung", "count": 1320},
+            {"skill": "Stakeholder Management", "count": 850},
+            {"skill": "Budgetplanung", "count": 720},
+            {"skill": "Team Leadership", "count": 980},
+            {"skill": "Confluence", "count": 680},
+            {"skill": "MS Project", "count": 520},
+            {"skill": "Kanban", "count": 620}
+        ]
+    elif role == "UI/UX Designer":
+        competences = [
+            {"skill": "Figma", "count": 1280},
+            {"skill": "Adobe XD", "count": 920},
+            {"skill": "Sketch", "count": 680},
+            {"skill": "User Research", "count": 850},
+            {"skill": "Prototyping", "count": 980},
+            {"skill": "Wireframing", "count": 880},
+            {"skill": "Design Systems", "count": 720},
+            {"skill": "HTML/CSS", "count": 620},
+            {"skill": "InVision", "count": 480},
+            {"skill": "Usability Testing", "count": 580}
+        ]
+
+    # Jahr-Filter auf Kompetenzen anwenden
+    if year:
+        competences = [
+            {"skill": c["skill"], "count": int(c["count"] * year_factor)}
+            for c in competences
+        ]
+
+    return {
+        "locations": filtered_locations,
+        "competences": competences[:10]  # Top 10
+    }
 
 
 # Bestehende Pfade (waren bereits korrekt/grün)
