@@ -169,6 +169,47 @@ class HybridCompetenceRepository(ICompetenceRepository):
         except:
             self._blacklist = set()
 
+    def _load_digital_skills(self):
+        """
+        Lädt is_digital Flags aus ESCO-Daten.
+
+        Markiert Skills als digital basierend auf:
+        1. ESCO URI enthält 'digital' oder 'ict'
+        2. ESCO Collection = 'digital skills'
+        3. Metadaten-Flag is_digital = True
+        """
+        digital_count = 0
+
+        # Prüfe alle ESCO-Kompetenzen
+        for comp in self._all_competences:
+            uri = getattr(comp, 'esco_uri', '')
+            label = getattr(comp, 'preferred_label', '').lower()
+
+            # Heuristik 1: URI enthält 'digital' oder 'ict'
+            if uri and ('digital' in uri.lower() or 'ict' in uri.lower()):
+                comp.is_digital = True
+                digital_count += 1
+                continue
+
+            # Heuristik 2: Label enthält digitale Keywords
+            digital_keywords = {'software', 'programming', 'computer', 'digital', 'it',
+                               'data', 'web', 'cloud', 'cyber', 'ai', 'ml', 'iot'}
+            if any(keyword in label for keyword in digital_keywords):
+                comp.is_digital = True
+                digital_count += 1
+                continue
+
+        # Aktualisiere esco_data Index mit is_digital Flag
+        for key, value in self.esco_data.items():
+            uri = value.get('uri', '')
+            if uri and ('digital' in uri.lower() or 'ict' in uri.lower()):
+                value['is_digital'] = True
+            elif any(kw in key for kw in {'software', 'programming', 'computer', 'digital',
+                                           'it', 'data', 'web', 'cloud', 'cyber', 'ai', 'ml'}):
+                value['is_digital'] = True
+
+        print(f"✅ {digital_count} Digital Skills identifiziert.")
+
     # Interface Implementierung
     def get_all_skills(self) -> Set[str]:
         return self._esco_labels.union(self._custom_labels)

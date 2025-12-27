@@ -1,12 +1,20 @@
 import json, os, re
 
 # BEST PRACTICE FILTER LISTEN: Eliminiert das Rauschen!
+# BEREINIGT: Legitime Skills (agil, management, analyse, projektleitung, informatik, digitalisierung) ENTFERNT
 GENERIC_SKILLS_BLACKLIST = {
     "kenntnisse", "fähigkeiten", "kommunikation", "deutsch", "englisch",
     "r", "bau", "ski", "sport", "medien", "wissenschaft", "erfahrung",
-    "agil", "strategie", "prozess", "management", "analyse", "projektleitung",
+    "strategie", "prozess",  # Allgemein, aber nicht konkret genug
     "kunden", "lösung", "team", "technik", "bereich", "verantwortung übernehmen",
-    "beratung", "dienstleistungen", "informatik", "digitalisierung"
+    "beratung", "dienstleistungen"
+    # ENTFERNT (zu spezifisch, legitime Skills):
+    # - "agil" (Agile Methoden ist legitimes Skill)
+    # - "management" (Projektmanagement, etc.)
+    # - "analyse" (Datenanalyse, etc.)
+    # - "projektleitung" (legitimes Skill)
+    # - "informatik" (Domäne/Skill)
+    # - "digitalisierung" (wichtiges Skill)
 }
 PRONOUNS = {"wir","du","ihr","euch","uns","dein","mein"}
 

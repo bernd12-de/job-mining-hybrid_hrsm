@@ -15,6 +15,12 @@ class MetadataExtractor:
     """
 
     def __init__(self):
+        # URL-Pattern für Titel-Validierung (verhindert URLs als Titel)
+        self.URL_PATTERN = re.compile(
+            r'(?:https?://|www\.|[\w-]+\.(?:com|de|org|net|io|edu|gov|info|biz))',
+            re.IGNORECASE
+        )
+
         # OPTIMIERTE ROLLENERKENNUNG: Priorisiert nach Spezifität (Ebene 1: Erkennung)
         self.category_patterns = {
             # Level 1: Spezifische IT-Rollen (höchste Priorität)
@@ -96,11 +102,36 @@ class MetadataExtractor:
         }
 
     def _extract_title(self, text: str, filename: str) -> str:
-        """Extrahiert den Jobtitel aus der ersten Zeile oder nutzt den Dateinamen."""
+        """
+        Extrahiert den Jobtitel aus den ersten Zeilen oder nutzt den Dateinamen.
+
+        VERBESSERUNGEN:
+        - Prüft erste 10 Zeilen (nicht nur erste)
+        - Filtert URLs heraus (verhindert URL als Titel)
+        - Robustere Titel-Erkennung
+        """
         lines = text.split('\n')
-        if lines and lines[0].strip():
-            title = re.sub(r'\(m/w/d\)|\[all genders\]|\(gn\)|\|\s?.*', '', lines[0], flags=re.IGNORECASE).strip()
-            return title if len(title) > 5 else filename
+
+        # Suche in den ersten 10 Zeilen
+        for line in lines[:10]:
+            if not line.strip():
+                continue
+
+            # Entferne Gender-Marker und Trennzeichen
+            title = re.sub(r'\(m/w/d\)|\[all genders\]|\(gn\)|\|\s?.*', '', line, flags=re.IGNORECASE).strip()
+
+            # WICHTIG: Skip URLs (verhindert "https://jobs.firma.de" als Titel)
+            if self.URL_PATTERN.search(title):
+                continue
+
+            # Valider Titel gefunden
+            if len(title) > 5:
+                return title
+
+        # Fallback: Dateiname (aber nur wenn er keine URL ist)
+        if self.URL_PATTERN.search(filename):
+            return "Stellenanzeige (Titel nicht erkannt)"
+
         return filename
 
     def _extract_organization(self, text: str) -> str:

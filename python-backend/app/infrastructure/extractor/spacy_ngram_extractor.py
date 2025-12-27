@@ -108,8 +108,20 @@ class SpaCyNGramExtractor(ICompetenceExtractor):
                 if span_text_normalized in blacklist:
                     continue
 
-                # Lookup in Alias-Repository
+                # ROBUSTE SUCHLOGIK: Padding für exaktes Matching
+                # Verhindert False-Positives (z.B. "Java" in "Javascript")
+                span_with_padding = f" {span_text_normalized} "
+
+                # Lookup in Alias-Repository (zuerst ohne Padding für exaktes Match)
                 metadata = self._alias_map.get(span_text_normalized)
+
+                # Falls nicht gefunden: Prüfe ob es Teil eines längeren Begriffs ist
+                if not metadata:
+                    # Suche nach Padding-Match (verhindert Substring-Fehler)
+                    for alias, meta in self._alias_map.items():
+                        if f" {alias} " == span_with_padding:
+                            metadata = meta
+                            break
 
                 if metadata:
                     esco_id, official_name, domain, level, is_digital, esco_uri = metadata
