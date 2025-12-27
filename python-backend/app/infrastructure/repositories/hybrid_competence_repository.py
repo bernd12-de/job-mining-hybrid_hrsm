@@ -35,6 +35,10 @@ class HybridCompetenceRepository(ICompetenceRepository):
         self.custom_domains: Dict[str, Dict] = {}
         self._fachbuch_skills: Set[str] = set()
         self._academia_skills: Set[str] = set()
+        
+        # ✅ BEST PRACTICE: Cache für häufig abgefragte Label-Listen
+        self._labels_cache: List[str] = None
+        self._identifiable_labels_cache: List[str] = None
 
         # Initial laden
         self._load_data()
@@ -191,11 +195,21 @@ class HybridCompetenceRepository(ICompetenceRepository):
         return self._esco_mapping
 
     def get_all_identifiable_labels(self) -> List[str]:
-        return list(self.get_all_skills())
+        # ✅ BEST PRACTICE: Cache labels to avoid repeated expensive calls
+        if self._identifiable_labels_cache is not None:
+            return self._identifiable_labels_cache
+        
+        self._identifiable_labels_cache = list(self.get_all_skills())
+        return self._identifiable_labels_cache
 
     # Backwards-compatibility: older callers expect get_all_labels()
     def get_all_labels(self) -> List[str]:
-        return self.get_all_identifiable_labels()
+        # ✅ BEST PRACTICE: Separate cache for backward-compatibility method
+        if self._labels_cache is not None:
+            return self._labels_cache
+        
+        self._labels_cache = self.get_all_identifiable_labels()
+        return self._labels_cache
 
     def get_level(self, term: str) -> int:
         """Determine level priority (7-Ebenen-Konzept):

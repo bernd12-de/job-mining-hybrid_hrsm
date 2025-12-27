@@ -1,3 +1,6 @@
+import os
+import time
+import logging
 import spacy
 from spacy.matcher import PhraseMatcher
 from typing import List, Optional
@@ -6,6 +9,8 @@ from app.domain.models import CompetenceDTO
 # NEU: Importiere die Factory statt den Manager
 from app.application.factories.analysis_result_factory import AnalysisResultFactory
 from app.interfaces.interfaces import ICompetenceExtractor
+
+logger = logging.getLogger(__name__)
 
 class SpaCyCompetenceExtractor(ICompetenceExtractor):
 
@@ -55,6 +60,26 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
             if not is_package(MODEL_NAME):
                 spacy.cli.download(MODEL_NAME)
             self.nlp = spacy.load(MODEL_NAME)
+        
+        # ✅ BEST PRACTICE: Disable unused pipes for faster processing
+        # We only need tokenizer + PhraseMatcher, not tagger/parser/ner
+        disabled_pipes = []
+        for pipe_name in ['tagger', 'parser', 'ner']:
+            if pipe_name in self.nlp.pipe_names:
+                disabled_pipes.append(pipe_name)
+        
+        if disabled_pipes:
+            self.nlp.disable_pipes(*disabled_pipes)
+            logger.info(f"⚡ spaCy Performance: Disabled pipes {disabled_pipes}")
+
+        # ✅ Modell- und Pipeline-Infos einmalig loggen
+        try:
+            model_name = getattr(self.nlp, 'meta', {}).get('name', MODEL_NAME)
+            model_version = getattr(self.nlp, 'meta', {}).get('version', 'unknown')
+            logger.info(f"🧠 spaCy Model: {model_name} v{model_version}")
+            logger.info(f"🧩 Active pipes: {list(self.nlp.pipe_names)}")
+        except Exception:
+            pass
 
         # Kompatibilitäts-Alias: 'extract' wird in der Pipeline erwartet
         def _extract_alias(doc_or_text):
@@ -90,16 +115,25 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
             # aber wir chunken trotzdem für bessere Performance
             CHUNK_SIZE = 5000
             total_patterns = 0
+            num_chunks = 0
             for i in range(0, len(filtered_labels), CHUNK_SIZE):
                 chunk = filtered_labels[i:i+CHUNK_SIZE]
                 patterns = [self.nlp.make_doc(l) for l in chunk]
                 # Verwende eindeutige IDs für chunks
-                self.matcher.add(f"KNOWLEDGE_BASE_{i//CHUNK_SIZE}", patterns)
+                chunk_id = f"KNOWLEDGE_BASE_{i//CHUNK_SIZE}"
+                self.matcher.add(chunk_id, patterns)
                 total_patterns += len(patterns)
+                num_chunks += 1
             
-            print(f"✅ spaCy Extractor geladen mit {total_patterns} Begriffen in {(len(filtered_labels)-1)//CHUNK_SIZE + 1} Chunks (gefiltert von {len(labels)} Gesamt).")
+            # ✅ DETAILLIERTES LOGGING (für objektiven Nachweis des Chunking)
+            logger.info(f"✅ spaCy Extractor geladen:")
+            logger.info(f"   📊 Labels total: {len(labels)}")
+            logger.info(f"   🔍 Nach Filter: {len(filtered_labels)}")
+            logger.info(f"   📦 Chunks: {num_chunks}")
+            logger.info(f"   ✅ Patterns geladen: {total_patterns}")
+            logger.info(f"   💡 Chunk-Größe: {CHUNK_SIZE}")
         else:
-            print("⚠️ spaCy Extractor Warnung: Repository ist leer!")
+            logger.warning("⚠️ spaCy Extractor Warnung: Repository ist leer!")
 
     def extract_competences(self, text: str, role: str = None) -> List[CompetenceDTO]:
         """
@@ -113,8 +147,22 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
         # Role-Context für Gewichtung vorbereiten (Ebene 6: roleContext)
         role_context = role or "Unbekannt"
 
-        doc = self.nlp(text[:100000]) # Limit protection
+        # ✅ Konfigurierbares Text-Limit (Default 10k) + Timing
+        try:
+            default_limit = 10000
+            env_limit = os.getenv('SPACY_TEXT_LIMIT')
+            text_limit = int(env_limit) if (env_limit and env_limit.isdigit()) else default_limit
+        except Exception:
+            text_limit = 10000
+
+        # Log Request Start
+        logger.info(f"extract_competences: Input {len(text)}->{text_limit} chars, Role={role_context}")
+        
+        t0 = time.perf_counter()
+        doc = self.nlp(text[:text_limit])
+        t1 = time.perf_counter()
         matches = self.matcher(doc)
+        t2 = time.perf_counter()
         results = []
         seen = set()
 
@@ -260,12 +308,18 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
             except Exception:
                 pass
 
+            # is_digital Default-Schutz: Fallback zu False wenn None
+            try:
+                is_digital_value = self.repository.is_digital_skill(term) or False
+            except Exception:
+                is_digital_value = False
+            
             dto = AnalysisResultFactory.create_competence(
                 original_term=term,
                 esco_label=esco_label,
                 esco_uri=esco_uri,
                 level=self.repository.get_level(term),
-                is_digital=self.repository.is_digital_skill(term),
+                is_digital=is_digital_value,
                 collections=collections,
                 role_context=role_context,  # Nutze vorbereitetete role_context (Ebene 6)
                 confidence=1.0
@@ -390,5 +444,17 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
         
         except Exception:
             pass
+
+        # Optionales Timing-Log
+        if os.getenv('LOG_NLP_TIMINGS') == '1':
+            try:
+                t3 = time.perf_counter()
+                logger.info("⏱️ NLP Timing:")
+                logger.info(f"   🔤 Text-Limit: {text_limit}")
+                logger.info(f"   🧩 Tokens: {len(doc)}")
+                logger.info(f"   🧷 Matches: {len(matches)}")
+                logger.info(f"   ⏳ nlp(): {t1 - t0:.3f}s, matcher(): {t2 - t1:.3f}s, post: {t3 - t2:.3f}s")
+            except Exception:
+                pass
 
         return results

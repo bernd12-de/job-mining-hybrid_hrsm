@@ -36,6 +36,9 @@ services:
       # "kotlin-api" ist der Service-Name aus Zeile 3 dieser Datei.
       KOTLIN_API_URL: http://kotlin-api:8080
       BASE_DATA_DIR: /app/data
+      # NLP Logging & Limits (können später wieder entfernt werden)
+      LOG_NLP_TIMINGS: "1"
+      SPACY_TEXT_LIMIT: "10000"
     # Wichtig: Bindet den lokalen Datenordner in den Container ein (für ESCO-Dateien)
     volumes:
       - ./python-backend/data:/app/data

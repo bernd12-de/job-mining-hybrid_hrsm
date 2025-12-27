@@ -14,6 +14,7 @@ class RoleService:
 
     def __init__(self, rule_client: KotlinRuleClient):
         # Lädt die Mappings beim Start einmalig in den Speicher
+        self.rule_client = rule_client  # Speichere Client für Recovery bei Fehlern
         try:
             primary = rule_client.fetch_role_mappings()
         except Exception:
@@ -21,6 +22,13 @@ class RoleService:
 
         self.role_mappings: Dict[str, str] = primary or {}
         self.fallback_role_mappings: Dict[str, str] = self._load_fallback_mappings()
+        
+        # Sicherheit: Garantiere, dass role_mappings nie leer ist
+        if not self.role_mappings:
+            self.role_mappings = self.fallback_role_mappings or {
+                'Entwicklung': 'Developer|Engineer|Programmierer|Developer',
+                'Management': 'Leiter|Head of|Manager|Lead|Management'
+            }
 
     def classify_role(self, job_text: str, job_title: str, default_role: str = "Unbekannt") -> str:
         """

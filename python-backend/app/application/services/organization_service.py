@@ -34,11 +34,23 @@ class OrganizationService:
         # Load mappings once from Kotlin API or fallback
         try:
             self.industry_mappings = self._load_mappings()
+            # ✅ SICHERHEIT: Nie leere Mappings zulassen
+            if not self.industry_mappings:
+                print("⚠️ API lieferte leere Mappings, nutze Fallback")
+                self.industry_mappings = self._load_fallback_industry_mappings()
             self.industry_keywords = self.industry_mappings
             print(f"✅ {len(self.industry_mappings)} Branchen-Regeln aktiv.")
         except Exception as e:
             print(f"⚠️ Fehler bei Branchen-Mappings: {e}")
             self.industry_mappings = self._load_fallback_industry_mappings()
+            # ✅ SICHERHEIT: Minimale Defaults wenn auch Fallback fehlschlägt
+            if not self.industry_mappings:
+                self.industry_mappings = {
+                    'IT & Software': 'Software|Entwicklung|Cloud|IT|Data',
+                    'Finanzen': 'Bank|Versicherung|Finance',
+                    'Sonstiges': '.*'
+                }
+                print(f"⚠️ Nutze minimale Default-Branchen ({len(self.industry_mappings)})")
             self.industry_keywords = self.industry_mappings
             print(f"✅ {len(self.industry_mappings)} Fallback-Branchen-Regeln geladen.")
 

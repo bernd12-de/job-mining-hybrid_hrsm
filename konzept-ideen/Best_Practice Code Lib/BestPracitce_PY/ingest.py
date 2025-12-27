@@ -1,86 +1,122 @@
 
-import os, io, re, json, logging, mimetypes, subprocess, shutil, pathlib
-from urllib.parse import urlparse
-from bs4 import BeautifulSoup
-import requests
-from .normalize import parse_date
-try:
-    from pdfminer import settings as _pdfminer_settings
-    _pdfminer_settings.STRICT=False
-    logging.getLogger("pdfminer").setLevel(logging.ERROR)
-except Exception: pass
-def read_txt(p): return open(p,"r",encoding="utf-8",errors="ignore").read()
-def read_docx_text(p):
+import os, re, zipfile, subprocess, html
+
+def _clean(s: str) -> str:
+    if not s: return ""
+    s = s.replace("\u00ad","").replace("\u2011","-")
+    s = re.sub(r"[ \t]+"," ", s)
+    s = re.sub(r"\s+\n","\n", s)
+    s = re.sub(r"\n{3,}","\n\n", s)
+    return s.strip()
+
+def read_txt(p):
+    return open(p,"r",encoding="utf-8",errors="ignore").read()
+
+def read_docx(p):
+    with zipfile.ZipFile(p) as z:
+        xml = z.read("word/document.xml").decode("utf-8","ignore")
+    xml = re.sub(r"</w:p>","\n", xml)
+    xml = re.sub(r"<w:br[^>]*>","\n", xml)
+    text = re.sub(r"<[^>]+>","", xml)
+    return html.unescape(text)
+
+def _pdf_with_pypdf2(p):
     try:
-        import docx; d=docx.Document(p); return "\n".join([x.text for x in d.paragraphs])
-    except Exception: return ""
-def _pdftotext(path):
-    if shutil.which("pdftotext"):
+        import PyPDF2
+        text = []
+        with open(p, "rb") as fh:
+            reader = PyPDF2.PdfReader(fh)
+            for page in reader.pages:
+                text.append(page.extract_text() or "")
+        return "\n".join(text)
+    except Exception:
+        return None
+
+def _pdf_with_pdfminer(p):
+    try:
+        from pdfminer_high_level import extract_text   # try alt name first
+    except Exception:
         try:
-            out=subprocess.run(["pdftotext","-layout","-q",path,"-"],check=True,capture_output=True)
-            return out.stdout.decode("utf-8","ignore")
-        except Exception: return ""
+            from pdfminer.high_level import extract_text
+        except Exception:
+            return None
+    try:
+        return extract_text(p)
+    except Exception:
+        return None
+
+def _pdf_with_pdftotext(p):
+    out = p + ".txt"
+    try:
+        subprocess.run(["pdftotext","-layout",p,out], check=True,
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return open(out,"r",encoding="utf-8",errors="ignore").read()
+    except Exception:
+        return None
+    finally:
+        try: os.remove(out)
+        except Exception: pass
+
+def _pdf_with_ocr(p):
+    try:
+        from pdf2image import convert_from_path
+        import pytesseract
+        from PIL import Image
+    except Exception:
+        return None
+    try:
+        pages = convert_from_path(p, dpi=200)
+        txt = []
+        for im in pages[:10]:
+            txt.append(pytesseract.image_to_string(im))
+        return "\n".join(txt)
+    except Exception:
+        return None
+
+def read_pdf(p):
+    for fn in (_pdf_with_pypdf2, _pdf_with_pdfminer, _pdf_with_pdftotext, _pdf_with_ocr):
+        txt = fn(p)
+        if txt and txt.strip():
+            return txt
+    print(f"[WARN] PDF konnte nicht extrahiert werden (fehlende Tools/Bibliotheken): {p}")
     return ""
-def _pdfminer(path):
+
+def _is_url(x: str) -> bool:
+    return x.startswith("http://") or x.startswith("https://")
+
+def _read_url(url: str) -> str:
     try:
-        from pdfminer.high_level import extract_text
-        return extract_text(path) or ""
-    except Exception: return ""
-def _ocr_pdf(path):
-    try:
-        from pdf2image import convert_from_path; import pytesseract
-        pages=convert_from_path(path, dpi=200); chunks=[]
-        for im in pages[:5]: chunks.append(pytesseract.image_to_string(im))
-        return "\n".join(chunks)
-    except Exception: return ""
-def read_pdf_text(p):
-    for fn in (_pdftotext,_pdfminer,_ocr_pdf):
-        t=fn(p)
-        if t and t.strip(): return t
-    return ""
-def read_html(url, render_js=False):
-    try:
-        r=requests.get(url, timeout=15, headers={"User-Agent":"Mozilla/5.0"}); r.raise_for_status(); return r.text
-    except Exception: return ""
-def html_to_text(html):
-    soup=BeautifulSoup(html or "","html.parser")
-    for x in soup(["script","style","noscript"]): x.extract()
-    t=soup.get_text("\n")
-    t=re.sub(r"\n\s*\n","\n",t); return t.strip()
-TITLE_RE=re.compile(r'^.{6,120}$')
-def parse_text_to_record(doc_id, text):
-    lines=[ln.strip() for ln in (text or "").splitlines() if ln.strip()]
-    title=next((ln for ln in lines if TITLE_RE.match(ln)),"Unknown")
-    company="Unknown"
-    for ln in lines[1:4]:
-        if ln!=title and len(ln)<=80: company=ln; break
-    iso, src, prec = parse_date(text)
-    return {"id":doc_id,"title":title,"company":company,"posting_date_iso":iso,"posting_date_source":src,"posting_date_precision":prec,"tools":[],"methods":[],"fields":{"skills_esco":[]},"text":(text or "")[:10000]}
-def is_url(x):
-    try:
-        u=urlparse(x); return bool(u.scheme and u.netloc)
-    except Exception: return False
-def read_any(x, render_js=False):
-    if os.path.isdir(x):
-        recs=[]
-        for root,_,files in os.walk(x):
-            for fn in files:
-                p=os.path.join(root,fn)
-                if fn.lower().endswith((".txt",".pdf",".docx",".html",".htm")):
-                    recs.append(read_any(p, render_js=render_js))
-        return {"_batch":True,"records":recs}
-    if os.path.isfile(x):
-        ext=pathlib.Path(x).suffix.lower()
-        if ext==".txt":
-            t=read_txt(x); r=parse_text_to_record(os.path.basename(x), t); r["text"]=t; return r
-        if ext==".pdf":
-            t=read_pdf_text(x); r=parse_text_to_record(os.path.basename(x), t); r["text"]=t; return r
-        if ext==".docx":
-            t=read_docx_text(x); r=parse_text_to_record(os.path.basename(x), t); r["text"]=t; return r
-        if ext in (".html",".htm"):
-            t=html_to_text(read_txt(x)); r=parse_text_to_record(os.path.basename(x), t); r["text"]=t; return r
-        t=read_txt(x); r=parse_text_to_record(os.path.basename(x), t); r["text"]=t; return r
-    if is_url(x):
-        html=read_html(x, render_js=render_js); text=html_to_text(html)
-        return parse_text_to_record(x, text)
-    raise FileNotFoundError(x)
+        import requests, bs4
+        r = requests.get(url, timeout=25, headers={"User-Agent":"Mozilla/5.0"})
+        r.raise_for_status()
+        soup = bs4.BeautifulSoup(r.text, "html.parser")
+        for tag in soup(["script","style","noscript","svg"]): tag.decompose()
+        return soup.get_text("\n")
+    except Exception as e:
+        print(f"[WARN] URL konnte nicht geladen werden: {url} ({e})")
+        return ""
+
+def read_any(x):
+    # strip surrounding quotes if present
+    if isinstance(x,str) and len(x)>=2 and ((x[0]==x[-1]=='"') or (x[0]==x[-1]=="'")):
+        x = x[1:-1]
+    if _is_url(x):
+        t = _read_url(x); return {"id": x, "text": _clean(t)}
+    ext = os.path.splitext(x)[1].lower()
+    if ext in (".txt",".md"): t = read_txt(x)
+    elif ext == ".docx": t = read_docx(x)
+    elif ext == ".pdf": t = read_pdf(x)
+    else:
+        if os.path.isdir(x):
+            # collapse directory into many files (txt/docx/pdf)
+            toks = []
+            for root,_,files in os.walk(x):
+                for fn in files:
+                    if fn.lower().endswith((".txt",".docx",".pdf")):
+                        try:
+                            toks.append(read_any(os.path.join(root,fn))["text"])
+                        except Exception: pass
+            return {"id": x, "text": _clean("\n\n".join(toks))}
+        try: t = read_txt(x)
+        except Exception: raise FileNotFoundError(x)
+    return {"id": os.path.basename(x), "text": _clean(t)}

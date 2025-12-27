@@ -47,7 +47,27 @@ class AdvancedTextExtractor(ITextExtractor):
                 content = page.extract_text()
                 if content:
                     text_parts.append(content)
-            return "\n".join(text_parts)
+            
+            extracted_text = "\n".join(text_parts)
+            
+            # ✅ BEST PRACTICE: Fallback bei zu kurzem Text (< 100 Zeichen = wahrscheinlich Fehler)
+            if len(extracted_text.strip()) < 100:
+                print(f"⚠️ PDF-Text zu kurz ({len(extracted_text)} Zeichen), versuche alternative Extraktion (pdfminer)")
+                try:
+                    # Versuche optionalen pdfminer.six Fallback
+                    from pdfminer.high_level import extract_text as pdfminer_extract_text
+                    try:
+                        file_stream.seek(0)
+                    except Exception:
+                        pass
+                    alt_text = pdfminer_extract_text(file_stream)
+                    if alt_text and len(alt_text.strip()) > len(extracted_text.strip()):
+                        print(f"✅ pdfminer-Fallback erfolgreich: {len(alt_text)} Zeichen")
+                        return alt_text
+                except Exception as _e:
+                    print(f"ℹ️ pdfminer Fallback nicht verfügbar/fehlgeschlagen: {_e}")
+            
+            return extracted_text
         except Exception as e:
             print(f"❌ PDF-Parsing Fehler: {e}")
             return ""

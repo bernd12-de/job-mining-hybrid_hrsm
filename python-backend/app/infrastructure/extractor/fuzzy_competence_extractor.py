@@ -23,25 +23,31 @@ class FuzzyCompetenceExtractor(ICompetenceExtractor):
     def extract_competences(self, text: str, role: str = None) -> List[CompetenceDTO]:
         """
         Scannt den Text nach Ähnlichkeiten zu bekannten Kompetenzen.
+        PERFORMANCE-OPTIMIERT: Text/Wort/Label-Limits + schnellerer Scorer
         """
         found_dtos = []
-        # Wir zerlegen den Text in Chunks/N-Gramme oder nutzen eine Keyword-Vorauswahl
-        # Hier nutzen wir eine effiziente Suche über die Wortliste
-        words = text.split()
+        
+        # ✅ FIX 1: Text-Limit (verhindert Freeze bei großen PDFs)
+        limited_text = text[:10000] if len(text) > 10000 else text
+        words = limited_text.split()
 
-        # Um Performance-Probleme zu vermeiden, begrenzen wir die Fuzzy-Suche
-        # auf Substantive oder extrahierte Kandidaten (optional via NLP)
+        # ✅ FIX 2: Wort-Limit (max 500 unique words für Fuzzy-Matching)
+        unique_words = list(set(words))[:500]
+        
+        # ✅ FIX 3: Label-Limit (nur erste 5000 Labels, sortiert nach Wichtigkeit)
+        limited_labels = self.reference_labels[:5000]
 
         unique_matches = {}
 
-        for word in set(words):
-            if len(word) < 5: continue # Zu kurze Wörter ignorieren
+        for word in unique_words:
+            # ✅ FIX 4: Minimale Wortlänge von 2 (statt 5) - erlaubt "R", "C", "Go"
+            if len(word) < 2: continue
 
-            # Suche nach dem ähnlichsten Begriff in der gesamten Wissensbasis
+            # ✅ FIX 5: Schnellerer Scorer (ratio statt WRatio)
             match = process.extractOne(
                 word,
-                self.reference_labels,
-                scorer=fuzz.WRatio
+                limited_labels,
+                scorer=fuzz.ratio
             )
 
             if match and match[1] >= self.threshold:
@@ -54,13 +60,15 @@ class FuzzyCompetenceExtractor(ICompetenceExtractor):
                 if data:
                     uri = data.get("uri")
                     if uri not in unique_matches: #noch die create comptence dto nutzen
+                        # is_digital Default-Schutz: Nutze False statt None
+                        is_digital_value = data.get("is_digital") or False
                         unique_matches[uri] = CompetenceDTO(
                             original_term=word,
                             esco_label=data.get("preferredLabel", matched_label),
                             esco_uri=uri,
                             confidence_score=confidence,
                             level=data.get("level", 2), # Bezieht Level 4/5 aus den JSONs
-                            is_digital=data.get("is_digital", False),
+                            is_digital=is_digital_value,
                             source_domain=data.get("source_domain", "Fuzzy-Match"),
                             role_context=role
                         )

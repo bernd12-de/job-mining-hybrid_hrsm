@@ -1,0 +1,74 @@
+[
+  {
+    "k": "berlin",
+    "city": "Berlin",
+    "admin1": "Berlin",
+    "country": "DE",
+    "lat": 52.52,
+    "lon": 13.405
+  },
+  {
+    "k": "hamburg",
+    "city": "Hamburg",
+    "admin1": "Hamburg",
+    "country": "DE",
+    "lat": 53.5511,
+    "lon": 9.9937
+  },
+  {
+    "k": "münchen",
+    "city": "München",
+    "admin1": "Bayern",
+    "country": "DE",
+    "lat": 48.1374,
+    "lon": 11.5755
+  },
+  {
+    "k": "frankfurt am main",
+    "city": "Frankfurt am Main",
+    "admin1": "Hessen",
+    "country": "DE",
+    "lat": 50.1109,
+    "lon": 8.6821
+  },
+  {
+    "k": "stuttgart",
+    "city": "Stuttgart",
+    "admin1": "Baden-Württemberg",
+    "country": "DE",
+    "lat": 48.7758,
+    "lon": 9.1829
+  },
+  {
+    "k": "köln",
+    "city": "Köln",
+    "admin1": "Nordrhein-Westfalen",
+    "country": "DE",
+    "lat": 50.9375,
+    "lon": 6.9603
+  },
+  {
+    "k": "düsseldorf",
+    "city": "Düsseldorf",
+    "admin1": "Nordrhein-Westfalen",
+    "country": "DE",
+    "lat": 51.2277,
+    "lon": 6.7735
+  },
+  {
+    "k": "wien",
+    "city": "Wien",
+    "admin1": "Wien",
+    "country": "AT",
+    "lat": 48.2082,
+    "lon": 16.3738
+  },
+  {
+    "k": "zürich",
+    "city": "Zürich",
+    "admin1": "Zürich",
+    "country": "CH",
+    "lat": 47.3769,
+    "lon": 8.5417
+  }
+]
