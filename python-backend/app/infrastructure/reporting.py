@@ -433,6 +433,103 @@ def aggregate_pipeline_metrics() -> Dict[str, float]:
     }
 
 
+def aggregate_time_series_validation() -> Dict[str, Any]:
+    """
+    Validiert Zeitreihen-Daten (Level 7: Zeitreihen/Validierung).
+
+    Prüft:
+    - Ausreichend Datenpunkte für Trend-Analyse
+    - Lücken in Zeitreihen
+    - Datenqualität über Zeit
+    - Trend-Klassifikation (Rising/Stable/Falling)
+    """
+    skill_by_year = defaultdict(lambda: defaultdict(int))
+
+    # Sammle alle Zeitreihen-Daten
+    for p in _iter_job_files():
+        try:
+            data = json.load(open(p, 'r', encoding='utf-8'))
+            date = data.get('posting_date')
+            if not date:
+                continue
+
+            year = int(date.split('-')[0])
+
+            for c in data.get('competences', []):
+                label = c.get('esco_label') or c.get('original_term')
+                collections = c.get('collections', [])
+
+                if label and _should_include_in_top_skills(collections):
+                    skill_by_year[label][year] += 1
+        except Exception:
+            continue
+
+    # Validierungs-Metriken
+    validated_skills = 0
+    skills_with_gaps = 0
+    skills_with_trend = 0
+    total_skills = len(skill_by_year)
+
+    min_years = 3  # Mindestens 3 Jahre für valide Zeitreihe
+
+    rising_trends = 0
+    falling_trends = 0
+    stable_trends = 0
+
+    for skill, year_counts in skill_by_year.items():
+        years = sorted(year_counts.keys())
+
+        # Prüfung 1: Genug Datenpunkte?
+        if len(years) >= min_years:
+            validated_skills += 1
+
+            # Prüfung 2: Lücken in Zeitreihe?
+            if len(years) > 1:
+                year_range = range(min(years), max(years) + 1)
+                if len(years) < len(list(year_range)):
+                    skills_with_gaps += 1
+
+            # Prüfung 3: Trend-Klassifikation
+            # Vergleiche erste Hälfte mit zweiter Hälfte
+            mid_idx = len(years) // 2
+            first_half_avg = sum(year_counts[y] for y in years[:mid_idx]) / mid_idx if mid_idx > 0 else 0
+            second_half_avg = sum(year_counts[y] for y in years[mid_idx:]) / (len(years) - mid_idx) if len(years) > mid_idx else 0
+
+            if second_half_avg > first_half_avg * 1.2:  # 20% Wachstum
+                rising_trends += 1
+                skills_with_trend += 1
+            elif second_half_avg < first_half_avg * 0.8:  # 20% Rückgang
+                falling_trends += 1
+                skills_with_trend += 1
+            else:
+                stable_trends += 1
+
+    # Qualitäts-Score
+    validation_score = 0
+    if total_skills > 0:
+        validation_score = (validated_skills / total_skills) * 100
+
+    # Gap-Rate
+    gap_rate = 0
+    if validated_skills > 0:
+        gap_rate = (skills_with_gaps / validated_skills) * 100
+
+    return {
+        'total_skills': total_skills,
+        'validated_skills': validated_skills,  # >= 3 Jahre Daten
+        'skills_with_gaps': skills_with_gaps,
+        'skills_with_trend': skills_with_trend,
+        'validation_score': round(validation_score, 1),
+        'gap_rate': round(gap_rate, 1),
+        'trend_classification': {
+            'rising': rising_trends,
+            'stable': stable_trends,
+            'falling': falling_trends
+        },
+        'min_years_required': min_years
+    }
+
+
 def build_dashboard_metrics(top_n: int = 10) -> Dict[str, Any]:
     summary = load_summary()
     total_jobs = summary.get('processed') or 0
@@ -453,6 +550,7 @@ def build_dashboard_metrics(top_n: int = 10) -> Dict[str, Any]:
     quality_metrics = aggregate_quality_metrics()
     level_progression = aggregate_level_progression()
     pipeline_metrics = aggregate_pipeline_metrics()
+    time_series_validation = aggregate_time_series_validation()  # Level 7
 
     # Role distribution (vereinfacht aus job_groups)
     role_distribution = {k.replace('_', ' ').title(): v['total'] for k, v in job_groups.items()}
@@ -474,6 +572,7 @@ def build_dashboard_metrics(top_n: int = 10) -> Dict[str, Any]:
         'level_progression': level_progression,  # NEU
         'pipeline_metrics': pipeline_metrics,  # NEU
         'role_distribution': role_distribution,  # NEU
+        'time_series_validation': time_series_validation,  # NEU - Level 7
     }
 
 

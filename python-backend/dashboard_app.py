@@ -653,6 +653,52 @@ with quality_col2:
         st.error(f"Fehler: {str(e)}")
 
 # ========================================
+# 📊 ZEITREIHEN-VALIDIERUNG (Level 7)
+# ========================================
+st.markdown("---")
+st.subheader("📊 Zeitreihen-Validierung (Level 7)")
+try:
+    ts_validation = metrics.get('time_series_validation', {})
+
+    if ts_validation:
+        val_col1, val_col2 = st.columns(2)
+
+        with val_col1:
+            st.write("**Datenqualität:**")
+            total_skills = ts_validation.get('total_skills', 0)
+            validated_skills = ts_validation.get('validated_skills', 0)
+            skills_with_gaps = ts_validation.get('skills_with_gaps', 0)
+            validation_score = ts_validation.get('validation_score', 0)
+            gap_rate = ts_validation.get('gap_rate', 0)
+            min_years = ts_validation.get('min_years_required', 3)
+
+            st.write(f"✅ Validierte Skills: {validated_skills} von {total_skills}")
+            st.write(f"📊 Validierungs-Score: {validation_score:.1f}%")
+            st.write(f"⚠️ Skills mit Lücken: {skills_with_gaps}")
+            st.write(f"📈 Gap-Rate: {gap_rate:.1f}%")
+            st.write(f"📏 Min. Jahre erforderlich: {min_years}")
+
+        with val_col2:
+            st.write("**Trend-Klassifikation:**")
+            trends = ts_validation.get('trend_classification', {})
+            rising = trends.get('rising', 0)
+            stable = trends.get('stable', 0)
+            falling = trends.get('falling', 0)
+
+            st.write(f"📈 Rising: {rising}")
+            st.write(f"➡️ Stable: {stable}")
+            st.write(f"📉 Falling: {falling}")
+
+            # Zusätzliche Statistik
+            skills_with_trend = ts_validation.get('skills_with_trend', 0)
+            st.write(f"🔍 Skills mit erkanntem Trend: {skills_with_trend}")
+    else:
+        st.info("Keine Validierungsdaten verfügbar.")
+except Exception as e:
+    logger.error(f"Fehler bei Zeitreihen-Validierung: {e}")
+    st.error(f"Fehler: {str(e)}")
+
+# ========================================
 # 📋 JOB-DATEN TABELLE
 # ========================================
 st.markdown("---")
