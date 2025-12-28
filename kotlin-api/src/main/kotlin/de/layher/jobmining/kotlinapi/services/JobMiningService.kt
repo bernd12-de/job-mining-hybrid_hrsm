@@ -163,16 +163,28 @@ class JobMiningService(
         resultsDto.forEach { resultDto ->
             processedCount++
             val hash = resultDto.rawTextHash
-            
+
+            // ✅ BEST PRACTICE: Explizite SKIP/NEW Unterscheidung
+            val isDuplicate = repository.findByRawTextHash(hash).firstOrNull() != null || seenHashesInBatch.contains(hash)
+
+            if (isDuplicate) {
+                // ✅ SKIP: Bereits verarbeitet
+                countIgnored++
+                println("🛡️  SKIP [$processedCount/$totalFiles]: '${resultDto.title.take(40)}' (hash: ${hash.take(8)}...)")
+            } else {
+                // ✅ NEW: Verarbeite Datei
+                seenHashesInBatch.add(hash)
+                println("🆕 NEW [$processedCount/$totalFiles]: '${resultDto.title.take(40)}' (${resultDto.competences.size} skills)")
+            }
+
             // Progress-Anzeige alle 10 Dateien oder bei letzter Datei
             if (processedCount % 10 == 0 || processedCount == totalFiles) {
                 val percentage = (processedCount * 100) / totalFiles
                 val progressBar = "█".repeat(percentage / 5) + "░".repeat(20 - percentage / 5)
-                println("--- 📈 BATCH [$progressBar] $processedCount/$totalFiles ($percentage%)")
+                println("--- 📈 PROGRESS [$progressBar] $processedCount/$totalFiles ($percentage%) | NEW: ${jobPostingsToSave.size}, SKIP: $countIgnored")
             }
 
-            if (repository.findByRawTextHash(hash).firstOrNull() == null && !seenHashesInBatch.contains(hash)) {
-                seenHashesInBatch.add(hash)
+            if (!isDuplicate) {
 
                 // URL bei ? abschneiden (Query-Parameter entfernen)
                 val cleanUrl = resultDto.sourceUrl?.let { url ->
