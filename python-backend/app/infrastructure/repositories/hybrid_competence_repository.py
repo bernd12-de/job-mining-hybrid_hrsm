@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import re
 import requests
@@ -9,6 +10,8 @@ from app.interfaces.interfaces import ICompetenceRepository
 from app.domain.models import Competence
 from app.infrastructure.clients.kotlin_rule_client import KotlinRuleClient
 from app.infrastructure.cache import get_cache_manager
+
+logger = logging.getLogger(__name__)
 
 class HybridCompetenceRepository(ICompetenceRepository):
     # Pfad relativ zum Projekt-Root
@@ -53,7 +56,7 @@ class HybridCompetenceRepository(ICompetenceRepository):
         try:
             self._load_digital_skills()
         except (AttributeError, Exception) as e:
-            print(f"⚠️ Digital Skills konnten nicht geladen werden: {e}")
+            logger.warning(f"Digital Skills konnten nicht geladen werden: {e}")
         # Lade lokale Domänen (Ebene 4/5)
         self._load_local_domains_v2()
         # Sync für Legacy Sets (fachbuch / academia)
@@ -90,7 +93,7 @@ class HybridCompetenceRepository(ICompetenceRepository):
                 if digital_uri in comp.collections:
                     comp.is_digital = True
                     count += 1
-        print(f"✅ {count} digitale Skills aus ESCO Collections markiert.")
+        logger.info(f"✅ {count} digitale Skills aus ESCO Collections markiert.")
 
     def _load_data(self) -> None:
         """Holt Daten von Kotlin mit Caching. FIX: Tolerant gegen fehlende Keys."""
@@ -110,22 +113,22 @@ class HybridCompetenceRepository(ICompetenceRepository):
                 allowed_hosts = {'kotlin-api', 'localhost', '127.0.0.1'}
 
                 if parsed.hostname and parsed.hostname not in allowed_hosts:
-                    print(f"❌ Sicherheitsfehler: Host nicht erlaubt: {parsed.hostname}")
+                    logger.error(f"Sicherheitsfehler: Host nicht erlaubt: {parsed.hostname}")
                     return None
 
                 endpoint = f"{base_url}/api/v1/rules/esco-full"
 
-                print(f"📡 Lade ESCO-Daten von {endpoint}...")
+                logger.info(f"Lade ESCO-Daten von {endpoint}...")
                 response = requests.get(endpoint, timeout=15, verify=True, allow_redirects=False)
-                print(f"   -> HTTP-Status: {response.status_code}")
+                logger.debug(f"HTTP-Status: {response.status_code}")
 
                 if response.status_code == 200:
                     return response.json()
                 else:
-                    print(f"⚠️ Kotlin API Fehler: {response.status_code}")
+                    logger.warning(f"Kotlin API Fehler: {response.status_code}")
                     return None
             except Exception as e:
-                print(f"❌ Fehler beim Laden von Kotlin: {e}")
+                logger.error(f"Fehler beim Laden von Kotlin: {e}")
                 return None
 
         # Lade aus Cache oder frisch von Kotlin
@@ -136,25 +139,25 @@ class HybridCompetenceRepository(ICompetenceRepository):
                 max_age_hours=24  # Cache 24h gültig
             )
         except Exception as e:
-            print(f"⚠️ Cache-Fehler: {e}, versuche direkt von Kotlin")
+            logger.warning(f"Cache-Fehler: {e}, versuche direkt von Kotlin")
             data = fetch_from_kotlin()
 
         # Verarbeite Daten
         if data is None or not data:
-            print("⚠️ Keine Daten von Kotlin/Cache erhalten.")
+            logger.warning("Keine Daten von Kotlin/Cache erhalten.")
             # Fallback: Versuche lokale ESCO CSV-Dateien zu laden
             try:
-                print("⚠️ Versuche lokale ESCO CSV-Dateien zu laden...")
+                logger.info("Versuche lokale ESCO CSV-Dateien zu laden...")
                 self._load_data_from_local_esco()
             except Exception as le:
-                print(f"❌ Lokales Laden fehlgeschlagen: {le}")
+                logger.error(f"Lokales Laden fehlgeschlagen: {le}")
             return
 
         # Debug: Was haben wir geladen?
-        print(f"   -> Response-Type: {type(data)}; Länge: {len(data) if hasattr(data, '__len__') else 'unknown'}")
+        logger.debug(f"Response-Type: {type(data)}; Länge: {len(data) if hasattr(data, '__len__') else 'unknown'}")
         first = data[0] if isinstance(data, list) and len(data) > 0 else {}
-        print(f"👀 DEBUG KEYS: {list(first.keys())}")
-        print(f"👀 DEBUG SAMPLE: {first}")
+        logger.debug(f"DEBUG KEYS: {list(first.keys())}")
+        logger.debug(f"DEBUG SAMPLE: {first}")
 
         # Verarbeite Items
         count = 0
@@ -186,7 +189,7 @@ class HybridCompetenceRepository(ICompetenceRepository):
                 ))
                 count += 1
 
-        print(f"✅ {count} Skills erfolgreich geladen (aus Cache oder Kotlin).")
+        logger.info(f"✅ {count} Skills erfolgreich geladen (aus Cache oder Kotlin).")
 
     def _load_custom_skills(self) -> None:
         if os.path.exists(self.CUSTOM_JSON_PATH):
@@ -203,7 +206,7 @@ class HybridCompetenceRepository(ICompetenceRepository):
                                 esco_uri=item.get('escoUri', 'custom')
                             ))
             except Exception as e:
-                print(f"⚠️ Custom Skills Fehler: {e}")
+                logger.warning(f"Custom Skills Fehler: {e}")
 
     def _load_data_from_local_esco(self) -> None:
         """Lädt ESCO-Daten aus lokalen CSV-Dateien im Ordner `data/esco` als Fallback.
@@ -212,7 +215,7 @@ class HybridCompetenceRepository(ICompetenceRepository):
         esco_folder = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), 'data', 'esco')
         skills_file = os.path.join(esco_folder, 'skills_de.csv')
         if not os.path.exists(skills_file):
-            print("⚠️ Lokale ESCO-Datei nicht gefunden: skills_de.csv")
+            logger.warning("Lokale ESCO-Datei nicht gefunden: skills_de.csv")
             return
 
         added = 0
@@ -226,13 +229,13 @@ class HybridCompetenceRepository(ICompetenceRepository):
                     self._esco_labels.add(lbl)
                     self._all_competences.append(Competence(preferred_label=lbl, esco_uri=uri or f"local/{added}"))
                     added += 1
-        print(f"✅ Lokaler ESCO-Fallback: {added} Begriffe geladen.")
+        logger.info(f"✅ Lokaler ESCO-Fallback: {added} Begriffe geladen.")
 
     def _load_dynamic_blacklist(self) -> None:
         try:
             self._blacklist = self.rule_client.fetch_blacklist()
         except (AttributeError, ConnectionError, TimeoutError, Exception) as e:
-            print(f"⚠️ Blacklist konnte nicht geladen werden: {e}")
+            logger.warning(f"Blacklist konnte nicht geladen werden: {e}")
             self._blacklist = set()
 
     # Interface Implementierung
@@ -387,7 +390,7 @@ class HybridCompetenceRepository(ICompetenceRepository):
                 break
 
         if not base:
-            print("⚠️ Keine lokalen Domain-Dateien gefunden in:", candidate_paths)
+            logger.info(f"Keine lokalen Domain-Dateien gefunden in: {candidate_paths}")
             return
 
         loaded_count = 0
@@ -407,17 +410,17 @@ class HybridCompetenceRepository(ICompetenceRepository):
                 if 'level' not in data:
                     if 'fachbuch' in base.lower() or 'fachbuch' in fname.lower():
                         data['level'] = 4
-                        print(f"  📚 {fname}: Level 4 (auto) | {comp_count} Skills")
+                        logger.debug(f"📚 {fname}: Level 4 (auto) | {comp_count} Skills")
                     elif 'modulhandbuch' in base.lower() or 'academia' in base.lower() or 'modulhandbuch' in fname.lower():
                         data['level'] = 5
-                        print(f"  🎓 {fname}: Level 5 (auto) | {comp_count} Skills")
+                        logger.debug(f"🎓 {fname}: Level 5 (auto) | {comp_count} Skills")
                     else:
                         data['level'] = 2  # Default für unspezifische Domains
-                        print(f"  📁 {fname}: Level 2 (default) | {comp_count} Skills")
+                        logger.debug(f"📁 {fname}: Level 2 (default) | {comp_count} Skills")
                 else:
                     level = data['level']
                     emoji = "📚" if level == 4 else "🎓" if level == 5 else "📁"
-                    print(f"  {emoji} {fname}: Level {level} | {comp_count} Skills")
+                    logger.debug(f"{emoji} {fname}: Level {level} | {comp_count} Skills")
                 
                 self.custom_domains[domain_name] = data
                 loaded_count += 1
@@ -432,10 +435,10 @@ class HybridCompetenceRepository(ICompetenceRepository):
                     level_counts['other'] += 1
                     
             except Exception as e:
-                print(f"⚠️ Fehler beim Laden der Domain {fname}: {e}")
-        
+                logger.warning(f"Fehler beim Laden der Domain {fname}: {e}")
+
         if loaded_count > 0:
-            print(f"✅ {loaded_count} Custom Domains geladen: {level_counts[4]} x Level 4, {level_counts[5]} x Level 5, {level_counts['other']} x Andere")
+            logger.info(f"✅ {loaded_count} Custom Domains geladen: {level_counts[4]} x Level 4, {level_counts[5]} x Level 5, {level_counts['other']} x Andere")
 
     def _sync_legacy_sets(self):
         """Populate legacy sets for backward-compatible lookup (fachbuch / academia).
@@ -473,13 +476,13 @@ class HybridCompetenceRepository(ICompetenceRepository):
                 domain_breakdown.append(f"    {domain_name[:40]}: {domain_skills} Skills")
         
         if self._fachbuch_skills or self._academia_skills:
-            print(f"✅ Legacy Sets synchronisiert:")
-            print(f"   📚 Fachbuch (L4): {len(self._fachbuch_skills)} unique Skills")
-            print(f"   🎓 Academia (L5): {len(self._academia_skills)} unique Skills")
+            logger.info("✅ Legacy Sets synchronisiert:")
+            logger.info(f"   📚 Fachbuch (L4): {len(self._fachbuch_skills)} unique Skills")
+            logger.info(f"   🎓 Academia (L5): {len(self._academia_skills)} unique Skills")
             if domain_breakdown:
-                print(f"\n   Breakdown pro Domain:")
+                logger.info("\n   Breakdown pro Domain:")
                 for line in domain_breakdown:
-                    print(line)
+                    logger.info(line)
 
     def is_known(self, term: str) -> bool:
         """Check if a given term is known in ESCO or custom skills.
