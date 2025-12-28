@@ -176,6 +176,12 @@ async def scrape_url_endpoint(url_input: URLInput):
     try:
         if not url_input.url or not url_input.url.strip():
             raise HTTPException(status_code=400, detail="URL fehlt oder ist leer")
+        # URL normalisieren: Query-Parameter entfernen, Länge begrenzen
+        try:
+            clean_url = (url_input.url or "").split('?')[0][:2000]
+            url_input.url = clean_url
+        except Exception:
+            pass
         result = await scrape_and_analyze_url(url_input, manager=WORKFLOW_MANAGER)
         try:
             save_result(result)

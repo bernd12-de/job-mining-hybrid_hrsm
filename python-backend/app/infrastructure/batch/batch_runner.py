@@ -103,8 +103,47 @@ class BatchRunner:
         self.environment = self._detect_environment()
         self.output_dir = output_dir or self._get_default_output_dir()
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.cache_path = self.output_dir / "processed_index.json"
+        self._processed_cache = self._load_cache()
         
         logger.info(f"🚀 BatchRunner initialisiert: {self.environment.value} → {self.output_dir}")
+
+    def _load_cache(self) -> Dict[str, Dict[str, int]]:
+        """Lädt bereits verarbeitete Dateien (pfad -> mtime/size)"""
+        try:
+            if self.cache_path.exists():
+                return json.load(open(self.cache_path, "r", encoding="utf-8"))
+        except Exception:
+            pass
+        return {}
+
+    def _save_cache(self) -> None:
+        try:
+            json.dump(self._processed_cache, open(self.cache_path, "w", encoding="utf-8"), indent=2)
+        except Exception:
+            logger.warning("⚠️ Konnte processed_index nicht speichern")
+
+    def _is_processed(self, file_path: Path) -> bool:
+        key = str(file_path.resolve())
+        try:
+            stat = file_path.stat()
+            cached = self._processed_cache.get(key)
+            if not cached:
+                return False
+            return cached.get("mtime_ns") == stat.st_mtime_ns and cached.get("size") == stat.st_size
+        except Exception:
+            return False
+
+    def _record_processed(self, file_path: Path) -> None:
+        key = str(file_path.resolve())
+        try:
+            stat = file_path.stat()
+            self._processed_cache[key] = {
+                "mtime_ns": stat.st_mtime_ns,
+                "size": stat.st_size,
+            }
+        except Exception:
+            pass
     
     def _detect_environment(self) -> RunEnvironment:
         """Erkennt die Laufzeit-Umgebung"""
@@ -171,6 +210,18 @@ class BatchRunner:
             progress_bar = "█" * (percentage // 5) + "░" * (20 - percentage // 5)
             
             logger.info(f"📈 BATCH [{progress_bar}] {idx}/{len(files)} ({percentage}%)")
+
+            # Skip bereits verarbeitete Dateien
+            if skip_existing and self._is_processed(file_path):
+                logger.info(f"   ⏭️  {file_path.name}: Übersprungen (unverändert)")
+                results.append(JobResult(
+                    filename=file_path.name,
+                    status=JobStatus.SKIPPED,
+                    competences_found=0,
+                    processing_time_ms=0,
+                    warnings=["cached"]
+                ))
+                continue
             
             # Verarbeite Datei
             try:
@@ -180,6 +231,8 @@ class BatchRunner:
                 if result.status == JobStatus.SUCCESS:
                     total_competences += result.competences_found
                     logger.info(f"   ✅ {file_path.name}: {result.competences_found} Kompetenzen")
+                    # Nur erfolgreiche Läufe cachen
+                    self._record_processed(file_path)
                 elif result.status == JobStatus.FAILED:
                     logger.error(f"   ❌ {file_path.name}: {result.error_message}")
                 else:  # SKIPPED
@@ -222,6 +275,8 @@ class BatchRunner:
         # Reports speichern
         if save_reports:
             self._save_reports(stats)
+            # Cache erst nach Reports sichern
+            self._save_cache()
         
         # Log finale Zusammenfassung
         logger.info(f"""

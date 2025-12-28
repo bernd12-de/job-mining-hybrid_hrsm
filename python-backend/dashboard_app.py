@@ -5,6 +5,8 @@ import logging
 import subprocess
 import time
 import os
+import requests
+import shutil
 from datetime import datetime
 
 # Logging konfigurieren
@@ -34,6 +36,10 @@ if 'authenticated' not in st.session_state:
 def get_container_status():
     """Holt den Status aller Docker Container"""
     try:
+        # Prüfe, ob docker verfügbar ist
+        if shutil.which('docker') is None:
+            logger.warning("Docker CLI nicht gefunden – überspringe Container-Status")
+            return []
         # Check if running inside Docker container
         if os.path.exists('/.dockerenv'):
             logger.warning("Dashboard läuft in Container - Docker-Befehle nicht verfügbar")
@@ -68,6 +74,8 @@ def get_container_status():
 def get_container_logs(service_name, lines=100):
     """Holt Logs eines spezifischen Services"""
     try:
+        if shutil.which('docker') is None:
+            return "Docker CLI nicht gefunden – keine Logs verfügbar."
         # Check if running inside Docker container
         if os.path.exists('/.dockerenv'):
             return "Dashboard läuft in Container - Docker-Befehle nicht verfügbar. Nutze 'docker logs' direkt."
@@ -89,6 +97,8 @@ def get_container_logs(service_name, lines=100):
 def restart_container(service_name):
     """Startet einen Container neu"""
     try:
+        if shutil.which('docker') is None:
+            return False, "Docker CLI nicht gefunden – Neustart nicht möglich."
         # Check if running inside Docker container
         if os.path.exists('/.dockerenv'):
             return False, "Dashboard läuft in Container - Docker-Befehle nicht verfügbar. Nutze 'docker compose restart' manuell."
@@ -111,6 +121,10 @@ def restart_container(service_name):
 # 📊 MAIN DASHBOARD
 # ========================================
 st.title("Job Mining — Dashboard")
+
+# Globaler Refresh-Button
+if st.button("🔄 Refresh Dashboard"):
+    st.rerun()
 
 # ========================================
 # 🔐 ADMIN PANEL (mit Passwort-Schutz)
@@ -203,7 +217,7 @@ with log_tab3:
 st.markdown("---")
 
 # ========================================
-# � DISCOVERY-MANAGEMENT
+# 🔍 DISCOVERY-MANAGEMENT
 # ========================================
 st.header("🔍 Skill Discovery Management")
 
@@ -339,7 +353,35 @@ except Exception as e:
 st.markdown("---")
 
 # ========================================
-# �📊 METRICS & ANALYTICS
+# 📦 BATCH-ANALYSE STATUS
+# ========================================
+st.header("📦 Batch-Analyse")
+batch_col1, batch_col2 = st.columns([1,2])
+with batch_col1:
+    if st.button("▶️ Batch starten", type="primary"):
+        try:
+            resp = requests.post("http://kotlin-api:8080/api/v1/jobs/batch-analyze", timeout=5)
+            if resp.status_code in (200, 202):
+                st.success("Batch gestartet")
+                time.sleep(1)
+                st.rerun()
+            else:
+                st.error(f"Fehler beim Start: {resp.status_code}")
+        except Exception as e:
+            st.error(f"Start fehlgeschlagen: {e}")
+with batch_col2:
+    try:
+        status = requests.get("http://kotlin-api:8080/api/v1/jobs/batch-status", timeout=5).json()
+        st.write(f"Status: {status.get('status','idle')} — {status.get('processed',0)} / {status.get('total',0)}")
+        st.progress(min(1.0, status.get('percentage',0)/100))
+        st.caption(status.get('progressBar',''))
+    except Exception:
+        st.info("Kein Status verfügbar.")
+
+st.markdown("---")
+
+# ========================================
+# 📊 METRICS & ANALYTICS
 # ========================================
 st.header("📊 Metriken & Analytics")
 
@@ -483,6 +525,12 @@ with st.expander("📋 Job-Daten Übersicht", expanded=False):
                     hide_index=True
                 )
                 st.caption(f"Gesamt: {len(jobs_data)} Jobs")
+
+                # Details-Accordion: zeige vollständige Attribute für die ersten 5 Jobs
+                with st.expander("🔎 Job-Details (Top 5)", expanded=False):
+                    for j in jobs_data[:5]:
+                        st.subheader(j.get('title','N/A'))
+                        st.json(j)
             else:
                 st.info("Keine Jobs in der Datenbank gefunden.")
         else:

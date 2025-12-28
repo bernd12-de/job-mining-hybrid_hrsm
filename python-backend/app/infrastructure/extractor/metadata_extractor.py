@@ -2,11 +2,11 @@ import re
 import os
 from typing import Dict, Optional
 
-# Import für Zeitreihen-Analyse (Ebene 7)
+# Import für Zeitreihen-Analyse (Ebene 7) - Neuer robuster Parser
 try:
-    from app.core.normalize import parse_date
+    from app.core.date_normalize import normalize_posting_date
 except ImportError:
-    def parse_date(text): return ("2024-01-01", None, None)
+    def normalize_posting_date(text, fallback=None): return fallback or "2024-01-01"
 
 class MetadataExtractor:
     """
@@ -62,7 +62,7 @@ class MetadataExtractor:
         """
         Gibt das Dictionary zurück, das exakt zum AnalysisResultDTO passt.
         """
-        iso_date, _, _ = parse_date(text)
+        iso_date = normalize_posting_date(text, fallback="2024-01-01")
         filtered_text = self._strip_irrelevant_sections(text)
 
         tasks_match = self.TASK_PATTERN.search(filtered_text)
@@ -104,7 +104,7 @@ class MetadataExtractor:
             "job_role": job_category,                          # Mappt auf AnalysisResultDTO.jobRole
             "region": self._extract_location(text),            # Mappt auf AnalysisResultDTO.region
             "industry": industry_mapping.get(job_category, job_category),  # ✅ Aus Kategorie abgeleitet
-            "posting_date": iso_date or "2024-01-01",
+            "posting_date": iso_date,  # Nutzt robusten Parser mit DE/ISO-Support
             "is_segmented": is_segmented,
             "processing_text": clean_segment if is_segmented else filtered_text,
             "inferred_level": inferred_level,

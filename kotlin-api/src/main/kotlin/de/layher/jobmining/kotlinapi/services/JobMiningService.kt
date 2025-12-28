@@ -177,6 +177,61 @@ class JobMiningService(
         return finalSaved
     }
 
+    /**
+     * Asynchrone Batch-Verarbeitung mit einfachem Fortschritts-Tracking.
+     */
+    @org.springframework.scheduling.annotation.Async
+    fun processJobDirectoryBatchAsync(progress: BatchProgressService) {
+        try {
+            progress.start()
+            // Optional: grobe Schätzung der Gesamtzahl aus lokaler Datei-Liste
+            val estimatedTotal = try { de.layher.jobmining.kotlinapi.infrastructure.io.IOService("/app/data").listJobFiles().size } catch (_: Exception) { 0 }
+            if (estimatedTotal > 0) progress.setTotal(estimatedTotal)
+
+            val resultsDto = pythonClient.processLocalJobDirectory()
+            progress.setTotal(resultsDto.size)
+
+            val jobPostingsToSave = mutableListOf<JobPosting>()
+            val seenHashesInBatch = mutableSetOf<String>()
+            var processedCount = 0
+
+            resultsDto.forEach { resultDto ->
+                processedCount++
+                val percentage = if (resultsDto.isNotEmpty()) (processedCount * 100) / resultsDto.size else 100
+                val bar = "█".repeat(percentage / 10) + "░".repeat(10 - (percentage / 10))
+                progress.update(processedCount, percentage, bar)
+
+                val hash = resultDto.rawTextHash
+                if (repository.findByRawTextHash(hash).firstOrNull() == null && !seenHashesInBatch.contains(hash)) {
+                    seenHashesInBatch.add(hash)
+
+                    val cleanUrl = resultDto.sourceUrl?.let { url -> url.substringBefore('?').take(2000) }
+                    val jobPosting = JobPosting(
+                        title = resultDto.title.take(1000),
+                        jobRole = resultDto.jobRole,
+                        rawTextHash = resultDto.rawTextHash,
+                        rawText = resultDto.rawText,
+                        postingDate = LocalDate.parse(resultDto.postingDate),
+                        region = resultDto.region,
+                        industry = resultDto.industry.take(500),
+                        isSegmented = resultDto.is_segmented,
+                        sourceUrl = cleanUrl
+                    )
+
+                    jobPosting.competences = resultDto.competences.map { dto ->
+                        mapDtoToEntity(dto, jobPosting)
+                    }.toMutableSet()
+
+                    jobPostingsToSave.add(jobPosting)
+                }
+            }
+
+            repository.saveAll(jobPostingsToSave)
+        } finally {
+            progress.finish()
+        }
+    }
+
     @Transactional
     fun deleteAllPostings(): Long {
         val count = repository.count()

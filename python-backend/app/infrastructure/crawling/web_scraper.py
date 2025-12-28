@@ -102,7 +102,23 @@ class WebScraper:
         needs_rendering = force_playwright or self.requires_js_rendering(url)
         
         if needs_rendering and self.use_playwright:
-            return self._scrape_with_playwright(canonical_url, warnings)
+            # Bevorzugt Playwright; bei Fehler minimalen Fallback zurückgeben
+            try:
+                return self._scrape_with_playwright(canonical_url, warnings)
+            except Exception as e:
+                warnings.append(f"playwright fehlgeschlagen: {e}")
+                logger.warning(f"Playwright-Fehler für {url}: {e}")
+                return ScrapedContent(
+                    url=canonical_url,
+                    canonical_url=canonical_url,
+                    title=None,
+                    company=None,
+                    text="",
+                    http_status=0,
+                    render_engine='playwright',
+                    latency_ms=0,
+                    warnings=warnings
+                )
         else:
             # Versuche zuerst requests
             try:
@@ -110,22 +126,24 @@ class WebScraper:
             except Exception as e:
                 warnings.append(f"requests fehlgeschlagen: {e}")
                 logger.warning(f"Fallback zu Playwright oder Minimal-Result für {url}: {e}")
-                
                 if self.use_playwright:
-                    return self._scrape_with_playwright(canonical_url, warnings)
-                else:
-                    # Liefere minimalistischen Inhalt statt Fehler, um Timeouts/Abbrüche zu vermeiden
-                    return ScrapedContent(
-                        url=canonical_url,
-                        canonical_url=canonical_url,
-                        title=None,
-                        company=None,
-                        text="",
-                        http_status=0,
-                        render_engine='requests',
-                        latency_ms=0,
-                        warnings=warnings
-                    )
+                    try:
+                        return self._scrape_with_playwright(canonical_url, warnings)
+                    except Exception as e2:
+                        warnings.append(f"playwright fehlgeschlagen: {e2}")
+                        logger.warning(f"Playwright-Fallback ebenfalls fehlgeschlagen für {url}: {e2}")
+                # Liefere minimalistischen Inhalt statt Fehler, um Timeouts/Abbrüche zu vermeiden
+                return ScrapedContent(
+                    url=canonical_url,
+                    canonical_url=canonical_url,
+                    title=None,
+                    company=None,
+                    text="",
+                    http_status=0,
+                    render_engine='requests',
+                    latency_ms=0,
+                    warnings=warnings
+                )
     
     def _scrape_with_requests(self, url: str, warnings: list) -> ScrapedContent:
         """Statisches Scraping mit requests + BeautifulSoup"""
@@ -181,9 +199,10 @@ class WebScraper:
         
         text = soup.get_text('\n', strip=True)
         
-        # Validierung
+        # Validierung: bei zu wenig Text hartes Fail → Fallback zu Playwright
         if len(text) < self.MIN_TEXT_LENGTH:
             warnings.append(f"Sehr wenig Text: {len(text)} Zeichen (min {self.MIN_TEXT_LENGTH})")
+            raise ValueError(f"Insufficient text ({len(text)} chars) from requests scrape")
         
         # Extrahiere Titel
         title_tag = soup.find('h1') or soup.find('title')
@@ -209,44 +228,45 @@ class WebScraper:
         try:
             from playwright.sync_api import sync_playwright
         except ImportError:
-            # Optionaler Auto-Install bei gesetzter Env-Variablen
-            auto_install = os.environ.get("PLAYWRIGHT_AUTO_INSTALL", "false").lower() in {"1","true","yes"}
-            if auto_install:
-                try:
-                    warnings.append("Playwright fehlt – versuche Auto-Install")
-                    subprocess.run(["python3","-m","pip","install","playwright"], check=True)
-                    try:
-                        subprocess.run(["playwright","install","chromium","--with-deps"], check=True)
-                    except subprocess.CalledProcessError:
-                        # Fallback ohne System-Deps; Fonts optional
-                        try:
-                            subprocess.run(["apt-get","update"], check=True)
-                            subprocess.run(["apt-get","install","-y",
-                                            "fonts-unifont",
-                                            "fonts-ubuntu",
-                                            "fonts-dejavu-core"], check=True)
-                        except Exception:
-                            pass
-                        subprocess.run(["playwright","install","chromium"], check=True)
-                    from playwright.sync_api import sync_playwright  # retry import
-                except Exception as e:
-                    raise ImportError(f"Playwright Auto-Install fehlgeschlagen: {e}")
-            else:
-                raise ImportError("Playwright nicht installiert. Bitte 'pip install playwright' ausführen.")
+            # Keine Auto-Installation: klarer Hinweis für Setup
+            raise ImportError("Playwright nicht installiert. Bitte 'pip install playwright' und 'playwright install chromium' ausführen.")
         
         start_ms = int(time.time() * 1000)
         
         with sync_playwright() as p:
             if self._playwright_browser is None:
-                browser = p.chromium.launch(headless=True)
+                browser = p.chromium.launch(headless=True, args=[
+                    "--no-sandbox",
+                    "--disable-dev-shm-usage",
+                    "--disable-gpu",
+                ])
             else:
                 browser = self._playwright_browser
-            
-            page = browser.new_page()
+            # Kontext mit kleinem Viewport & Headern
+            context = browser.new_context(
+                viewport={"width": 1024, "height": 768},
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 JobMining/1.0",
+                locale="de-DE"
+            )
+            page = context.new_page()
+            page.set_default_timeout(10000)
+            page.set_extra_http_headers({
+                'Accept-Language': 'de-DE,de;q=0.9,en;q=0.8'
+            })
+            # Blockiere schwere Ressourcen
+            def _route_handler(route):
+                try:
+                    rtype = route.request.resource_type
+                    if rtype in {"image", "stylesheet", "font", "media"}:
+                        return route.abort()
+                except Exception:
+                    pass
+                return route.continue_()
+            page.route("**/*", _route_handler)
             
             try:
-                # Navigiere zur Seite
-                response = page.goto(url, wait_until='networkidle', timeout=30000)
+                # Navigiere zur Seite (schnelleres Event)
+                response = page.goto(url, wait_until='domcontentloaded', timeout=20000)
                 
                 latency_ms = int(time.time() * 1000) - start_ms
                 
@@ -276,9 +296,10 @@ class WebScraper:
                     except:
                         pass
                 
-                # Validierung
+                # Validierung: bei zu wenig Text hartes Fail
                 if len(text) < self.MIN_TEXT_LENGTH:
                     warnings.append(f"Sehr wenig Text nach Rendering: {len(text)} Zeichen")
+                    raise ValueError(f"Insufficient text ({len(text)} chars) after Playwright rendering")
                 
                 return ScrapedContent(
                     url=url,
@@ -294,6 +315,7 @@ class WebScraper:
             
             finally:
                 page.close()
+                context.close()
                 if self._playwright_browser is None:
                     browser.close()
     

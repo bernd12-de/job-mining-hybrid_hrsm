@@ -1,6 +1,7 @@
 package de.layher.jobmining.kotlinapi.presentation
 
 import de.layher.jobmining.kotlinapi.services.JobMiningService
+import de.layher.jobmining.kotlinapi.services.BatchProgressService
 import de.layher.jobmining.kotlinapi.domain.JobPosting
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
@@ -23,7 +24,8 @@ data class URLRequest(val url: String)
 class JobController(
     private val jobMiningService: JobMiningService,
     // 👇 HIER kommt der "Client" her. Das ist einfach deine Klasse aus 'adapters/'
-    private val pythonClient: PythonAnalysisClient
+    private val pythonClient: PythonAnalysisClient,
+    private val batchProgress: BatchProgressService
 ) {
 
     @Operation(
@@ -63,11 +65,11 @@ class JobController(
     @PostMapping("/batch-analyze", "/batch-process", "/batch")
     fun analyzeLocalDirectory(): ResponseEntity<*> {
         return try {
-            val results = jobMiningService.processJobDirectoryBatch()
-            ResponseEntity.ok(mapOf(
-                "status" to "success",
-                "processed" to results.size,
-                "jobs" to results
+            // Starte asynchron und liefere sofort Fortschritts-Snapshot zurück
+            jobMiningService.processJobDirectoryBatchAsync(batchProgress)
+            ResponseEntity.accepted().body(mapOf(
+                "status" to "running",
+                "progress" to batchProgress.snapshot()
             ))
         } catch (e: Exception) {
             ResponseEntity.status(500).body(mapOf(
@@ -75,6 +77,9 @@ class JobController(
             ))
         }
     }
+
+    @GetMapping("/batch-status")
+    fun getBatchStatus(): ResponseEntity<*> = ResponseEntity.ok(batchProgress.snapshot())
 
     @Operation(
         summary = "ADMIN: Datenbank bereinigen",
