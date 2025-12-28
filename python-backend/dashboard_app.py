@@ -580,6 +580,67 @@ with role_col2:
 st.markdown("---")
 
 # ========================================
+# 🗺️ INTERAKTIVE GEO-KARTE (NEUE FEATURE)
+# ========================================
+st.subheader("🗺️ Interaktive Geo-Visualisierung")
+try:
+    from app.infrastructure.geo_visualizer import create_plotly_map_data
+
+    regional_dist = metrics.get('regional_distribution', {})
+    if regional_dist:
+        # Generiere Map-Daten
+        map_data = create_plotly_map_data(regional_dist)
+
+        if map_data['lat']:
+            # Erstelle interaktive Karte mit Plotly
+            fig_map = px.scatter_mapbox(
+                lat=map_data['lat'],
+                lon=map_data['lon'],
+                size=map_data['marker_size'],
+                hover_name=map_data['regions'],
+                hover_data={'Anzahl Jobs': map_data['counts']},
+                color=map_data['counts'],
+                color_continuous_scale='Viridis',
+                size_max=50,
+                zoom=5,
+                height=600,
+                title='Job-Verteilung in Deutschland'
+            )
+
+            # OpenStreetMap als Basiskarte
+            fig_map.update_layout(
+                mapbox_style="open-street-map",
+                mapbox=dict(
+                    center=dict(lat=51.1657, lon=10.4515),  # Deutschland Zentrum
+                ),
+                margin={"r":0, "t":40, "l":0, "b":0}
+            )
+
+            st.plotly_chart(fig_map, use_container_width=True)
+
+            # Coverage Stats
+            col_cov1, col_cov2, col_cov3 = st.columns(3)
+            total_regions = len(regional_dist)
+            geocoded = len(map_data['lat'])
+            coverage = (geocoded / total_regions * 100) if total_regions > 0 else 0
+
+            col_cov1.metric("🗺️ Regionen gesamt", total_regions)
+            col_cov2.metric("📍 Geocodiert", geocoded)
+            col_cov3.metric("✅ Coverage", f"{coverage:.1f}%")
+        else:
+            st.info("Keine Geo-Daten verfügbar für Kartendarstellung.")
+    else:
+        st.info("Keine Regions-Daten verfügbar.")
+except ImportError as e:
+    logger.error(f"GeoVisualizer konnte nicht geladen werden: {e}")
+    st.warning("⚠️ Geo-Visualisierung nicht verfügbar. GeoVisualizer-Modul fehlt.")
+except Exception as e:
+    logger.error(f"Fehler bei Geo-Visualisierung: {e}")
+    st.error(f"Fehler bei Kartendarstellung: {str(e)}")
+
+st.markdown("---")
+
+# ========================================
 # 📊 7-EBENEN-MODELL PROGRESSION (DASHBOARD_GUIDE.md Feature #2)
 # ========================================
 st.subheader("📊 7-Ebenen-Modell Progression")
