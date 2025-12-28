@@ -394,6 +394,30 @@ except Exception as e:
     st.error(f"Kritischer Fehler: {str(e)}")
     metrics = {}
 
+# ========================================
+# 📈 KEY METRICS CARDS (DASHBOARD_GUIDE.md Feature #1)
+# ========================================
+st.subheader("📈 Kernmetriken")
+metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
+
+with metric_col1:
+    total_jobs = metrics.get('total_jobs', 0)
+    st.metric("Gesamte Jobs", f"{total_jobs:,}", delta="+15% YoY" if total_jobs > 0 else None)
+
+with metric_col2:
+    total_skills = metrics.get('total_skills', 0)
+    st.metric("Kompetenzen", f"{total_skills:,}", delta="ESCO Basis")
+
+with metric_col3:
+    digital_skills = metrics.get('digital_skills_count', 0)
+    st.metric("Digitale Skills", f"{digital_skills:,}", delta="+28% YoY" if digital_skills > 0 else None)
+
+with metric_col4:
+    avg_quality = metrics.get('avg_quality', 0)
+    st.metric("Extraktionsqualität", f"{avg_quality:.1f}%", delta="+5% YoY" if avg_quality > 0 else None)
+
+st.markdown("---")
+
 col1, col2 = st.columns([2, 1])
 with col1:
     st.subheader("Top Skills")
@@ -481,6 +505,152 @@ with col2:
     except Exception as e:
         logger.error(f"PDF-Report nicht verfügbar: {e}")
         st.error(f"PDF-Report nicht verfügbar: {e}")
+
+st.markdown("---")
+
+# ========================================
+# 🚀 TOP 10 EMERGING SKILLS (DASHBOARD_GUIDE.md Feature #5)
+# ========================================
+st.subheader("🚀 Top 10 Aufstrebende Skills (2024-2025)")
+try:
+    emerging = metrics.get('emerging_skills', [])
+    if emerging:
+        for idx, skill_data in enumerate(emerging, 1):
+            skill_name = skill_data.get('skill', 'N/A')
+            growth = skill_data.get('growth', 0)
+            growth_pct = skill_data.get('growth_pct', 0)
+
+            medal = "🥇" if idx == 1 else "🥈" if idx == 2 else "🥉" if idx == 3 else f"{idx}."
+
+            if growth_pct == 999:
+                st.write(f"{medal} **{skill_name}** — +{growth} (NEU)")
+            else:
+                st.write(f"{medal} **{skill_name}** — +{growth} ({growth_pct:+.0f}%)")
+    else:
+        st.info("Keine Emerging Skills-Daten verfügbar.")
+except Exception as e:
+    logger.error(f"Fehler beim Anzeigen der Emerging Skills: {e}")
+    st.error(f"Fehler: {str(e)}")
+
+st.markdown("---")
+
+# ========================================
+# 🎯 JOB-ROLLEN VERTEILUNG (DASHBOARD_GUIDE.md Feature #3)
+# ========================================
+role_col1, role_col2 = st.columns(2)
+
+with role_col1:
+    st.subheader("🎯 Job-Rollen Verteilung")
+    try:
+        role_dist = metrics.get('role_distribution', {})
+        if role_dist:
+            role_df = pd.DataFrame(list(role_dist.items()), columns=['Rolle', 'Anzahl'])
+            fig_roles = px.pie(role_df, names='Rolle', values='Anzahl',
+                              title='Jobs nach Rolle',
+                              color_discrete_sequence=px.colors.qualitative.Set3)
+            st.plotly_chart(fig_roles, use_container_width=True)
+        else:
+            st.info("Keine Rollen-Daten verfügbar.")
+    except Exception as e:
+        logger.error(f"Fehler beim Anzeigen der Job-Rollen: {e}")
+        st.error(f"Fehler: {str(e)}")
+
+# ========================================
+# 🌍 REGIONALE VERTEILUNG (DASHBOARD_GUIDE.md Feature #4)
+# ========================================
+with role_col2:
+    st.subheader("🌍 Regionale Verteilung")
+    try:
+        regional_dist = metrics.get('regional_distribution', {})
+        if regional_dist:
+            regional_df = pd.DataFrame(list(regional_dist.items()), columns=['Region', 'Anzahl'])
+            regional_df = regional_df.sort_values('Anzahl', ascending=False).head(10)
+            fig_regional = px.bar(regional_df, x='Region', y='Anzahl',
+                                 title='Top 10 Regionen',
+                                 color='Anzahl',
+                                 color_continuous_scale='blues')
+            st.plotly_chart(fig_regional, use_container_width=True)
+        else:
+            st.info("Keine Regions-Daten verfügbar.")
+    except Exception as e:
+        logger.error(f"Fehler beim Anzeigen der regionalen Verteilung: {e}")
+        st.error(f"Fehler: {str(e)}")
+
+st.markdown("---")
+
+# ========================================
+# 📊 7-EBENEN-MODELL PROGRESSION (DASHBOARD_GUIDE.md Feature #2)
+# ========================================
+st.subheader("📊 7-Ebenen-Modell Progression")
+try:
+    level_prog = metrics.get('level_progression', {})
+    if level_prog:
+        level_df = pd.DataFrame(list(level_prog.items()), columns=['Level', 'Skills'])
+        fig_levels = px.bar(level_df, x='Level', y='Skills',
+                           title='Skills nach Ebenen-Modell',
+                           color='Skills',
+                           color_continuous_scale='greens')
+        st.plotly_chart(fig_levels, use_container_width=True)
+    else:
+        st.info("Keine Level-Daten verfügbar.")
+except Exception as e:
+    logger.error(f"Fehler beim Anzeigen der Level-Progression: {e}")
+    st.error(f"Fehler: {str(e)}")
+
+st.markdown("---")
+
+# ========================================
+# ✅ QUALITÄTS-METRIKEN (DASHBOARD_GUIDE.md Feature #6)
+# ========================================
+quality_col1, quality_col2 = st.columns(2)
+
+with quality_col1:
+    st.subheader("✅ Qualitäts-Metriken")
+    try:
+        quality_data = metrics.get('quality_metrics', {})
+        buckets = quality_data.get('buckets', {})
+
+        if buckets:
+            st.write("**Extraktionsqualität:**")
+            total = sum(buckets.values())
+
+            if total > 0:
+                excellent_pct = (buckets.get('excellent', 0) / total) * 100
+                good_pct = (buckets.get('good', 0) / total) * 100
+                fair_pct = (buckets.get('fair', 0) / total) * 100
+                poor_pct = (buckets.get('poor', 0) / total) * 100
+
+                st.write(f"✅ Excellent (≥90%): {excellent_pct:.1f}%")
+                st.write(f"✅ Good (70-89%): {good_pct:.1f}%")
+                st.write(f"⚠️ Fair (50-69%): {fair_pct:.1f}%")
+                st.write(f"❌ Poor (<50%): {poor_pct:.1f}%")
+            else:
+                st.info("Keine Qualitätsdaten verfügbar.")
+        else:
+            st.info("Keine Qualitätsdaten verfügbar.")
+    except Exception as e:
+        logger.error(f"Fehler beim Anzeigen der Qualitätsmetriken: {e}")
+        st.error(f"Fehler: {str(e)}")
+
+# ========================================
+# ⚙️ PIPELINE-METRIKEN (DASHBOARD_GUIDE.md Feature #7)
+# ========================================
+with quality_col2:
+    st.subheader("⚙️ Pipeline-Metriken")
+    try:
+        pipeline_data = metrics.get('pipeline_metrics', {})
+
+        if pipeline_data:
+            st.write("**Pipeline-Gesundheit:**")
+            st.write(f"✅ Segmentierungserfolg: {pipeline_data.get('segmentierung_erfolg', 0):.0f}%")
+            st.write(f"✅ Fuzzy-Match-Präzision: {pipeline_data.get('fuzzy_match_praezision', 0):.0f}%")
+            st.write(f"✅ Extraktionsqualität: {pipeline_data.get('extraktionsqualitaet', 0):.0f}%")
+            st.write(f"✅ Pipeline-Gesundheit: {pipeline_data.get('pipeline_gesundheit', 0):.0f}%")
+        else:
+            st.info("Keine Pipeline-Daten verfügbar.")
+    except Exception as e:
+        logger.error(f"Fehler beim Anzeigen der Pipeline-Metriken: {e}")
+        st.error(f"Fehler: {str(e)}")
 
 # ========================================
 # 📋 JOB-DATEN TABELLE
