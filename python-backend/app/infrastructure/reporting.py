@@ -367,34 +367,53 @@ def aggregate_quality_metrics() -> Dict[str, Any]:
 
 def aggregate_level_progression() -> Dict[str, int]:
     """
-    Aggregiert Skills nach 7-Ebenen-Modell Levels.
-    Placeholder - in echtem System würde man Level-Metadaten nutzen.
+    Aggregiert Skills nach 7-Ebenen-Modell (gemäß Dokumentation 7_ebenen_summary.md).
+
+    Ebene 1: Discovery (neue unbekannte Begriffe mit is_discovery=True)
+    Ebene 2: ESCO/SSoT (standardisierte Skills aus ESCO)
+    Ebene 3: Digital (digitale Skills mit is_digital=True)
+    Ebene 4: Fachbücher (aus Fachbuch-PDFs extrahiert)
+    Ebene 5: Academia (aus Modulhandbüchern extrahiert)
+    Ebene 6: Segmentierung & Kontext (Analyse-Ebene, nicht in Kompetenzen)
+    Ebene 7: Zeitreihen/Validierung (Analyse-Ebene, nicht in Kompetenzen)
     """
-    # Placeholder: Schätze Level basierend auf Skill-Eigenschaften
+    # Korrekte Level-Namen gemäß 7_ebenen_summary.md
     level_counts = {
-        'Level 1 (Basis)': 0,
-        'Level 2 (Jobs)': 0,
+        'Level 1 (Discovery)': 0,
+        'Level 2 (ESCO/SSoT)': 0,
         'Level 3 (Digital)': 0,
         'Level 4 (Fachbücher)': 0,
         'Level 5 (Academia)': 0,
-        'Level 6 (Expert)': 0,
-        'Level 7 (Cutting-Edge)': 0,
+        'Level 6 (Segmentierung)': 0,
+        'Level 7 (Zeitreihen)': 0,
     }
 
     for p in _iter_job_files():
         try:
             data = json.load(open(p, 'r', encoding='utf-8'))
             for c in data.get('competences', []):
+                # Nutze direkt das 'level' Feld aus den Competence-Daten
+                level = c.get('level', 2)  # Default: Level 2 (ESCO)
+                is_discovery = c.get('is_discovery', False)
                 is_digital = c.get('is_digital', False)
-                collections = c.get('collections', [])
 
-                # Einfache Heuristik für Level-Zuordnung
-                if 'research' in [col.lower() for col in collections]:
+                # Level-Zuordnung basierend auf tatsächlichen Daten
+                if is_discovery or level == 1:
+                    level_counts['Level 1 (Discovery)'] += 1
+                elif level == 5:
                     level_counts['Level 5 (Academia)'] += 1
-                elif is_digital:
+                elif level == 4:
+                    level_counts['Level 4 (Fachbücher)'] += 1
+                elif is_digital or level == 3:
                     level_counts['Level 3 (Digital)'] += 1
+                elif level == 2:
+                    level_counts['Level 2 (ESCO/SSoT)'] += 1
                 else:
-                    level_counts['Level 2 (Jobs)'] += 1
+                    # Fallback für unbekannte Levels
+                    level_counts['Level 2 (ESCO/SSoT)'] += 1
+
+                # Level 6 & 7 sind Analyse-Ebenen, nicht in einzelnen Kompetenzen
+                # Diese werden nicht aus Job-Daten gezählt
         except Exception:
             continue
 
