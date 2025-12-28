@@ -253,77 +253,77 @@ try:
         col3.metric("🚫 Ignoriert", ignored_data.get("total", 0))
         
         st.markdown("---")
-        
-        # Kandidaten-Tabelle mit Multiselect
+
+        # Kandidaten-Tabelle mit Buttons pro Zeile
         st.subheader("📋 Discovery-Kandidaten")
         candidates = candidates_data.get("candidates", [])
-        
+
         if candidates:
-            # DataFrame für Anzeige
-            df_candidates = pd.DataFrame([{
-                'Term': c.get('term', 'N/A'),
-                'Häufigkeit': c.get('count', 0),
-                'Rolle': c.get('role', 'N/A'),
-                'Kontext': c.get('context', 'N/A')[:30] + '...' if len(c.get('context', '')) > 30 else c.get('context', 'N/A')
-            } for c in candidates])
-            
             # Filter nach Häufigkeit
-            min_count = st.slider("Mindest-Häufigkeit", 1, max(1, int(df_candidates['Häufigkeit'].max())), 1)
-            df_filtered = df_candidates[df_candidates['Häufigkeit'] >= min_count]
-            
-            st.dataframe(
-                df_filtered.head(50),  # Top 50
-                use_container_width=True,
-                hide_index=True
-            )
-            
-            st.caption(f"Zeige {len(df_filtered)} von {len(candidates)} Kandidaten (min. {min_count}x)")
-            
-            # Multiselect für Aktionen
-            st.markdown("#### Aktionen")
-            selected_terms = st.multiselect(
-                "Wähle Terms für Aktion:",
-                options=[c.get('term') for c in candidates if c.get('count', 0) >= min_count],
-                max_selections=20
-            )
-            
-            if selected_terms:
-                col_approve, col_ignore = st.columns(2)
-                
-                with col_approve:
-                    if st.button("✅ Genehmigen", type="primary"):
-                        try:
-                            resp = requests.post(
-                                f"{PYTHON_API_BASE}/discovery/approve",
-                                json={"terms": selected_terms},
-                                timeout=5
-                            )
-                            if resp.status_code == 200:
-                                result = resp.json()
-                                st.success(f"✅ {result.get('approved_count', 0)} Terms genehmigt")
-                                st.rerun()
-                            else:
-                                st.error(f"❌ Fehler: {resp.status_code}")
-                        except Exception as e:
-                            st.error(f"❌ Fehler: {e}")
-                
-                with col_ignore:
-                    if st.button("🚫 Ignorieren", type="secondary"):
-                        try:
-                            resp = requests.post(
-                                f"{PYTHON_API_BASE}/discovery/ignore",
-                                json={"terms": selected_terms},
-                                timeout=5
-                            )
-                            if resp.status_code == 200:
-                                result = resp.json()
-                                st.success(f"🚫 {result.get('ignored_count', 0)} Terms ignoriert")
-                                st.rerun()
-                            else:
-                                st.error(f"❌ Fehler: {resp.status_code}")
-                        except Exception as e:
-                            st.error(f"❌ Fehler: {e}")
-            
+            max_count = max([c.get('count', 0) for c in candidates], default=1)
+            min_count = st.slider("Mindest-Häufigkeit", 1, max_count, 1)
+
+            # Gefilterte Kandidaten
+            filtered = [c for c in candidates if c.get('count', 0) >= min_count]
+            st.caption(f"Zeige {len(filtered)} von {len(candidates)} Kandidaten (min. {min_count}x)")
+
+            # Tabellen-Header
+            header_cols = st.columns([3, 1, 2, 1, 1])
+            header_cols[0].markdown("**Term**")
+            header_cols[1].markdown("**Häufigkeit**")
+            header_cols[2].markdown("**Rolle**")
+            header_cols[3].markdown("**Aktion**")
+            header_cols[4].markdown("")
+
+            st.markdown("---")
+
+            # Zeilen mit Approve/Reject Buttons (Top 20)
+            for idx, c in enumerate(filtered[:20]):
+                term = c.get('term', 'N/A')
+                count = c.get('count', 0)
+                role = c.get('role', 'N/A')
+
+                cols = st.columns([3, 1, 2, 1, 1])
+                cols[0].text(term)
+                cols[1].text(str(count))
+                cols[2].text(role)
+
+                # Approve Button
+                if cols[3].button("✅", key=f"approve_{idx}_{term}", help="Genehmigen"):
+                    try:
+                        # Mapping: Term bleibt gleich (oder später custom mapping)
+                        resp = requests.post(
+                            f"{PYTHON_API_BASE}/discovery/approve",
+                            json={"terms": [term]},
+                            timeout=5
+                        )
+                        if resp.status_code == 200:
+                            st.success(f"✅ '{term}' genehmigt")
+                            st.rerun()
+                        else:
+                            st.error(f"Fehler: {resp.status_code}")
+                    except Exception as e:
+                        st.error(f"Fehler: {e}")
+
+                # Reject Button
+                if cols[4].button("❌", key=f"reject_{idx}_{term}", help="Ignorieren"):
+                    try:
+                        resp = requests.post(
+                            f"{PYTHON_API_BASE}/discovery/ignore",
+                            json={"terms": [term]},
+                            timeout=5
+                        )
+                        if resp.status_code == 200:
+                            st.success(f"❌ '{term}' ignoriert")
+                            st.rerun()
+                        else:
+                            st.error(f"Fehler: {resp.status_code}")
+                    except Exception as e:
+                        st.error(f"Fehler: {e}")
+
+            if len(filtered) > 20:
+                st.info(f"Zeige Top 20. {len(filtered) - 20} weitere verfügbar (Filter anpassen)")
+
             # Clear-Button
             st.markdown("---")
             if st.button("🗑️ Alle Kandidaten löschen", type="secondary"):
@@ -338,17 +338,18 @@ try:
                     st.error(f"❌ Fehler: {e}")
         else:
             st.info("Keine Kandidaten vorhanden.")
-        
+
         # Genehmigte Skills
         with st.expander("✅ Genehmigte Skills", expanded=False):
             approved_skills = approved_data.get("approved", {})
             if approved_skills:
                 # Dict: key -> value Mapping
+                st.markdown("**Format:** `Original Term → ESCO Label`")
                 for term, mapping in approved_skills.items():
                     st.text(f"• {term} → {mapping}")
             else:
                 st.info("Keine genehmigten Skills.")
-        
+
         # Ignorierte Skills
         with st.expander("🚫 Ignorierte Skills", expanded=False):
             ignored_skills = ignored_data.get("ignored", [])
