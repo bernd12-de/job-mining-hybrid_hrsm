@@ -718,7 +718,7 @@ with st.expander("📋 Job-Daten Übersicht", expanded=False):
                     'Branche': job.get('industry', 'N/A'),
                     'Region': job.get('region', 'N/A'),
                     'Kompetenzen': len(job.get('competences', [])),
-                    'Erstellt': job.get('createdAt', 'N/A')[:10] if job.get('createdAt') else 'N/A'
+                    'Erstellt': job.get('postingDate', 'N/A')  # ✅ FIX: postingDate statt createdAt
                 } for job in jobs_data])
                 
                 st.dataframe(
