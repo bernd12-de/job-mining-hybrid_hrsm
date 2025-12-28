@@ -571,6 +571,9 @@ with role_col2:
                                  color='Anzahl',
                                  color_continuous_scale='blues')
             st.plotly_chart(fig_regional, use_container_width=True)
+
+            # Link zur Geo-Karte
+            st.caption("💡 Siehe auch: [Interaktive Geo-Karte](#interaktive-geo-visualisierung) weiter unten")
         else:
             st.info("Keine Regions-Daten verfügbar.")
     except Exception as e:
@@ -583,6 +586,27 @@ st.markdown("---")
 # 🗺️ INTERAKTIVE GEO-KARTE (NEUE FEATURE)
 # ========================================
 st.subheader("🗺️ Interaktive Geo-Visualisierung")
+st.caption("📊 Geografische Ansicht der Job-Verteilung | Siehe auch: [Regionale Verteilung](#regionale-verteilung) (Bar Chart oben)")
+
+with st.expander("ℹ️ Unterschied: Bar Chart vs. Geo-Karte", expanded=False):
+    col_info1, col_info2 = st.columns(2)
+    with col_info1:
+        st.markdown("""
+        **📊 Bar Chart (oben)**
+        - Top 10 Regionen
+        - Ranking nach Anzahl
+        - Schneller Überblick
+        - Vergleich der Werte
+        """)
+    with col_info2:
+        st.markdown("""
+        **🗺️ Geo-Karte (hier)**
+        - Geografische Verteilung
+        - Interaktiv (Zoom, Pan)
+        - Regionale Cluster erkennen
+        - Alle Regionen sichtbar
+        """)
+
 try:
     from app.infrastructure.geo_visualizer import create_plotly_map_data
 
