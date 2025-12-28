@@ -229,6 +229,11 @@ class JobMiningService(
     @Transactional(readOnly = true)
     fun getAllStoredJobs(): List<JobPosting> = repository.findAll()
 
+    /**
+     * Lädt einen einzelnen Job mit allen Details (für Detail-View)
+     */
+    fun getJobById(id: Long): JobPosting? = repository.findById(id).orElse(null)
+
     @Transactional(readOnly = true)
     fun getTopCompetenceTrends(limit: Int = 5): List<CompetenceReportDTO> {
         println("--- 📊 REPORTING: Berechne Top $limit Kompetenz-Trends...")

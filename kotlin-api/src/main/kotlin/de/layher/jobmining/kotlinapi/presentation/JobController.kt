@@ -183,15 +183,85 @@ class JobController(
         }
     }
 
-    // In JobController.kt hinzufügen
     @Operation(
-        summary = "Alle analysierten Stellenanzeigen abrufen",
-        description = "Gibt eine Liste aller in der Datenbank gespeicherten Jobs inklusive der extrahierten Kompetenzen zurück."
+        summary = "Alle analysierten Stellenanzeigen abrufen (paginiert, ohne rawText)",
+        description = "Gibt eine paginierte Liste aller Jobs zurück. OHNE rawText für bessere Performance. Nutze GET /api/v1/jobs/{id} für Details."
     )
     @GetMapping
-    fun getAllJobs(): ResponseEntity<List<JobPosting>> {
+    fun getAllJobs(
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int
+    ): ResponseEntity<PagedJobResponse> {
         val jobs = jobMiningService.getAllStoredJobs()
-        return ResponseEntity.ok(jobs)
+
+        // Paginierung
+        val totalElements = jobs.size.toLong()
+        val totalPages = ((totalElements + size - 1) / size).toInt()
+        val start = (page * size).coerceAtMost(jobs.size)
+        val end = ((page + 1) * size).coerceAtMost(jobs.size)
+        val pagedJobs = jobs.subList(start, end)
+
+        // Konvertiere zu JobSummaryDTO (OHNE rawText)
+        val summaries = pagedJobs.map { job ->
+            JobSummaryDTO(
+                id = job.id!!,
+                title = job.title,
+                jobRole = job.jobRole,
+                region = job.region,
+                industry = job.industry,
+                postingDate = job.postingDate,
+                sourceUrl = job.sourceUrl,
+                isSegmented = job.isSegmented,
+                competenceCount = job.competences.size,
+                topCompetences = job.competences
+                    .sortedByDescending { it.confidence }
+                    .take(5)
+                    .map { it.escoLabel }
+            )
+        }
+
+        val response = PagedJobResponse(
+            content = summaries,
+            totalElements = totalElements,
+            totalPages = totalPages,
+            currentPage = page,
+            pageSize = size
+        )
+
+        return ResponseEntity.ok(response)
+    }
+
+    @Operation(
+        summary = "Einzelnen Job mit allen Details abrufen",
+        description = "Gibt einen Job mit rawText und ALLEN Kompetenzen zurück. Nutze dies nur für Detail-Ansicht!"
+    )
+    @GetMapping("/{id}")
+    fun getJobById(@PathVariable id: Long): ResponseEntity<JobDetailDTO> {
+        val job = jobMiningService.getJobById(id)
+            ?: return ResponseEntity.notFound().build()
+
+        val detail = JobDetailDTO(
+            id = job.id!!,
+            title = job.title,
+            jobRole = job.jobRole,
+            region = job.region,
+            industry = job.industry,
+            postingDate = job.postingDate,
+            sourceUrl = job.sourceUrl,
+            isSegmented = job.isSegmented,
+            rawText = job.rawText,
+            competences = job.competences.map { comp ->
+                CompetenceSummaryDTO(
+                    id = comp.id!!,
+                    originalTerm = comp.originalTerm,
+                    escoLabel = comp.escoLabel,
+                    level = comp.level,
+                    isDigital = comp.isDigital
+                )
+            }
+        )
+
+        return ResponseEntity.ok(detail)
     }
 
     @PostMapping("/admin/sync-python-knowledge")
