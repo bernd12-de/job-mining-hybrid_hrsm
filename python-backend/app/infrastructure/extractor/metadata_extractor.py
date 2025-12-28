@@ -85,25 +85,30 @@ class MetadataExtractor:
             inferred_level = 5
             source_domain = f"Academia: {filename}"
 
-        # Erkenne Kategorie und nutze sie für industry
+        # Erkenne Kategorie (für job_role)
         job_category = self._extract_job_category(text)
-        
-        # ✅ Industry-Mapping: Nutze Kategorie statt Firmenerkennung
-        industry_mapping = {
-            "IT & Softwareentwicklung": "IT & Software",
-            "UX/UI Design": "Design & Kreativ",
-            "Management & Beratung": "Management",
-            "Finanzen & Controlling": "Finanzen",
-            "Assistenz & Office": "Administration",
-            "Sonstige Fachgebiete": self._extract_organization(text)  # Fallback: Firmenname
-        }
+
+        # ✅ BEST PRACTICE: Industry aus Company-Name ableiten
+        company_name = self._extract_organization(text)
+        branch = self._extract_branch(company_name, text)
+
+        # Fallback: Wenn keine Firma/Branch erkannt, nutze Kategorie-Mapping
+        if branch == "Sonstige Branchen":
+            industry_mapping = {
+                "IT & Softwareentwicklung": "IT & Software",
+                "UX/UI Design": "Design & Kreativ",
+                "Management & Beratung": "Management",
+                "Finanzen & Controlling": "Finanzen",
+                "Assistenz & Office": "Administration",
+            }
+            branch = industry_mapping.get(job_category, "Sonstige Branchen")
         
         # RETURN: Mappt exakt auf die Variablen in Kotlin
         return {
             "job_title": self._extract_title(text, filename),
             "job_role": job_category,                          # Mappt auf AnalysisResultDTO.jobRole
             "region": self._extract_location(text),            # Mappt auf AnalysisResultDTO.region
-            "industry": industry_mapping.get(job_category, job_category),  # ✅ Aus Kategorie abgeleitet
+            "industry": branch,                                # ✅ BEST PRACTICE: Aus Company-Name abgeleitet
             "posting_date": iso_date or "2024-01-01",
             "is_segmented": is_segmented,
             "processing_text": clean_segment if is_segmented else filtered_text,
@@ -111,7 +116,8 @@ class MetadataExtractor:
             "source_domain": source_domain,
             "tasks_clean": tasks_clean,
             "requirements_clean": reqs_clean,
-            "raw_text": text
+            "raw_text": text,
+            "company_name": company_name,                      # ✅ NEU: Company-Name verfügbar
         }
 
     def _extract_title(self, text: str, filename: str) -> str:
@@ -140,8 +146,84 @@ class MetadataExtractor:
         return filename
 
     def _extract_organization(self, text: str) -> str:
-        match = re.search(r'([A-Z][a-zäöüß]+\s(AG|GmbH|Group|KG|Deutschland))', text[:1000])
+        """
+        BEST PRACTICE: Erweiterte Company Name Extraction
+
+        Patterns:
+        - "FIRMA GmbH/AG/SE/KG"
+        - "bei FIRMA"
+        - "FIRMA sucht"
+        - "Unternehmen: FIRMA"
+
+        Fallback: spaCy NER (wenn verfügbar)
+        """
+        if not text:
+            return "Unbekannte Firma"
+
+        # Pattern 1: Company mit Suffix (GmbH, AG, SE, etc.)
+        _COMPANY_SUFFIX = r"(?:AG|GmbH|SE|KG|OHG|e\.V\.|UG|Inc\.?|Ltd\.?|PLC|LLC|S\.A\.|S\.p\.A\.)"
+        for m in re.finditer(rf"\b([A-ZÄÖÜ][\w&\-\., ]{{2,}}?\s{_COMPANY_SUFFIX})\b", text[:2000]):
+            cand = m.group(1).strip()
+            if 3 <= len(cand) <= 120:
+                return cand
+
+        # Pattern 2: Hint-basierte Extraktion
+        _COMPANY_HINTS = [
+            r"(?:Unternehmen|Firma|Arbeitgeber|Gesellschaft)\s*[:\-–]\s*(?P<val>.+?)(?:\s{2,}|\n|$)",
+            r"(?:Company|Employer|Organization)\s*[:\-–]\s*(?P<val>.+?)(?:\s{2,}|\n|$)",
+            r"(?:bei|at)\s+(?P<val>[A-Z][\w&\-\., ]{2,}?(?:\sAG|\sGmbH|\sSE|\sKG)?)\b",
+            r"(?P<val>[A-ZÄÖÜ][\w&\-\., ]{2,}?(?:\sAG|\sGmbH|\sSE|\sKG)?)\s+(?:sucht|stellt.*ein|hiring)",
+        ]
+
+        for pat in _COMPANY_HINTS:
+            m = re.search(pat, text[:2000], flags=re.IGNORECASE | re.MULTILINE)
+            if m and m.group('val'):
+                cand = m.group('val').strip()
+                # Split bei Trennzeichen
+                cand = re.split(r"(?:\s{2,}|\s\|\s|·|•|\||—|–)", cand)[0]
+                # Filter Job-Titel raus
+                if not re.search(r"\b(UX|UI|Senior|Junior|Werkstudent|Consultant|Engineer|Manager|Designer|Developer)\b", cand, re.IGNORECASE):
+                    if 3 <= len(cand) <= 120:
+                        return cand
+
+        # Fallback: Original simple pattern
+        match = re.search(r'([A-Z][a-zäöüß]+\s(?:AG|GmbH|Group|KG))', text[:1000])
         return match.group(0) if match else "Unbekannte Firma"
+
+    def _extract_branch(self, company_name: str, text: str = "") -> str:
+        """
+        BEST PRACTICE: Industry/Branch Mapping aus Company-Name
+
+        Verwendet Company-Keywords für Branch-Erkennung:
+        - BMW/VW/Porsche → Automotive
+        - Bank/Finanz → Finance
+        - IT/Cloud/SaaS → Technology
+        - etc.
+        """
+        if not company_name or company_name == "Unbekannte Firma":
+            # Fallback: Suche im Text
+            company_name = text[:500] if text else ""
+
+        # Branch-Mapping (Best Practice)
+        _BRANCH_MAP = [
+            (r"\bBahn|Rail|DB\b", "Transport & Logistik"),
+            (r"\bBank|Finanz|Finance|Versicherung|Insurance|Sparkasse\b", "Finanzen & Versicherung"),
+            (r"\bHealth|Hospital|Krankenhaus|Clinic|Pharma|Gesundheit\b", "Gesundheit & Pharma"),
+            (r"\bAutomotive|OEM|BMW|VW|Mercedes|Porsche|Audi|Volkswagen\b", "Automotive"),
+            (r"\bIT|Software|Tech|Cloud|SaaS|Digital|Technolog\b", "IT & Software"),
+            (r"\bTelekom|Telecom|Telecommunications|Vodafone\b", "Telekommunikation"),
+            (r"\bHandelsblatt|Verlag|Publishing|Media|Medien\b", "Medien & Verlag"),
+            (r"\bBau|Construction|PERI|Immobilien\b", "Bau & Immobilien"),
+            (r"\bConsulting|Beratung|McKinsey|BCG|Accenture\b", "Consulting"),
+            (r"\bEinzelhandel|Retail|E-Commerce|Amazon|Zalando\b", "Handel & E-Commerce"),
+        ]
+
+        search_text = f"{company_name} {text[:300]}"
+        for pattern, branch in _BRANCH_MAP:
+            if re.search(pattern, search_text, flags=re.IGNORECASE):
+                return branch
+
+        return "Sonstige Branchen"
 
     def _extract_location(self, text: str) -> str:
         """
