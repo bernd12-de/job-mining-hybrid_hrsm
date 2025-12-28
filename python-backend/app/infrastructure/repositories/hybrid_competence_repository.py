@@ -7,6 +7,7 @@ from typing import List, Dict, Set
 from app.interfaces.interfaces import ICompetenceRepository
 from app.domain.models import Competence
 from app.infrastructure.clients.kotlin_rule_client import KotlinRuleClient
+from app.infrastructure.cache import get_cache_manager
 
 class HybridCompetenceRepository(ICompetenceRepository):
     # Pfad relativ zum Projekt-Root
@@ -68,75 +69,90 @@ class HybridCompetenceRepository(ICompetenceRepository):
         print(f"✅ {count} digitale Skills aus ESCO Collections markiert.")
 
     def _load_data(self):
-        """Holt Daten von Kotlin. FIX: Tolerant gegen fehlende Keys."""
+        """Holt Daten von Kotlin mit Caching. FIX: Tolerant gegen fehlende Keys."""
+        cache_manager = get_cache_manager()
+        cache_key = "esco_data_from_kotlin"
+
+        # ✅ OPTIMIZATION: Versuche aus Cache zu laden (max 24h alt)
+        def fetch_from_kotlin():
+            """Helper: Lädt Daten frisch von Kotlin"""
+            try:
+                # URL holen oder Default
+                base_url = getattr(self.rule_client, 'base_url', 'http://kotlin-api:8080')
+                endpoint = f"{base_url}/api/v1/rules/esco-full"
+
+                print(f"📡 Lade ESCO-Daten von {endpoint}...")
+                response = requests.get(endpoint, timeout=15)
+                print(f"   -> HTTP-Status: {response.status_code}")
+
+                if response.status_code == 200:
+                    return response.json()
+                else:
+                    print(f"⚠️ Kotlin API Fehler: {response.status_code}")
+                    return None
+            except Exception as e:
+                print(f"❌ Fehler beim Laden von Kotlin: {e}")
+                return None
+
+        # Lade aus Cache oder frisch von Kotlin
         try:
-            # URL holen oder Default
-            base_url = getattr(self.rule_client, 'base_url', 'http://kotlin-api:8080')
-            endpoint = f"{base_url}/api/v1/rules/esco-full"
-
-            print(f"📡 Lade ESCO-Daten von {endpoint}...")
-            response = requests.get(endpoint, timeout=15)
-            print(f"   -> HTTP-Status: {response.status_code}")
-
-            if response.status_code == 200:
-                try:
-                    data = response.json()
-                except Exception as e:
-                    print(f"   ⚠️ Fehler beim Parsen der JSON-Antwort: {e}")
-                    return
-
-                print(f"   -> Response-Type: {type(data)}; Länge: {len(data) if hasattr(data, '__len__') else 'unknown'}")
-
-                if not data:
-                    print("⚠️ Kotlin API antwortet mit leerer Liste.")
-                    return
-
-                # Debug: Was schickt Kotlin wirklich?
-                first = data[0] if isinstance(data, list) and len(data) > 0 else {}
-                print(f"👀 DEBUG KEYS: {list(first.keys())}")
-                print(f"👀 DEBUG SAMPLE: {first}")
-
-                count = 0
-                for item in data:
-                    # FIX: .get() verhindert den Crash ('preferredLabel')
-                    lbl = (
-                        item.get('preferredLabel') or
-                        item.get('preferred_label') or
-                        item.get('original_term') or
-                        item.get('esco_label') or
-                        item.get('term') or
-                        item.get('label')
-                    )
-
-                    uri = (
-                        item.get('escoUri') or
-                        item.get('esco_uri') or
-                        item.get('uri') or
-                        item.get('conceptUri') or
-                        f"unknown/{count}"
-                    )
-
-                    if lbl:
-                        lbl = lbl.strip()
-                        self._esco_labels.add(lbl)
-                        self._all_competences.append(Competence(
-                            preferred_label=lbl,
-                            esco_uri=uri
-                        ))
-                        count += 1
-
-                print(f"✅ {count} Skills erfolgreich von Kotlin geladen.")
-            else:
-                print(f"⚠️ Kotlin API Fehler: {response.status_code}")
-
+            data = cache_manager.get_or_compute(
+                cache_key=cache_key,
+                compute_func=fetch_from_kotlin,
+                max_age_hours=24  # Cache 24h gültig
+            )
         except Exception as e:
-            print(f"❌ Fehler beim Laden der ESCO-Daten: {e}")
+            print(f"⚠️ Cache-Fehler: {e}, versuche direkt von Kotlin")
+            data = fetch_from_kotlin()
+
+        # Verarbeite Daten
+        if data is None or not data:
+            print("⚠️ Keine Daten von Kotlin/Cache erhalten.")
             # Fallback: Versuche lokale ESCO CSV-Dateien zu laden
             try:
                 print("⚠️ Versuche lokale ESCO CSV-Dateien zu laden...")
                 self._load_data_from_local_esco()
             except Exception as le:
                 print(f"❌ Lokales Laden fehlgeschlagen: {le}")
+            return
+
+        # Debug: Was haben wir geladen?
+        print(f"   -> Response-Type: {type(data)}; Länge: {len(data) if hasattr(data, '__len__') else 'unknown'}")
+        first = data[0] if isinstance(data, list) and len(data) > 0 else {}
+        print(f"👀 DEBUG KEYS: {list(first.keys())}")
+        print(f"👀 DEBUG SAMPLE: {first}")
+
+        # Verarbeite Items
+        count = 0
+        for item in data:
+            # FIX: .get() verhindert den Crash ('preferredLabel')
+            lbl = (
+                item.get('preferredLabel') or
+                item.get('preferred_label') or
+                item.get('original_term') or
+                item.get('esco_label') or
+                item.get('term') or
+                item.get('label')
+            )
+
+            uri = (
+                item.get('escoUri') or
+                item.get('esco_uri') or
+                item.get('uri') or
+                item.get('conceptUri') or
+                f"unknown/{count}"
+            )
+
+            if lbl:
+                lbl = lbl.strip()
+                self._esco_labels.add(lbl)
+                self._all_competences.append(Competence(
+                    preferred_label=lbl,
+                    esco_uri=uri
+                ))
+                count += 1
+
+        print(f"✅ {count} Skills erfolgreich geladen (aus Cache oder Kotlin).")
 
     def _load_custom_skills(self):
         if os.path.exists(self.CUSTOM_JSON_PATH):
