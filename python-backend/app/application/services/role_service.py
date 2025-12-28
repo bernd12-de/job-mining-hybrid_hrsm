@@ -122,42 +122,232 @@ class RoleService:
         return {}
 
     # ═══════════════════════════════════════════════════════════════════
-    # BEST PRACTICE: Spezifische IT-Rollen Pattern-Matching
+    # BEST PRACTICE: ESCO-basierte Berufsgruppen Pattern-Matching
+    # ═══════════════════════════════════════════════════════════════════
+    # Basiert auf ESCO/ISCO-08 Occupation Taxonomy
+    # Erweitert um: Gesundheit, Ingenieurwesen, Verwaltung, Bildung, etc.
     # ═══════════════════════════════════════════════════════════════════
 
     def _setup_best_practice_patterns(self):
-        """Setup spezifische IT-Rollen Patterns"""
+        """
+        Setup ESCO-basierte Berufsgruppen Patterns
+
+        Struktur: {Berufsgruppe: [Pattern-Liste]}
+        Basiert auf ESCO Occupation Taxonomy + Fachbücher + Stellenanzeigen
+        """
         self.IT_ROLE_PATTERNS = {
+            # ═══════════════════════════════════════════════════════════════
+            # 1. IT & SOFTWARE (spezifisch)
+            # ═══════════════════════════════════════════════════════════════
+
             # Priorität 1: Fullstack (wenn beide Skills)
             "Fullstack Developer": [
                 r"\bfullstack|full[\s-]?stack\b",
                 r"\bfrontend.*backend|backend.*frontend\b",
                 r"\bmern|mean|mevn\b",
             ],
+
             # Priorität 2: Frontend
             "Frontend Developer": [
                 r"\bfrontend|front[\s-]?end\b",
                 r"\breact|vue|angular|svelte\b",
                 r"\bhtml|css|javascript.*frontend\b",
+                r"\bwebdesign|web[\s-]?developer\b",
             ],
+
             # Priorität 3: Backend
             "Backend Developer": [
                 r"\bbackend|back[\s-]?end\b",
                 r"\bspring|django|flask|express\b",
                 r"\bapi|rest|graphql|microservice\b",
                 r"\bdatabase|sql|postgres\b",
+                r"\bserver[\s-]?side\b",
             ],
+
             # Priorität 4: DevOps
             "DevOps Engineer": [
-                r"\bdevops|sre\b",
+                r"\bdevops|sre|site reliability\b",
                 r"\bdocker|kubernetes|k8s\b",
-                r"\bci/cd|jenkins|terraform\b",
+                r"\bci/cd|jenkins|terraform|ansible\b",
+                r"\bcloud[\s-]?engineer|infrastructure\b",
             ],
+
             # Priorität 5: Mobile
             "Mobile Developer": [
                 r"\bmobile|app[\s-]?developer\b",
                 r"\bios|android|swift|kotlin\b",
-                r"\breact[\s-]?native|flutter\b",
+                r"\breact[\s-]?native|flutter|xamarin\b",
+            ],
+
+            # Priorität 6: Data Science & AI
+            "Data Scientist": [
+                r"\bdata\s+scientist|data\s+analyst\b",
+                r"\bmachine\s+learning|deep\s+learning|ai\b",
+                r"\bpython.*data|r\s+programming\b",
+                r"\btensorflow|pytorch|scikit-learn\b",
+            ],
+
+            # Priorität 7: Security
+            "Security Engineer": [
+                r"\bsecurity|cybersecurity|infosec\b",
+                r"\bpenetration\s+test|ethical\s+hacker\b",
+                r"\biso\s+27001|ciso|security\s+architect\b",
+            ],
+
+            # Priorität 8: QA/Testing
+            "QA Engineer": [
+                r"\bqa|quality\s+assurance|tester\b",
+                r"\btest\s+automation|selenium|cypress\b",
+                r"\bsoftware\s+test|test\s+engineer\b",
+            ],
+
+            # ═══════════════════════════════════════════════════════════════
+            # 2. GESUNDHEIT & MEDIZIN (ESCO Group 2)
+            # ═══════════════════════════════════════════════════════════════
+
+            "Arzt / Ärztin": [
+                r"\barzt|ärztin|mediziner\b",
+                r"\bfacharzt|oberarzt|chefarzt\b",
+                r"\ballgemeinmedizin|innere\s+medizin\b",
+            ],
+
+            "Pflegefachkraft": [
+                r"\bpflege|krankenpflege|altenpflege\b",
+                r"\bgesundheits-\s*und\s*krankenpfleger\b",
+                r"\bpflegefachmann|pflegefachfrau\b",
+            ],
+
+            "Psychologe / Therapeut": [
+                r"\bpsycholog|therapeut|psychotherapeut\b",
+                r"\bklinische\s+psychologie|psychotherapie\b",
+            ],
+
+            # ═══════════════════════════════════════════════════════════════
+            # 3. INGENIEURWESEN & TECHNIK (ESCO Group 2)
+            # ═══════════════════════════════════════════════════════════════
+
+            "Maschinenbauingenieur": [
+                r"\bmaschinenbau|mechanical\s+engineer\b",
+                r"\bkonstrukteur|entwicklungsingenieur\b",
+                r"\bcad|catia|solidworks\b",
+            ],
+
+            "Elektroingenieur": [
+                r"\belektro|electrical\s+engineer\b",
+                r"\belektrotechnik|energietechnik\b",
+                r"\bautomatisierung|steuerungstechnik\b",
+            ],
+
+            "Bauingenieur": [
+                r"\bbau|civil\s+engineer|architekt\b",
+                r"\bkonstruktion|statik|tragwerk\b",
+                r"\bbauplanung|bauüberwachung\b",
+            ],
+
+            # ═══════════════════════════════════════════════════════════════
+            # 4. VERWALTUNG & MANAGEMENT (ESCO Group 1)
+            # ═══════════════════════════════════════════════════════════════
+
+            "Geschäftsführer / Manager": [
+                r"\bgeschäftsführer|ceo|managing\s+director\b",
+                r"\bmanager|head\s+of|leiter\b",
+                r"\bexecutive|vorstand\b",
+            ],
+
+            "Projektmanager": [
+                r"\bprojekt\s*manager|project\s+manager\b",
+                r"\bscrum\s+master|product\s+owner\b",
+                r"\bpmp|prince2|projektleiter\b",
+            ],
+
+            "HR / Personalwesen": [
+                r"\bhr|human\s+resources|personal\b",
+                r"\brecruiter|talent\s+acquisition\b",
+                r"\bpersonalreferent|personalleiter\b",
+            ],
+
+            # ═══════════════════════════════════════════════════════════════
+            # 5. BILDUNG & WISSENSCHAFT (ESCO Group 2)
+            # ═══════════════════════════════════════════════════════════════
+
+            "Lehrer / Dozent": [
+                r"\blehrer|dozent|professor\b",
+                r"\blehrkraft|pädagog|educator\b",
+                r"\bschule|universität|hochschule\b",
+            ],
+
+            "Wissenschaftler / Forscher": [
+                r"\bwissenschaftler|forscher|researcher\b",
+                r"\bphd|doktorand|postdoc\b",
+                r"\bforschung|research|entwicklung\b",
+            ],
+
+            # ═══════════════════════════════════════════════════════════════
+            # 6. VERKAUF & MARKETING (ESCO Group 3)
+            # ═══════════════════════════════════════════════════════════════
+
+            "Vertriebsmitarbeiter": [
+                r"\bvertrieb|sales|verkauf\b",
+                r"\baccount\s+manager|key\s+account\b",
+                r"\bkundenberater|vertriebsleiter\b",
+            ],
+
+            "Marketing Manager": [
+                r"\bmarketing|brand\s+manager\b",
+                r"\bonline\s+marketing|digital\s+marketing\b",
+                r"\bseo|sem|social\s+media\s+manager\b",
+            ],
+
+            # ═══════════════════════════════════════════════════════════════
+            # 7. FINANZEN & RECHT (ESCO Group 2)
+            # ═══════════════════════════════════════════════════════════════
+
+            "Buchhalter / Controller": [
+                r"\bbuchhalter|accountant|controller\b",
+                r"\bbilanzbuchhalter|finanzbuchhalter\b",
+                r"\bdatev|sap\s+fico\b",
+            ],
+
+            "Jurist / Rechtsanwalt": [
+                r"\bjurist|rechtsanwalt|lawyer\b",
+                r"\bsyndikus|legal\s+counsel\b",
+                r"\brecht|jura|law\b",
+            ],
+
+            # ═══════════════════════════════════════════════════════════════
+            # 8. HANDWERK & PRODUKTION (ESCO Group 7-8)
+            # ═══════════════════════════════════════════════════════════════
+
+            "Handwerker / Techniker": [
+                r"\bhandwerker|techniker|mechanic\b",
+                r"\belektriker|schreiner|tischler\b",
+                r"\binstallateur|klempner|heizung\b",
+            ],
+
+            "Produktionsmitarbeiter": [
+                r"\bproduktion|fertigung|manufacturing\b",
+                r"\bfertigung|montage|assembly\b",
+                r"\bproduktionsleiter|werksleiter\b",
+            ],
+
+            # ═══════════════════════════════════════════════════════════════
+            # 9. LOGISTIK & TRANSPORT (ESCO Group 8)
+            # ═══════════════════════════════════════════════════════════════
+
+            "Logistiker": [
+                r"\blogistik|logistics|supply\s+chain\b",
+                r"\blagerleiter|warehouse\s+manager\b",
+                r"\beinkauf|procurement|beschaffung\b",
+            ],
+
+            # ═══════════════════════════════════════════════════════════════
+            # 10. BERATUNG & CONSULTING (ESCO Group 2)
+            # ═══════════════════════════════════════════════════════════════
+
+            "Unternehmensberater": [
+                r"\bberater|consultant|consulting\b",
+                r"\bmanagement\s+consulting|strategy\b",
+                r"\bmckinsey|bcg|bain|big\s+four\b",
             ],
         }
 
