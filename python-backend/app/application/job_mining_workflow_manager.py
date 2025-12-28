@@ -88,12 +88,29 @@ class JobMiningWorkflowManager(IJobMiningWorkflowManager):
         Mit robuster Fehlerbehandlung an kritischen Stellen.
         """
         try:
+            # ═══════════════════════════════════════
+            # 📊 BEST PRACTICE: Detailliertes Status-Logging
+            # ═══════════════════════════════════════
+            logger.info("=" * 60)
+            logger.info(f"🚀 ANALYSE START: {source_name}")
+            logger.info("=" * 60)
+
             # Schritt A: Metadaten & Datum (Ebene 6)
+            logger.info("--- 🏢 METADATA EXTRACTION")
             meta = {}
             try:
                 meta = self.metadata_extractor.extract_all(text, filename=source_name)
+
+                # ✅ BEST PRACTICE: Zeige extrahierte Metadaten
+                logger.info(f"    ✓ Titel: \"{meta.get('job_title', 'N/A')}\"")
+                logger.info(f"    ✓ Firma: \"{meta.get('company_name', 'N/A')}\"")
+                logger.info(f"    ✓ Branch: {meta.get('industry', 'N/A')}")
+                logger.info(f"    ✓ Ort: {meta.get('region', 'N/A')}")
+                logger.info(f"    ✓ Datum: {meta.get('posting_date', 'N/A')}")
+                logger.info(f"    ✓ Kategorie: {meta.get('job_role', 'N/A')}")
+
             except Exception as e:
-                logger.warning(f"⚠️ Metadaten-Extraktion fehlgeschlagen für '{source_name}': {e}")
+                logger.warning(f"    ⚠️ Metadaten-Extraktion fehlgeschlagen: {e}")
                 meta = {'job_title': 'Unbekannte Position', 'posting_date': '2024-12-01'}
 
             # --- 💎 GOLD: Smarte Segmentierung integriert ---
@@ -139,12 +156,38 @@ class JobMiningWorkflowManager(IJobMiningWorkflowManager):
                 role = "Unbekannt"
 
             # Schritt C: NLP Extraktion (Ebene 1-5)
+            logger.info("")
+            logger.info("--- 🔍 COMPETENCE EXTRACTION")
             competences = []
             try:
                 # WICHTIG: Übergibt 'role' an den Extractor, wie im Interface gefixt.
                 competences = self.competence_extractor.extract_competences(text=analysis_text, role=role)
+
+                # ✅ BEST PRACTICE: Zeige Extraction-Ergebnis
+                logger.info(f"    ✅ Extrahiert: {len(competences)} Kompetenzen")
+
+                # Gruppiere nach Level
+                level_counts = {}
+                digital_count = 0
+                discovery_count = 0
+                for comp in competences:
+                    level = getattr(comp, 'level', 2)
+                    level_counts[level] = level_counts.get(level, 0) + 1
+                    if getattr(comp, 'is_digital', False):
+                        digital_count += 1
+                    if getattr(comp, 'is_discovery', False):
+                        discovery_count += 1
+
+                logger.info(f"    📊 Breakdown:")
+                for lvl in sorted(level_counts.keys()):
+                    logger.info(f"       Level {lvl}: {level_counts[lvl]} Skills")
+                if digital_count > 0:
+                    logger.info(f"       Digital Skills: {digital_count}")
+                if discovery_count > 0:
+                    logger.info(f"       Discovery: {discovery_count}")
+
             except Exception as e:
-                logger.error(f"❌ Kompetenz-Extraktion fehlgeschlagen für '{source_name}': {e}", exc_info=True)
+                logger.error(f"    ❌ Kompetenz-Extraktion fehlgeschlagen: {e}", exc_info=True)
                 # Weiter mit leerer Liste
 
             # Discovery: unbekannte Kandidaten sammeln (vereinfachte Heuristik)
@@ -184,7 +227,7 @@ class JobMiningWorkflowManager(IJobMiningWorkflowManager):
             # Schritt D: DTO Bauen (Ebene 7)
             try:
                 # Nutzt die Factory, um Zirkelbezüge zu vermeiden.
-                return AnalysisResultFactory.create_result(
+                result = AnalysisResultFactory.create_result(
                     title=meta.get('job_title') or 'Unbekannte Position',
                     job_role=role,
                     industry=industry,
@@ -195,8 +238,19 @@ class JobMiningWorkflowManager(IJobMiningWorkflowManager):
                     source_url=source_url,
                     competences=competences
                 )
+
+                # ✅ BEST PRACTICE: Final Summary
+                logger.info("")
+                logger.info("--- 📊 RESULT")
+                logger.info(f"    ✅ Job: \"{meta.get('job_title', 'N/A')}\"")
+                logger.info(f"    ✅ Firma: {meta.get('company_name', 'N/A')} ({industry})")
+                logger.info(f"    ✅ Kompetenzen: {len(competences)} gesamt")
+                logger.info("=" * 60)
+
+                return result
+
             except Exception as e:
-                logger.error(f"❌ DTO-Erstellung fehlgeschlagen für '{source_name}': {e}", exc_info=True)
+                logger.error(f"    ❌ DTO-Erstellung fehlgeschlagen: {e}", exc_info=True)
                 raise ValueError(f"Konnte kein Analyse-Ergebnis erstellen: {str(e)}")
                 
         except ValueError:
