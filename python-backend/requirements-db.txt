@@ -1,0 +1,16 @@
+# PostgreSQL Integration Requirements
+# Zusätzlich zu requirements.txt
+
+# PostgreSQL Adapter
+psycopg2-binary==2.9.9     # PostgreSQL adapter (binary version, easier install)
+# psycopg2==2.9.9          # Alternative: Source version (benötigt libpq-dev)
+
+# Optional: SQLAlchemy ORM
+sqlalchemy==2.0.23
+psycopg2-pool==1.1
+
+# Optional: Async PostgreSQL
+# asyncpg==0.29.0          # Für async/await Support
+
+# Environment Variables
+python-dotenv==1.0.0       # .env Datei Support
