@@ -420,9 +420,11 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
                                 found = True
                                 break
                             # Fuzzy-Check (strenger Threshold um False-Positives zu vermeiden)
-                            if len(joined) >= 3:
-                                score = fuzz.partial_ratio(norm_label, joined)
-                                if score >= 90:
+                            # ✅ FIX: token_set_ratio statt partial_ratio (verhindert Substring-Explosion)
+                            # ✅ FIX: Minimum 40% der Label-Länge (verhindert "ing" matches "Engineering")
+                            if len(joined) >= 4 and len(joined) >= len(label) * 0.4:
+                                score = fuzz.token_set_ratio(joined, norm_label)
+                                if score >= 85:
                                     dto = AnalysisResultFactory.create_competence(
                                         original_term=' '.join(gram),
                                         esco_label=label,
