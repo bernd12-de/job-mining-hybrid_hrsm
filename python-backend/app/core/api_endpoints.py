@@ -44,32 +44,35 @@ async def scrape_and_analyze_url(url_input: URLInput, manager: IJobMiningWorkflo
     url = url_input.url
     raw_text = ""
 
-    # Nutze den zentralen WebScraper mit Limits
+    # Nutze den zentralen WebScraper mit Limits (requests) und Async-Playwright für JS
     try:
         from app.infrastructure.crawling.web_scraper import WebScraper
-        scraper = WebScraper(use_playwright=url_input.render_js)
-        # Frühzeitiger Abbruch bei JS-heavy Domains ohne Rendering
-        if not url_input.render_js and scraper.requires_js_rendering(url):
-            # Direkt abbrechen ohne Fallback
-            raise HTTPException(status_code=400, detail="Diese Domain erfordert JavaScript-Rendering. Bitte 'render_js' aktivieren.")
-        content = scraper.scrape(url, force_playwright=url_input.render_js)
-        raw_text = content.text or ""
+        scraper = WebScraper(use_playwright=False)  # sync-WebScraper nur für statische Seiten verwenden
+
+        if url_input.render_js:
+            # Async Playwright für JS-lastige Seiten
+            try:
+                raw_text = await scrape_with_rendering(url)
+            except Exception as pe:
+                # Wenn Playwright fehlschlägt, versuche statisches Fallback
+                print(f"⚠️ Playwright fehlgeschlagen, Fallback static: {pe}")
+                headers = {'User-Agent': 'Mozilla/5.0'}
+                response = requests.get(url, headers=headers, timeout=8)
+                response.raise_for_status()
+                soup = BeautifulSoup(response.content[:1024*512], 'html.parser')
+                raw_text = _extract_job_content(soup)
+        else:
+            # Frühzeitiger Abbruch bei JS-heavy Domains ohne Rendering
+            if scraper.requires_js_rendering(url):
+                raise HTTPException(status_code=400, detail="Diese Domain erfordert JavaScript-Rendering. Bitte 'render_js' aktivieren.")
+            content = scraper.scrape(url, force_playwright=False)
+            raw_text = content.text or ""
     except HTTPException as he:
-        # gezielt weiterreichen
         raise he
+    except requests.HTTPError as e2:
+        raise HTTPException(status_code=e2.response.status_code, detail=f"HTTP-Fehler beim Scraping: {e2}")
     except Exception as e:
-        # Fallback auf sehr einfachen statischen Scrape
-        print(f"⚠️ WebScraper fehlgeschlagen, Fallback static: {e}")
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        try:
-            response = requests.get(url, headers=headers, timeout=8)
-            response.raise_for_status()
-            soup = BeautifulSoup(response.content[:1024*512], 'html.parser')  # max 512KB
-            raw_text = _extract_job_content(soup)
-        except requests.HTTPError as e2:
-            raise HTTPException(status_code=e2.response.status_code, detail=f"HTTP-Fehler beim Scraping: {e2}")
-        except Exception as e2:
-            raise HTTPException(status_code=500, detail=f"Scraping-Fehler: {str(e2)}")
+        raise HTTPException(status_code=500, detail=f"Scraping-Fehler: {str(e)}")
 
     # 3. Validierung & Analyse (Gilt für BEIDE Wege)
     if not raw_text or len(raw_text) < 100:
