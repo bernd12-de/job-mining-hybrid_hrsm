@@ -486,25 +486,40 @@ class HybridCompetenceRepository(ICompetenceRepository):
 
     def is_known(self, term: str) -> bool:
         """Check if a given term is known in ESCO or custom skills.
-        This returns True for exact matches and for terms that are a meaningful
-        substring of any known label (e.g. 'projektmanagement' -> 'Projektmanagement durchführen').
+
+        PERFORMANCE FIX: Only exact matches or significant substrings (>= 4 chars and > 50% of label)
+        to avoid false positives like 'er' matching 'Engineer'.
         """
         if not term:
             return False
+
         term_norm = term.lower().strip()
-        # direct ESCO index
+
+        # Minimum length check to avoid noise
+        if len(term_norm) < 3:
+            return False
+
+        # 1. Direct ESCO index (O(1) lookup)
         if term_norm in self.esco_data:
             return True
-        # custom domains names
+
+        # 2. Custom domains names
         if term_norm in {n.lower() for n in self.custom_domains.keys()}:
             return True
-        # heuristic substring match
-        for lbl in self.get_all_skills():
-            lbl_norm = lbl.lower()
-            if term_norm == lbl_norm:
-                return True
-            if term_norm in lbl_norm:
-                return True
+
+        # 3. Exact match in labels (fast path)
+        all_skills_lower = {s.lower() for s in self.get_all_skills()}
+        if term_norm in all_skills_lower:
+            return True
+
+        # 4. RESTRICTED substring match: Only if term is significant
+        # (at least 4 chars AND at least 50% of the label length)
+        if len(term_norm) >= 4:
+            for lbl in self.get_all_skills():
+                lbl_norm = lbl.lower()
+                if term_norm in lbl_norm and len(term_norm) >= len(lbl_norm) * 0.5:
+                    return True
+
         return False
 
     def is_blacklisted(self, term: str) -> bool:
