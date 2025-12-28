@@ -337,5 +337,211 @@ def refresh_knowledge():
         raise HTTPException(status_code=500, detail=f"Refresh fehlgeschlagen: {str(e)}")
 
 
+# =========================================================
+# DISCOVERY API ENDPOINTS
+# =========================================================
+from pydantic import BaseModel
+
+
+class DiscoveryApproval(BaseModel):
+    terms: List[str]
+
+
+class DiscoveryIgnore(BaseModel):
+    terms: List[str]
+
+
+@app.get("/discovery/candidates")
+def get_discovery_candidates():
+    """
+    📋 Liefert alle entdeckten Kandidaten aus candidates.json
+    """
+    try:
+        from app.infrastructure.extractor.discovery_logger import _data_base_dir, _ensure_discovery_dir
+        base = _data_base_dir()
+        ddir = _ensure_discovery_dir(base)
+        fpath = ddir / "candidates.json"
+        
+        if not fpath.exists():
+            return {"candidates": [], "total": 0}
+        
+        import json
+        candidates = json.loads(fpath.read_text(encoding="utf-8")) or []
+        # Sortiere nach count (häufigste zuerst)
+        candidates.sort(key=lambda x: x.get("count", 0), reverse=True)
+        
+        return {
+            "candidates": candidates,
+            "total": len(candidates)
+        }
+    except Exception as e:
+        logger.error(f"❌ Error loading candidates: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/discovery/approved")
+def get_approved_skills():
+    """
+    ✅ Liefert alle genehmigten Skills aus approved_skills.json
+    """
+    try:
+        from app.infrastructure.extractor.discovery_logger import _data_base_dir, _ensure_discovery_dir
+        base = _data_base_dir()
+        ddir = _ensure_discovery_dir(base)
+        fpath = ddir / "approved_skills.json"
+        
+        if not fpath.exists():
+            return {"approved": {}, "total": 0}
+        
+        import json
+        approved = json.loads(fpath.read_text(encoding="utf-8")) or {}
+        
+        return {
+            "approved": approved,
+            "total": len(approved)
+        }
+    except Exception as e:
+        logger.error(f"❌ Error loading approved skills: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/discovery/ignored")
+def get_ignored_skills():
+    """
+    🚫 Liefert alle ignorierten Terms aus ignore_skills.json
+    """
+    try:
+        from app.infrastructure.extractor.discovery_logger import _data_base_dir, _ensure_discovery_dir
+        base = _data_base_dir()
+        ddir = _ensure_discovery_dir(base)
+        fpath = ddir / "ignore_skills.json"
+        
+        if not fpath.exists():
+            return {"ignored": [], "total": 0}
+        
+        import json
+        ignored = json.loads(fpath.read_text(encoding="utf-8")) or []
+        
+        return {
+            "ignored": ignored,
+            "total": len(ignored)
+        }
+    except Exception as e:
+        logger.error(f"❌ Error loading ignored skills: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/discovery/approve")
+def approve_candidates(approval: DiscoveryApproval):
+    """
+    ✅ Genehmigt Kandidaten → Verschiebt von candidates.json zu approved_skills.json
+    """
+    try:
+        from app.infrastructure.extractor.discovery_logger import _data_base_dir, _ensure_discovery_dir
+        import json
+        
+        base = _data_base_dir()
+        ddir = _ensure_discovery_dir(base)
+        candidates_path = ddir / "candidates.json"
+        approved_path = ddir / "approved_skills.json"
+        
+        # Lade bestehende Daten
+        candidates = json.loads(candidates_path.read_text(encoding="utf-8")) if candidates_path.exists() else []
+        approved = json.loads(approved_path.read_text(encoding="utf-8")) if approved_path.exists() else {}
+        
+        # Normalisiere terms zu lowercase
+        terms_lower = {t.lower().strip() for t in approval.terms}
+        
+        # Finde und verschiebe
+        to_approve = [c for c in candidates if c.get("term", "").lower().strip() in terms_lower]
+        candidates = [c for c in candidates if c.get("term", "").lower().strip() not in terms_lower]
+        
+        # Füge zu approved hinzu (als Mapping: term -> term, für Custom Skills kompatibel)
+        for item in to_approve:
+            term = item.get("term")
+            if term:
+                approved[term] = term  # Simple 1:1 mapping
+        
+        # Speichere
+        candidates_path.write_text(json.dumps(candidates, ensure_ascii=False, indent=2), encoding="utf-8")
+        approved_path.write_text(json.dumps(approved, ensure_ascii=False, indent=2), encoding="utf-8")
+        
+        logger.info(f"✅ Approved {len(to_approve)} candidates")
+        return {
+            "status": "success",
+            "approved_count": len(to_approve),
+            "remaining_candidates": len(candidates)
+        }
+    except Exception as e:
+        logger.error(f"❌ Error approving candidates: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/discovery/ignore")
+def ignore_candidates(ignore: DiscoveryIgnore):
+    """
+    🚫 Ignoriert Kandidaten → Verschiebt von candidates.json zu ignore_skills.json
+    """
+    try:
+        from app.infrastructure.extractor.discovery_logger import _data_base_dir, _ensure_discovery_dir
+        import json
+        
+        base = _data_base_dir()
+        ddir = _ensure_discovery_dir(base)
+        candidates_path = ddir / "candidates.json"
+        ignore_path = ddir / "ignore_skills.json"
+        
+        # Lade bestehende Daten
+        candidates = json.loads(candidates_path.read_text(encoding="utf-8")) if candidates_path.exists() else []
+        ignored = json.loads(ignore_path.read_text(encoding="utf-8")) if ignore_path.exists() else []
+        
+        # Normalisiere terms
+        terms_lower = {t.lower().strip() for t in ignore.terms}
+        
+        # Entferne aus candidates
+        to_ignore = [c.get("term") for c in candidates if c.get("term", "").lower().strip() in terms_lower]
+        candidates = [c for c in candidates if c.get("term", "").lower().strip() not in terms_lower]
+        
+        # Füge zu ignored hinzu
+        ignored.extend(to_ignore)
+        ignored = list(set(ignored))  # Duplikate entfernen
+        
+        # Speichere
+        candidates_path.write_text(json.dumps(candidates, ensure_ascii=False, indent=2), encoding="utf-8")
+        ignore_path.write_text(json.dumps(ignored, ensure_ascii=False, indent=2), encoding="utf-8")
+        
+        logger.info(f"🚫 Ignored {len(to_ignore)} candidates")
+        return {
+            "status": "success",
+            "ignored_count": len(to_ignore),
+            "remaining_candidates": len(candidates)
+        }
+    except Exception as e:
+        logger.error(f"❌ Error ignoring candidates: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/discovery/candidates")
+def clear_candidates():
+    """
+    🗑️ Löscht alle Kandidaten (candidates.json leeren)
+    """
+    try:
+        from app.infrastructure.extractor.discovery_logger import _data_base_dir, _ensure_discovery_dir
+        
+        base = _data_base_dir()
+        ddir = _ensure_discovery_dir(base)
+        fpath = ddir / "candidates.json"
+        
+        fpath.write_text("[]", encoding="utf-8")
+        
+        logger.info("🗑️ Cleared all candidates")
+        return {"status": "success", "message": "All candidates cleared"}
+    except Exception as e:
+        logger.error(f"❌ Error clearing candidates: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
+

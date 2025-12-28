@@ -50,8 +50,13 @@ class JobMiningService(
             return existingJob
         }
 
+        // URL bei ? abschneiden (Query-Parameter entfernen)
+        val cleanUrl = resultDto.sourceUrl?.let { url ->
+            url.substringBefore('?').take(2000)
+        }
+        
         val jobPosting = JobPosting(
-            title = resultDto.title,
+            title = resultDto.title.take(1000),
             jobRole = resultDto.jobRole,
             rawTextHash = resultDto.rawTextHash,
             rawText = resultDto.rawText,
@@ -59,7 +64,7 @@ class JobMiningService(
             region = resultDto.region,
             industry = resultDto.industry.take(500),
             isSegmented = resultDto.is_segmented, // Ebene 6 Status
-            sourceUrl = resultDto.sourceUrl
+            sourceUrl = cleanUrl
         )
 
         jobPosting.competences = resultDto.competences.map { dto ->
@@ -85,16 +90,21 @@ class JobMiningService(
             return existingJob
         }
 
+        // URL bei ? abschneiden (Query-Parameter entfernen)
+        val cleanUrl = resultDto.sourceUrl?.let { url ->
+            url.substringBefore('?').take(2000)
+        }
+        
         val jobPosting = JobPosting(
-            title = resultDto.title,
+            title = resultDto.title.take(1000),
             jobRole = resultDto.jobRole,
             rawTextHash = resultDto.rawTextHash,
             rawText = resultDto.rawText,
             postingDate = LocalDate.parse(resultDto.postingDate),
             region = resultDto.region,
-            industry = resultDto.industry,
+            industry = resultDto.industry.take(500),
             isSegmented = resultDto.is_segmented,
-            sourceUrl = resultDto.sourceUrl
+            sourceUrl = cleanUrl
         )
 
         jobPosting.competences = resultDto.competences.map { dto ->
@@ -113,16 +123,33 @@ class JobMiningService(
     fun processJobDirectoryBatch(): List<JobPosting> {
         println("--- 📂 BATCH-PROZESS: Starte Massenverarbeitung lokaler Dateien...")
         val resultsDto = pythonClient.processLocalJobDirectory()
+        val totalFiles = resultsDto.size
+        println("--- 📊 FORTSCHRITT: $totalFiles Dateien zu verarbeiten")
+        
         val jobPostingsToSave = mutableListOf<JobPosting>()
         val seenHashesInBatch = mutableSetOf<String>()
         var countIgnored = 0
+        var processedCount = 0
 
         resultsDto.forEach { resultDto ->
+            processedCount++
             val hash = resultDto.rawTextHash
+            
+            // Progress-Anzeige alle 10 Dateien oder bei letzter Datei
+            if (processedCount % 10 == 0 || processedCount == totalFiles) {
+                val percentage = (processedCount * 100) / totalFiles
+                val progressBar = "█".repeat(percentage / 5) + "░".repeat(20 - percentage / 5)
+                println("--- 📈 BATCH [$progressBar] $processedCount/$totalFiles ($percentage%)")
+            }
 
             if (repository.findByRawTextHash(hash).firstOrNull() == null && !seenHashesInBatch.contains(hash)) {
                 seenHashesInBatch.add(hash)
 
+                // URL bei ? abschneiden (Query-Parameter entfernen)
+                val cleanUrl = resultDto.sourceUrl?.let { url ->
+                    url.substringBefore('?').take(2000)
+                }
+                
                 val jobPosting = JobPosting(
                     title = resultDto.title.take(1000),
                     jobRole = resultDto.jobRole,
@@ -132,7 +159,7 @@ class JobMiningService(
                     region = resultDto.region,
                     industry = resultDto.industry.take(500),
                     isSegmented = resultDto.is_segmented,
-                    sourceUrl = resultDto.sourceUrl
+                    sourceUrl = cleanUrl
                 )
 
                 jobPosting.competences = resultDto.competences.map { dto ->

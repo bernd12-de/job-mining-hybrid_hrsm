@@ -34,6 +34,11 @@ if 'authenticated' not in st.session_state:
 def get_container_status():
     """Holt den Status aller Docker Container"""
     try:
+        # Check if running inside Docker container
+        if os.path.exists('/.dockerenv'):
+            logger.warning("Dashboard läuft in Container - Docker-Befehle nicht verfügbar")
+            return []
+        
         # Verwende parent directory des Scripts (funktioniert in Container und lokal)
         work_dir = os.path.dirname(os.path.abspath(__file__))
         if work_dir.endswith('python-backend'):
@@ -63,6 +68,10 @@ def get_container_status():
 def get_container_logs(service_name, lines=100):
     """Holt Logs eines spezifischen Services"""
     try:
+        # Check if running inside Docker container
+        if os.path.exists('/.dockerenv'):
+            return "Dashboard läuft in Container - Docker-Befehle nicht verfügbar. Nutze 'docker logs' direkt."
+        
         work_dir = os.path.dirname(os.path.abspath(__file__))
         if work_dir.endswith('python-backend'):
             work_dir = os.path.dirname(work_dir)
@@ -80,6 +89,10 @@ def get_container_logs(service_name, lines=100):
 def restart_container(service_name):
     """Startet einen Container neu"""
     try:
+        # Check if running inside Docker container
+        if os.path.exists('/.dockerenv'):
+            return False, "Dashboard läuft in Container - Docker-Befehle nicht verfügbar. Nutze 'docker compose restart' manuell."
+        
         work_dir = os.path.dirname(os.path.abspath(__file__))
         if work_dir.endswith('python-backend'):
             work_dir = os.path.dirname(work_dir)
@@ -190,7 +203,143 @@ with log_tab3:
 st.markdown("---")
 
 # ========================================
-# 📊 METRICS & ANALYTICS
+# � DISCOVERY-MANAGEMENT
+# ========================================
+st.header("🔍 Skill Discovery Management")
+
+try:
+    # Lade Discovery-Statistiken
+    resp_candidates = requests.get("http://python-backend:8000/discovery/candidates", timeout=5)
+    resp_approved = requests.get("http://python-backend:8000/discovery/approved", timeout=5)
+    resp_ignored = requests.get("http://python-backend:8000/discovery/ignored", timeout=5)
+    
+    if resp_candidates.status_code == 200 and resp_approved.status_code == 200 and resp_ignored.status_code == 200:
+        candidates_data = resp_candidates.json()
+        approved_data = resp_approved.json()
+        ignored_data = resp_ignored.json()
+        
+        # Statistik-Übersicht
+        col1, col2, col3 = st.columns(3)
+        col1.metric("📋 Kandidaten", candidates_data.get("total", 0))
+        col2.metric("✅ Genehmigt", approved_data.get("total", 0))
+        col3.metric("🚫 Ignoriert", ignored_data.get("total", 0))
+        
+        st.markdown("---")
+        
+        # Kandidaten-Tabelle mit Multiselect
+        st.subheader("📋 Discovery-Kandidaten")
+        candidates = candidates_data.get("candidates", [])
+        
+        if candidates:
+            # DataFrame für Anzeige
+            df_candidates = pd.DataFrame([{
+                'Term': c.get('term', 'N/A'),
+                'Häufigkeit': c.get('count', 0),
+                'Rolle': c.get('role', 'N/A'),
+                'Kontext': c.get('context', 'N/A')[:30] + '...' if len(c.get('context', '')) > 30 else c.get('context', 'N/A')
+            } for c in candidates])
+            
+            # Filter nach Häufigkeit
+            min_count = st.slider("Mindest-Häufigkeit", 1, max(1, int(df_candidates['Häufigkeit'].max())), 1)
+            df_filtered = df_candidates[df_candidates['Häufigkeit'] >= min_count]
+            
+            st.dataframe(
+                df_filtered.head(50),  # Top 50
+                use_container_width=True,
+                hide_index=True
+            )
+            
+            st.caption(f"Zeige {len(df_filtered)} von {len(candidates)} Kandidaten (min. {min_count}x)")
+            
+            # Multiselect für Aktionen
+            st.markdown("#### Aktionen")
+            selected_terms = st.multiselect(
+                "Wähle Terms für Aktion:",
+                options=[c.get('term') for c in candidates if c.get('count', 0) >= min_count],
+                max_selections=20
+            )
+            
+            if selected_terms:
+                col_approve, col_ignore = st.columns(2)
+                
+                with col_approve:
+                    if st.button("✅ Genehmigen", type="primary"):
+                        try:
+                            resp = requests.post(
+                                "http://python-backend:8000/discovery/approve",
+                                json={"terms": selected_terms},
+                                timeout=5
+                            )
+                            if resp.status_code == 200:
+                                result = resp.json()
+                                st.success(f"✅ {result.get('approved_count', 0)} Terms genehmigt")
+                                st.rerun()
+                            else:
+                                st.error(f"❌ Fehler: {resp.status_code}")
+                        except Exception as e:
+                            st.error(f"❌ Fehler: {e}")
+                
+                with col_ignore:
+                    if st.button("🚫 Ignorieren", type="secondary"):
+                        try:
+                            resp = requests.post(
+                                "http://python-backend:8000/discovery/ignore",
+                                json={"terms": selected_terms},
+                                timeout=5
+                            )
+                            if resp.status_code == 200:
+                                result = resp.json()
+                                st.success(f"🚫 {result.get('ignored_count', 0)} Terms ignoriert")
+                                st.rerun()
+                            else:
+                                st.error(f"❌ Fehler: {resp.status_code}")
+                        except Exception as e:
+                            st.error(f"❌ Fehler: {e}")
+            
+            # Clear-Button
+            st.markdown("---")
+            if st.button("🗑️ Alle Kandidaten löschen", type="secondary"):
+                try:
+                    resp = requests.delete("http://python-backend:8000/discovery/candidates", timeout=5)
+                    if resp.status_code == 200:
+                        st.success("🗑️ Alle Kandidaten gelöscht")
+                        st.rerun()
+                    else:
+                        st.error(f"❌ Fehler: {resp.status_code}")
+                except Exception as e:
+                    st.error(f"❌ Fehler: {e}")
+        else:
+            st.info("Keine Kandidaten vorhanden.")
+        
+        # Genehmigte Skills
+        with st.expander("✅ Genehmigte Skills", expanded=False):
+            approved_skills = approved_data.get("approved", {})
+            if approved_skills:
+                # Dict: key -> value Mapping
+                for term, mapping in approved_skills.items():
+                    st.text(f"• {term} → {mapping}")
+            else:
+                st.info("Keine genehmigten Skills.")
+        
+        # Ignorierte Skills
+        with st.expander("🚫 Ignorierte Skills", expanded=False):
+            ignored_skills = ignored_data.get("ignored", [])
+            if ignored_skills:
+                st.write(", ".join(ignored_skills))
+            else:
+                st.info("Keine ignorierten Skills.")
+    
+    else:
+        st.error("❌ Discovery-API nicht erreichbar")
+
+except Exception as e:
+    logger.error(f"Fehler beim Laden der Discovery-Daten: {e}")
+    st.error(f"❌ Fehler: {str(e)}")
+
+st.markdown("---")
+
+# ========================================
+# �📊 METRICS & ANALYTICS
 # ========================================
 st.header("📊 Metriken & Analytics")
 

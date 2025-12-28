@@ -60,7 +60,7 @@ class JobController(
         summary = "Batch-Analyse lokaler Dateien",
         description = "Verarbeitet alle Stellenanzeigen-Dateien aus dem Python 'data/jobs' Ordner und speichert die Ergebnisse in der Datenbank."
     )
-    @PostMapping("/batch-analyze")
+    @PostMapping("/batch-analyze", "/batch-process", "/batch")
     fun analyzeLocalDirectory(): ResponseEntity<*> {
         return try {
             val results = jobMiningService.processJobDirectoryBatch()

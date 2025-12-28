@@ -15,6 +15,12 @@ class MetadataExtractor:
     """
 
     def __init__(self):
+        # URL-Pattern zur Erkennung von URLs in Titeln
+        self.URL_PATTERN = re.compile(
+            r'(?:https?://|www\.|[\w-]+\.(?:com|de|org|net|io|edu|gov|at|ch|uk|fr))',
+            re.IGNORECASE
+        )
+        
         # OPTIMIERTE ROLLENERKENNUNG: Priorisiert nach Spezifität (Ebene 1: Erkennung)
         self.category_patterns = {
             # Level 1: Spezifische IT-Rollen (höchste Priorität)
@@ -111,9 +117,26 @@ class MetadataExtractor:
     def _extract_title(self, text: str, filename: str) -> str:
         """Extrahiert den Jobtitel aus der ersten Zeile oder nutzt den Dateinamen."""
         lines = text.split('\n')
-        if lines and lines[0].strip():
-            title = re.sub(r'\(m/w/d\)|\[all genders\]|\(gn\)|\|\s?.*', '', lines[0], flags=re.IGNORECASE).strip()
-            return title if len(title) > 5 else filename
+        
+        # Suche in ersten 10 Zeilen (nicht nur erste!)
+        for line in lines[:10]:
+            if not line.strip():
+                continue
+            
+            # Bereinige Geschlechts-Marker
+            title = re.sub(r'\(m/w/d\)|\[all genders\]|\(gn\)|\|\s?.*', '', line, flags=re.IGNORECASE).strip()
+            
+            # Skip URLs - wichtig für Web-Scraping!
+            if self.URL_PATTERN.search(title):
+                continue
+            
+            # Valider Titel gefunden
+            if len(title) > 5:
+                return title
+        
+        # Fallback: Nutze Dateinamen, aber nur wenn keine URL
+        if self.URL_PATTERN.search(filename):
+            return "Stellenanzeige (Titel nicht erkannt)"
         return filename
 
     def _extract_organization(self, text: str) -> str:
