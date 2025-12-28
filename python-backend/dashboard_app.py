@@ -5,11 +5,19 @@ import logging
 import subprocess
 import time
 import os
+import requests
 from datetime import datetime
 
 # Logging konfigurieren
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("DashboardApp")
+
+# ========================================
+# 🌐 API ENDPOINTS (Docker vs. Lokal)
+# ========================================
+# Auto-detect: Wenn in Docker, nutze Service-Namen, sonst localhost
+KOTLIN_API_BASE = os.getenv("KOTLIN_API_URL", "http://localhost:8080")
+PYTHON_API_BASE = os.getenv("PYTHON_API_URL", "http://localhost:8000")
 
 try:
     from app.infrastructure.reporting import build_dashboard_metrics, generate_csv_report, generate_pdf_report
@@ -209,9 +217,9 @@ st.header("🔍 Skill Discovery Management")
 
 try:
     # Lade Discovery-Statistiken
-    resp_candidates = requests.get("http://python-backend:8000/discovery/candidates", timeout=5)
-    resp_approved = requests.get("http://python-backend:8000/discovery/approved", timeout=5)
-    resp_ignored = requests.get("http://python-backend:8000/discovery/ignored", timeout=5)
+    resp_candidates = requests.get(f"{PYTHON_API_BASE}/discovery/candidates", timeout=5)
+    resp_approved = requests.get(f"{PYTHON_API_BASE}/discovery/approved", timeout=5)
+    resp_ignored = requests.get(f"{PYTHON_API_BASE}/discovery/ignored", timeout=5)
     
     if resp_candidates.status_code == 200 and resp_approved.status_code == 200 and resp_ignored.status_code == 200:
         candidates_data = resp_candidates.json()
@@ -266,7 +274,7 @@ try:
                     if st.button("✅ Genehmigen", type="primary"):
                         try:
                             resp = requests.post(
-                                "http://python-backend:8000/discovery/approve",
+                                f"{PYTHON_API_BASE}/discovery/approve",
                                 json={"terms": selected_terms},
                                 timeout=5
                             )
@@ -283,7 +291,7 @@ try:
                     if st.button("🚫 Ignorieren", type="secondary"):
                         try:
                             resp = requests.post(
-                                "http://python-backend:8000/discovery/ignore",
+                                f"{PYTHON_API_BASE}/discovery/ignore",
                                 json={"terms": selected_terms},
                                 timeout=5
                             )
@@ -300,7 +308,7 @@ try:
             st.markdown("---")
             if st.button("🗑️ Alle Kandidaten löschen", type="secondary"):
                 try:
-                    resp = requests.delete("http://python-backend:8000/discovery/candidates", timeout=5)
+                    resp = requests.delete(f"{PYTHON_API_BASE}/discovery/candidates", timeout=5)
                     if resp.status_code == 200:
                         st.success("🗑️ Alle Kandidaten gelöscht")
                         st.rerun()
@@ -460,9 +468,8 @@ with col2:
 st.markdown("---")
 with st.expander("📋 Job-Daten Übersicht", expanded=False):
     try:
-        import requests
         # Hole Job-Daten von Kotlin-API
-        response = requests.get("http://kotlin-api:8080/api/v1/jobs", timeout=5)
+        response = requests.get(f"{KOTLIN_API_BASE}/api/v1/jobs", timeout=5)
         if response.status_code == 200:
             jobs_data = response.json()
             if jobs_data:
