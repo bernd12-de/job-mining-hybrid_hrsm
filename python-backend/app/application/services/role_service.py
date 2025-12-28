@@ -22,7 +22,7 @@ class RoleService:
 
         self.role_mappings: Dict[str, str] = primary or {}
         self.fallback_role_mappings: Dict[str, str] = self._load_fallback_mappings()
-        
+
         # Sicherheit: Garantiere, dass role_mappings nie leer ist
         if not self.role_mappings:
             self.role_mappings = self.fallback_role_mappings or {
@@ -30,17 +30,33 @@ class RoleService:
                 'Management': 'Leiter|Head of|Manager|Lead|Management'
             }
 
+        # ✅ BEST PRACTICE: Spezifische IT-Rollen Pattern-Matching
+        self._setup_best_practice_patterns()
+
     def classify_role(self, job_text: str, job_title: str, default_role: str = "Unbekannt") -> str:
         """
         Klassifiziert die Rolle anhand des Jobtitels und des gesamten Stellentextes.
-        Die Suche wird zuerst im Titel und dann im Text durchgeführt, um Präzision zu erhöhen.
-        """
-        search_target = f"{job_title.lower()} {job_text.lower()}"
 
+        ✅ BEST PRACTICE: Zwei-Stufen-Ansatz:
+        1. Spezifische IT-Rollen (Frontend/Backend/Fullstack/DevOps)
+        2. Fallback: DB-Regeln
+
+        Returns:
+            Spezifische Rolle (z.B. "Frontend Developer") oder Generic
+        """
+        search_target = f"{job_title} {job_text}".lower()
+
+        # ✅ STUFE 1: Best Practice Pattern-Matching (spezifische IT-Rollen)
+        best_practice_role = self._classify_with_best_practice(search_target)
+        if best_practice_role != "Sonstige Rolle":
+            return best_practice_role
+
+        # STUFE 2: DB-Regeln (Legacy)
         direct = self._match_role_patterns(self.role_mappings, search_target)
         if direct:
             return direct
 
+        # STUFE 3: Fallback-Mappings
         fallback = self._match_role_patterns(self.fallback_role_mappings, search_target)
         if fallback:
             return fallback
@@ -104,4 +120,62 @@ class RoleService:
         except Exception as e:
             print(f"⚠️ Konnte Fallback-Rollen nicht laden: {e}")
         return {}
+
+    # ═══════════════════════════════════════════════════════════════════
+    # BEST PRACTICE: Spezifische IT-Rollen Pattern-Matching
+    # ═══════════════════════════════════════════════════════════════════
+
+    def _setup_best_practice_patterns(self):
+        """Setup spezifische IT-Rollen Patterns"""
+        self.IT_ROLE_PATTERNS = {
+            # Priorität 1: Fullstack (wenn beide Skills)
+            "Fullstack Developer": [
+                r"\bfullstack|full[\s-]?stack\b",
+                r"\bfrontend.*backend|backend.*frontend\b",
+                r"\bmern|mean|mevn\b",
+            ],
+            # Priorität 2: Frontend
+            "Frontend Developer": [
+                r"\bfrontend|front[\s-]?end\b",
+                r"\breact|vue|angular|svelte\b",
+                r"\bhtml|css|javascript.*frontend\b",
+            ],
+            # Priorität 3: Backend
+            "Backend Developer": [
+                r"\bbackend|back[\s-]?end\b",
+                r"\bspring|django|flask|express\b",
+                r"\bapi|rest|graphql|microservice\b",
+                r"\bdatabase|sql|postgres\b",
+            ],
+            # Priorität 4: DevOps
+            "DevOps Engineer": [
+                r"\bdevops|sre\b",
+                r"\bdocker|kubernetes|k8s\b",
+                r"\bci/cd|jenkins|terraform\b",
+            ],
+            # Priorität 5: Mobile
+            "Mobile Developer": [
+                r"\bmobile|app[\s-]?developer\b",
+                r"\bios|android|swift|kotlin\b",
+                r"\breact[\s-]?native|flutter\b",
+            ],
+        }
+
+    def _classify_with_best_practice(self, text: str) -> str:
+        """
+        Klassifiziert mit spezifischen IT-Rollen Patterns
+
+        Returns:
+            Spezifische Rolle oder "Sonstige Rolle"
+        """
+        for role, patterns in self.IT_ROLE_PATTERNS.items():
+            for pattern in patterns:
+                if re.search(pattern, text, re.IGNORECASE):
+                    return role
+
+        # Fallback: Generic Software Engineer
+        if re.search(r"\bsoftware|developer|engineer|entwickler\b", text, re.IGNORECASE):
+            return "Software Engineer"
+
+        return "Sonstige Rolle"
 
