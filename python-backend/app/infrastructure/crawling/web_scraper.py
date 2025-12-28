@@ -215,7 +215,19 @@ class WebScraper:
                 try:
                     warnings.append("Playwright fehlt – versuche Auto-Install")
                     subprocess.run(["python3","-m","pip","install","playwright"], check=True)
-                    subprocess.run(["playwright","install","chromium","--with-deps"], check=True)
+                    try:
+                        subprocess.run(["playwright","install","chromium","--with-deps"], check=True)
+                    except subprocess.CalledProcessError:
+                        # Fallback ohne System-Deps; Fonts optional
+                        try:
+                            subprocess.run(["apt-get","update"], check=True)
+                            subprocess.run(["apt-get","install","-y",
+                                            "fonts-unifont",
+                                            "fonts-ubuntu",
+                                            "fonts-dejavu-core"], check=True)
+                        except Exception:
+                            pass
+                        subprocess.run(["playwright","install","chromium"], check=True)
                     from playwright.sync_api import sync_playwright  # retry import
                 except Exception as e:
                     raise ImportError(f"Playwright Auto-Install fehlgeschlagen: {e}")

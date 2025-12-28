@@ -559,8 +559,24 @@ def install_playwright():
         # Installiere Python-Paket
         subprocess.run(["python3","-m","pip","install","playwright"], check=True)
         # Installiere Browser und System-Abhängigkeiten
-        subprocess.run(["playwright","install","chromium","--with-deps"], check=True)
-        return {"status":"installed"}
+        try:
+            subprocess.run(["playwright","install","chromium","--with-deps"], check=True)
+            return {"status":"installed", "mode": "with-deps"}
+        except subprocess.CalledProcessError as e:
+            # Fallback für Debian/Ubuntu Paketinkompatibilitäten: versuche Fonts + plain install
+            try:
+                subprocess.run(["apt-get","update"], check=True)
+                # Debian/Ubuntu kompatible Fonts (Playwright benötigt Fonts für Rendering)
+                subprocess.run(["apt-get","install","-y",
+                                "fonts-unifont",
+                                "fonts-ubuntu",
+                                "fonts-dejavu-core"], check=True)
+            except Exception:
+                # Fonts-Installation ist optional – nicht als harter Fehler behandeln
+                pass
+            # Versuche ohne '--with-deps' (nur Browser herunterladen)
+            subprocess.run(["playwright","install","chromium"], check=True)
+            return {"status":"installed", "mode": "fallback-no-deps"}
     except subprocess.CalledProcessError as e:
         raise HTTPException(status_code=500, detail=f"Installation fehlgeschlagen: {e}")
     except Exception as e:
