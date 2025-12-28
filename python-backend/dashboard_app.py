@@ -16,8 +16,28 @@ logger = logging.getLogger("DashboardApp")
 # 🌐 API ENDPOINTS (Docker vs. Lokal)
 # ========================================
 # Auto-detect: Wenn in Docker, nutze Service-Namen, sonst localhost
-KOTLIN_API_BASE = os.getenv("KOTLIN_API_URL", "http://localhost:8080")
-PYTHON_API_BASE = os.getenv("PYTHON_API_URL", "http://localhost:8000")
+def _detect_api_endpoints():
+    """Erkennt automatisch ob Docker oder lokal und gibt passende URLs zurück"""
+    in_docker = os.path.exists('/.dockerenv') or os.getenv('DOCKER_CONTAINER') == 'true'
+
+    if in_docker:
+        # In Docker: Nutze Service-Namen aus docker-compose.yml
+        kotlin_base = "http://kotlin-api:8080"
+        python_base = "http://python-backend:8000"
+        logger.info("🐳 Docker-Umgebung erkannt - nutze Service-Namen")
+    else:
+        # Lokal: Nutze localhost
+        kotlin_base = "http://localhost:8080"
+        python_base = "http://localhost:8000"
+        logger.info("💻 Lokale Umgebung erkannt - nutze localhost")
+
+    # Env-Vars haben Vorrang (für manuelle Override)
+    kotlin_base = os.getenv("KOTLIN_API_URL", kotlin_base)
+    python_base = os.getenv("PYTHON_API_URL", python_base)
+
+    return kotlin_base, python_base
+
+KOTLIN_API_BASE, PYTHON_API_BASE = _detect_api_endpoints()
 
 try:
     from app.infrastructure.reporting import build_dashboard_metrics, generate_csv_report, generate_pdf_report
