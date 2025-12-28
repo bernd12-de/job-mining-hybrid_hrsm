@@ -1,5 +1,13 @@
 # ============================================================================
-# JOB MINING V2.0 - PRODUCTION REQUIREMENTS
+# JOB MINING V2.0 - CORE REQUIREMENTS (MINIMAL)
+# ============================================================================
+# Diese Pakete sind IMMER erforderlich für Basis-Funktionalität
+#
+# Für erweiterte Features siehe:
+# - requirements-ocr.txt (Gescannte PDFs)
+# - requirements-ml.txt (Semantic Matching)
+# - requirements-db.txt (PostgreSQL)
+# - requirements-full.txt (Alles)
 # ============================================================================
 
 # Core Framework
@@ -26,37 +34,22 @@ lxml==4.9.3
 playwright==1.42.0
 charset-normalizer==3.3.2
 
-# Utilities
+# Utilities (PDF/DOCX ohne OCR)
 python-docx==1.1.0
 pypdf==4.1.0
 pdfminer.six
 reportlab==4.4.7
 
-# OCR & Image Processing (Best Practice Feature 1)
-Pillow==10.2.0              # Image processing for OCR
-pdf2image==1.17.0           # Convert PDF to images
-pytesseract==0.3.10         # OCR engine wrapper
-# System dependency: apt-get install tesseract-ocr tesseract-ocr-deu poppler-utils
-
-# ESCO Dual-Mapping (Best Practice Feature 4)
-sentence-transformers==2.3.1  # Semantic similarity matching
-# Note: Downloads ~500MB models on first use (MiniLM + MultiLM)
-
-# PostgreSQL Integration
-psycopg2-binary==2.9.9      # PostgreSQL adapter
-
-# OPTIONAL: Nur für alte Features (nicht erforderlich für V2.0)
+# Dashboard & Visualisierung
 streamlit==1.30.0
-
 plotly==5.18.0
 
 # Testing
 pytest==8.1.1
 
-# Machine Learning
+# Machine Learning (Core - ohne Transformers)
 scikit-learn<1.6
 python-multipart==0.0.9
-#ladeanzeige
 tqdm
 
 
