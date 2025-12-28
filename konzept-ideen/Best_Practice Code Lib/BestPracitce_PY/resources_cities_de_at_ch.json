@@ -1,0 +1,179 @@
+[
+  {
+    "name": "Berlin",
+    "ascii": "Berlin",
+    "alts": [
+      "Land Berlin"
+    ],
+    "country": "DE",
+    "admin1": "Berlin",
+    "admin1_code": "BE",
+    "lat": 52.52,
+    "lon": 13.405,
+    "population": 3669491,
+    "postal_prefixes": [
+      "10",
+      "12",
+      "13"
+    ]
+  },
+  {
+    "name": "München",
+    "ascii": "Muenchen",
+    "alts": [
+      "Munich"
+    ],
+    "country": "DE",
+    "admin1": "Bayern",
+    "admin1_code": "BY",
+    "lat": 48.1374,
+    "lon": 11.5755,
+    "population": 1488202,
+    "postal_prefixes": [
+      "80",
+      "81",
+      "82"
+    ]
+  },
+  {
+    "name": "Hamburg",
+    "ascii": "Hamburg",
+    "alts": [],
+    "country": "DE",
+    "admin1": "Hamburg",
+    "admin1_code": "HH",
+    "lat": 53.5511,
+    "lon": 9.9937,
+    "population": 1841179,
+    "postal_prefixes": [
+      "20",
+      "21",
+      "22"
+    ]
+  },
+  {
+    "name": "Frankfurt am Main",
+    "ascii": "Frankfurt am Main",
+    "alts": [
+      "Frankfurt/Main",
+      "Frankfurt"
+    ],
+    "country": "DE",
+    "admin1": "Hessen",
+    "admin1_code": "HE",
+    "lat": 50.1109,
+    "lon": 8.6821,
+    "population": 764104,
+    "postal_prefixes": [
+      "60"
+    ]
+  },
+  {
+    "name": "Frankfurt (Oder)",
+    "ascii": "Frankfurt Oder",
+    "alts": [
+      "Frankfurt/Oder"
+    ],
+    "country": "DE",
+    "admin1": "Brandenburg",
+    "admin1_code": "BB",
+    "lat": 52.347,
+    "lon": 14.5506,
+    "population": 57287,
+    "postal_prefixes": [
+      "15"
+    ]
+  },
+  {
+    "name": "Köln",
+    "ascii": "Koeln",
+    "alts": [
+      "Cologne"
+    ],
+    "country": "DE",
+    "admin1": "Nordrhein-Westfalen",
+    "admin1_code": "NW",
+    "lat": 50.9375,
+    "lon": 6.9603,
+    "population": 1087863,
+    "postal_prefixes": [
+      "50"
+    ]
+  },
+  {
+    "name": "Düsseldorf",
+    "ascii": "Duesseldorf",
+    "alts": [],
+    "country": "DE",
+    "admin1": "Nordrhein-Westfalen",
+    "admin1_code": "NW",
+    "lat": 51.2277,
+    "lon": 6.7735,
+    "population": 619294,
+    "postal_prefixes": [
+      "40"
+    ]
+  },
+  {
+    "name": "Stuttgart",
+    "ascii": "Stuttgart",
+    "alts": [],
+    "country": "DE",
+    "admin1": "Baden-Württemberg",
+    "admin1_code": "BW",
+    "lat": 48.7758,
+    "lon": 9.1829,
+    "population": 635911,
+    "postal_prefixes": [
+      "70"
+    ]
+  },
+  {
+    "name": "Zürich",
+    "ascii": "Zuerich",
+    "alts": [
+      "Zurich"
+    ],
+    "country": "CH",
+    "admin1": "Zürich",
+    "admin1_code": "ZH",
+    "lat": 47.3769,
+    "lon": 8.5417,
+    "population": 402762,
+    "postal_prefixes": [
+      "80"
+    ]
+  },
+  {
+    "name": "Wien",
+    "ascii": "Wien",
+    "alts": [
+      "Vienna"
+    ],
+    "country": "AT",
+    "admin1": "Wien",
+    "admin1_code": "9",
+    "lat": 48.2082,
+    "lon": 16.3738,
+    "population": 1911191,
+    "postal_prefixes": [
+      "10",
+      "11",
+      "12"
+    ]
+  },
+  {
+    "name": "Hildesheim",
+    "ascii": "Hildesheim",
+    "alts": [],
+    "country": "DE",
+    "admin1": "Niedersachsen",
+    "admin1_code": "NI",
+    "lat": 52.1548,
+    "lon": 9.957,
+    "population": 101693,
+    "postal_prefixes": [
+      "31"
+    ]
+  }
+]

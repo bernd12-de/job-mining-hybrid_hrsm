@@ -1,0 +1,3812 @@
+[
+  {
+    "term": "experience",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 51
+  },
+  {
+    "term": "einem",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 91
+  },
+  {
+    "term": "innen",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 433
+  },
+  {
+    "term": "manager",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 51
+  },
+  {
+    "term": "hybrid",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 51
+  },
+  {
+    "term": "jobs",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 51
+  },
+  {
+    "term": "internationalen",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "workplace-lösungen",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "zusammenarbeit",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "bereich",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "qualifikation",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "user",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "umfeld",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "bewerber",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 172
+  },
+  {
+    "term": "haben",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 189
+  },
+  {
+    "term": "sich",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 120
+  },
+  {
+    "term": "midlevel",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "kunden",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 106
+  },
+  {
+    "term": "kommunikation",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "internen",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 38
+  },
+  {
+    "term": "bewerben",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 38
+  },
+  {
+    "term": "speichern",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 38
+  },
+  {
+    "term": "jakala",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 38
+  },
+  {
+    "term": "christian",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 38
+  },
+  {
+    "term": "gail",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 38
+  },
+  {
+    "term": "behältst",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 19
+  },
+  {
+    "term": "bist",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 36
+  },
+  {
+    "term": "personalplanung",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 19
+  },
+  {
+    "term": "projekte",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 19
+  },
+  {
+    "term": "zuständig",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 19
+  },
+  {
+    "term": "gewährleistest",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 19
+  },
+  {
+    "term": "durch",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 23
+  },
+  {
+    "term": "dein",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 19
+  },
+  {
+    "term": "geschicktes",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 19
+  },
+  {
+    "term": "controlling",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 19
+  },
+  {
+    "term": "reporting",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 19
+  },
+  {
+    "term": "transparente",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 19
+  },
+  {
+    "term": "einer",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 68
+  },
+  {
+    "term": "dich",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 76
+  },
+  {
+    "term": "produktes",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 51
+  },
+  {
+    "term": "deines",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 51
+  },
+  {
+    "term": "kannst",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 51
+  },
+  {
+    "term": "deine",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 62
+  },
+  {
+    "term": "digitale",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 51
+  },
+  {
+    "term": "nicht",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 51
+  },
+  {
+    "term": "oduct",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "owner",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 85
+  },
+  {
+    "term": "manager",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 38
+  },
+  {
+    "term": "ransformation",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "hamburg",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 42
+  },
+  {
+    "term": "details",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 35
+  },
+  {
+    "term": "entwickelst",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "lebst",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "dabei",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 51
+  },
+  {
+    "term": "dann",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "blick",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "design",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 88
+  },
+  {
+    "term": "travel",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 36
+  },
+  {
+    "term": "benachrichtigung",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 36
+  },
+  {
+    "term": "einrichten",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 84
+  },
+  {
+    "term": "through",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "application",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "manipulation",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "cascading",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "style",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "sheets",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "pega",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "offers",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "person",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "success",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "this",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "position",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "requires",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "firm",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "understanding",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "user-centered",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "process",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 80
+  },
+  {
+    "term": "ihrem",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 350
+  },
+  {
+    "term": "deine",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 60
+  },
+  {
+    "term": "transformation",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 60
+  },
+  {
+    "term": "linkedin",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 244
+  },
+  {
+    "term": "anwendung",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 40
+  },
+  {
+    "term": "digitalen",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 40
+  },
+  {
+    "term": "technologien",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 72
+  },
+  {
+    "term": "senior",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 172
+  },
+  {
+    "term": "consultant",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 189
+  },
+  {
+    "term": "digital",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 120
+  },
+  {
+    "term": "excellence",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 40
+  },
+  {
+    "term": "sowie",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 40
+  },
+  {
+    "term": "kpmg",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 104
+  },
+  {
+    "term": "qualifikationen",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 40
+  },
+  {
+    "term": "einrichten",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 40
+  },
+  {
+    "term": "senior",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 36
+  },
+  {
+    "term": "product",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "designer",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "hamburg",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 35
+  },
+  {
+    "term": "tagen",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "telefonica",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "telekommunikation",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "vollzeit",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "xing",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "geschätzt",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "hybrid",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "über",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "diesen",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "datum",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "standort",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "münchen",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "düsseldorf",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "teltow",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "with",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 461
+  },
+  {
+    "term": "experience",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 199
+  },
+  {
+    "term": "user",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 320
+  },
+  {
+    "term": "design",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 119
+  },
+  {
+    "term": "concepts",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 68
+  },
+  {
+    "term": "your",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 217
+  },
+  {
+    "term": "prototyping",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 48
+  },
+  {
+    "term": "working",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 51
+  },
+  {
+    "term": "software",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 128
+  },
+  {
+    "term": "implementation",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "customer",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 102
+  },
+  {
+    "term": "focus",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "validate",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "requirements",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "improve",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 82
+  },
+  {
+    "term": "concept",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "using",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "interface",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 51
+  },
+  {
+    "term": "agile",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "bereich",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 46
+  },
+  {
+    "term": "sowie",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 88
+  },
+  {
+    "term": "abgeschlossenes",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "studium",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 23
+  },
+  {
+    "term": "ausbildung",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 68
+  },
+  {
+    "term": "mediendesign",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "kommunikationsdesign",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "vergleichbare",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "qualifikation",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "erfahrungen",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "ux-designer",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "erstellen",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "interaktiven",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "designs",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "softwareentwicklung",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "gutes",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "gespür",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "typografie",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 16
+  },
+  {
+    "term": "teilweise",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 105
+  },
+  {
+    "term": "home-office",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 105
+  },
+  {
+    "term": "apps",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 68
+  },
+  {
+    "term": "innen",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 99
+  },
+  {
+    "term": "hast",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "lernst",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "android",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "deine",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "eigene",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "nicht",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "dein",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 49
+  },
+  {
+    "term": "interesse",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "app-entwicklung",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "stunden",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "softwareentwickler",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "darmstadt",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "mainz",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "stepstone",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 38
+  },
+  {
+    "term": "sind",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 65
+  },
+  {
+    "term": "weitere",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 121
+  },
+  {
+    "term": "jobinserent",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 87
+  },
+  {
+    "term": "hinzugefügt",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 87
+  },
+  {
+    "term": "kundenerfahrung",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 70
+  },
+  {
+    "term": "fügen",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 52
+  },
+  {
+    "term": "hinzu",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 52
+  },
+  {
+    "term": "anderen",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 52
+  },
+  {
+    "term": "abzuheben",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 52
+  },
+  {
+    "term": "anforderungen",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 103
+  },
+  {
+    "term": "jahre",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 35
+  },
+  {
+    "term": "berufserfahrung",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 35
+  },
+  {
+    "term": "native",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 35
+  },
+  {
+    "term": "junior",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 52
+  },
+  {
+    "term": "product",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 52
+  },
+  {
+    "term": "studyflix",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 51
+  },
+  {
+    "term": "gmbh",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 51
+  },
+  {
+    "term": "vollzeit",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 52
+  },
+  {
+    "term": "geschätzt",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 51
+  },
+  {
+    "term": "augsburg",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "münchen",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "nürnberg",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "stuttgart",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "berlin",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "darmstadt",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "karlsruhe",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "aachen",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "frankfurt",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "homeoffice",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "jahr",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "schritt",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "stepstone",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "ihrem",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 96
+  },
+  {
+    "term": "haben",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 72
+  },
+  {
+    "term": "linkedin",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 72
+  },
+  {
+    "term": "über",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 48
+  },
+  {
+    "term": "product",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 48
+  },
+  {
+    "term": "ihre",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 48
+  },
+  {
+    "term": "hamburg",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 48
+  },
+  {
+    "term": "microsoft",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 48
+  },
+  {
+    "term": "bewerber",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 48
+  },
+  {
+    "term": "anforderungen",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 24
+  },
+  {
+    "term": "verfügen",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 24
+  },
+  {
+    "term": "skills",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 24
+  },
+  {
+    "term": "eines",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 24
+  },
+  {
+    "term": "owners",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 24
+  },
+  {
+    "term": "projektmanagers",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 24
+  },
+  {
+    "term": "deinem",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 54
+  },
+  {
+    "term": "wenn",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 36
+  },
+  {
+    "term": "dich",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 96
+  },
+  {
+    "term": "deine",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 36
+  },
+  {
+    "term": "konzeption",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "gestaltung",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "begleitung",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "unserer",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "digitalen",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "kundenprojekte",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "idee",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "umsetzung",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "liegen",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "deiner",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "hand",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "entwickelst",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "moodboards",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "wireframes",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "visuals",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "unseren",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 68
+  },
+  {
+    "term": "sind",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 119
+  },
+  {
+    "term": "könnten",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "stelle",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "infrage",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "kommen",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "bewerben",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "personen",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "details",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "diese",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "stellenanzeige",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "mehr",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "erfahren",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "über",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "team",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "vielen",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "agile",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 51
+  },
+  {
+    "term": "scaled",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "framework",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "scrum",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "fehlen",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "cspo",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "remote",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 102
+  },
+  {
+    "term": "ehemalige",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 85
+  },
+  {
+    "term": "studienkolleg",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 85
+  },
+  {
+    "term": "hier",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 85
+  },
+  {
+    "term": "beschäftigt",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 85
+  },
+  {
+    "term": "strategie",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 51
+  },
+  {
+    "term": "marketing",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 51
+  },
+  {
+    "term": "wocheeinfach",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 51
+  },
+  {
+    "term": "erfahrung",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 25
+  },
+  {
+    "term": "spacy",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "kotlin",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "spring",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 25
+  },
+  {
+    "term": "boot",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 23
+  },
+  {
+    "term": "teamfähigkeit",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 26
+  },
+  {
+    "term": "motivation",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "team",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 248
+  },
+  {
+    "term": "work",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 85
+  },
+  {
+    "term": "business",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 85
+  },
+  {
+    "term": "that",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 85
+  },
+  {
+    "term": "organization",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 68
+  },
+  {
+    "term": "designer",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 68
+  },
+  {
+    "term": "apps",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 68
+  },
+  {
+    "term": "global",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 68
+  },
+  {
+    "term": "ottobock",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 68
+  },
+  {
+    "term": "this",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 68
+  },
+  {
+    "term": "product",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 68
+  },
+  {
+    "term": "anzeigen",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 68
+  },
+  {
+    "term": "figma",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 51
+  },
+  {
+    "term": "researcher",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 51
+  },
+  {
+    "term": "gute",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 51
+  },
+  {
+    "term": "erfolgreich",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "abgeschlossene",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "steuerfachangestellten",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "kaufmännische",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "einige",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "jahre",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "berufserfahrung",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "einer",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "steuerkanzlei",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "betrieblichen",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "rechnungswesen",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "nach",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "auch",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "wiedereinsteiger",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "datev",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "senior",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "übernimmst",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "weiterentwicklung",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "umsetzung",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 32
+  },
+  {
+    "term": "deren",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "user",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 41
+  },
+  {
+    "term": "ux-designer",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "design-verantwortung",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "unserer",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 23
+  },
+  {
+    "term": "digitalen",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 19
+  },
+  {
+    "term": "kunden-",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "kandidaten-services",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "konzepterstellung",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "entwirfst",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "innovative",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "nutzerzentrierte",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "design-lösungen",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "verantwortlich",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "berufserfahrung",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "empfang",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "kasse",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "wünschenswert",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "jedoch",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "nicht",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "voraussetzung",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "gepflegtes",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "erscheinungsbild",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "einfühlungsvermögen",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "belange",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "unserer",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "gäste",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "bieten",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "überdurchschnittliche",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "monatliche",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "entlohnung",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "klasse",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "team",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "monatlich",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 17
+  },
+  {
+    "term": "innen",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 118
+  },
+  {
+    "term": "hast",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 64
+  },
+  {
+    "term": "ihrem",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 64
+  },
+  {
+    "term": "linkedin",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 48
+  },
+  {
+    "term": "prozesse",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 32
+  },
+  {
+    "term": "it-lösungen",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 32
+  },
+  {
+    "term": "digitalisierung",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 30
+  },
+  {
+    "term": "arbeitsprozesse",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 32
+  },
+  {
+    "term": "begleitest",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 32
+  },
+  {
+    "term": "implementierung",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 32
+  },
+  {
+    "term": "projekten",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 32
+  },
+  {
+    "term": "arbeitest",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 32
+  },
+  {
+    "term": "bringst",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 32
+  },
+  {
+    "term": "informatik",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 36
+  },
+  {
+    "term": "elektrotechnik",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 30
+  },
+  {
+    "term": "datenbanken",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 30
+  },
+  {
+    "term": "interesse",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 32
+  },
+  {
+    "term": "banking",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 96
+  },
+  {
+    "term": "gegenüber",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 32
+  },
+  {
+    "term": "dich",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 32
+  },
+  {
+    "term": "kund",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 32
+  },
+  {
+    "term": "geschäfts-",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 32
+  },
+  {
+    "term": "betriebsmodelle",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 32
+  },
+  {
+    "term": "services",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 32
+  },
+  {
+    "term": "erste",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 32
+  },
+  {
+    "term": "wirst",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 32
+  },
+  {
+    "term": "assets",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 32
+  },
+  {
+    "term": "huvw",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 16
+  },
+  {
+    "term": "xijdehqehuhlfk",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 16
+  },
+  {
+    "term": "projects",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 80
+  },
+  {
+    "term": "performance",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 80
+  },
+  {
+    "term": "external",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 64
+  },
+  {
+    "term": "manage",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 64
+  },
+  {
+    "term": "good",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 64
+  },
+  {
+    "term": "quality",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 48
+  },
+  {
+    "term": "website",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 48
+  },
+  {
+    "term": "management",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 48
+  },
+  {
+    "term": "content",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 48
+  },
+  {
+    "term": "site",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 48
+  },
+  {
+    "term": "from",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 48
+  },
+  {
+    "term": "lingoda",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 48
+  },
+  {
+    "term": "america",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 30
+  },
+  {
+    "term": "asia",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 21
+  },
+  {
+    "term": "pacific",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 14
+  },
+  {
+    "term": "europe",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 7
+  },
+  {
+    "term": "australia",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "africa",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 5
+  },
+  {
+    "term": "workday",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "atlantic",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "english",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "please",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "cairo",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "pago",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "tina",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "nederlands",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "suomi",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "fran",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "canada",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "french",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "german",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "magyar",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "alle",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "stellen",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "anzeigen",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "software",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "developer",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 14
+  },
+  {
+    "term": "festanstellung",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "voll-",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "teilzeit",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 55
+  },
+  {
+    "term": "frontend-webentwickler",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "schwerpunkt",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "vollzeit",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 108
+  },
+  {
+    "term": "biebergemünd",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 56
+  },
+  {
+    "term": "headquarter",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 54
+  },
+  {
+    "term": "hospitality",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 24
+  },
+  {
+    "term": "marketing",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 22
+  },
+  {
+    "term": "alea",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 22
+  },
+  {
+    "term": "strauss",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 22
+  },
+  {
+    "term": "resort",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 20
+  },
+  {
+    "term": "service",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 16
+  },
+  {
+    "term": "freigericht",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 16
+  },
+  {
+    "term": "retail",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 14
+  },
+  {
+    "term": "workwearstore",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 14
+  },
+  {
+    "term": "smart",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 14
+  },
+  {
+    "term": "factory",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 14
+  },
+  {
+    "term": "mitarbeiter",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 10
+  },
+  {
+    "term": "auch",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 10
+  },
+  {
+    "term": "dich",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 14
+  },
+  {
+    "term": "bieten",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "langfristige",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "perspektive",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "wachsen",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "kontinuierlich",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "unseren",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "kollegen",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "karriere-perspektive",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "design",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 5
+  },
+  {
+    "term": "designs",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "with",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "interactive",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "create",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "visual",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "salesforce",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "team",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "creating",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "accompany",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "work",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "system",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "libraries",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "linkedin",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "prepare",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "execute",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "activities",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "stakeholder",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "workshops",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "vergleichbar",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "fastapi",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "docker",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "kubernetes",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "kommunikationsstärke",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 8
+  },
+  {
+    "term": "java",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "framework",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "jenkins",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "gitlab",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "digital",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 5
+  },
+  {
+    "term": "lidl",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "usability",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "sich",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "expert",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "neckarsulm",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "experience",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "werde",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "conversion",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "eams",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "alle",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "ouchpoints",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "unsere",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "unter",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "unserem",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "region",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "sowohl",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "gegenüber",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "jobs",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "process",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "qualifications",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "verantwortest",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "time",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "ms-office-programmen",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "konsequente",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "dann",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "kenntnis",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "bewerber",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "haben",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "service",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "sowie",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "porsche",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "austria",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "gesellschaft",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "produktmanager",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "strategie",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "salzburg",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "deiner",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "österreich",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "feste",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "anstellung",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "erschienen",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "woche",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "interessiert",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "wissen",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "dein",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "einsatz",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "wichtig",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "arbeiten",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "testfälle",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 12
+  },
+  {
+    "term": "umfeld",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 12
+  },
+  {
+    "term": "testpläne",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "erstellst",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "selbstständig",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "erstellung",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "automatisierter",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "tests",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "selbstverständlich",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "durchführen",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "manueller",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "abstimmung",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "entwicklungsteam",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "anderen",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "tester",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "gehört",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "projektmanagement",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 14
+  },
+  {
+    "term": "adesso",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 8
+  },
+  {
+    "term": "vergleichbare",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "umgang",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "unser",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "associate-",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "project",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "strategisches",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "genders",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "arbeitgeber-website",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "positionen",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "zeichnen",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "sich",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "durch",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "erfolgreich",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "abgeschlossene",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "betriebswirtschaftliche",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "mathematische",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "ausbildung",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "planen",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "development",
+    "role": "Software Engineer",
+    "context": "segmented",
+    "count": 71
+  },
+  {
+    "term": "post",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "return",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "search",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "result",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "designer",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "blume2000",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "bewertungen",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "norderstedt",
+    "role": "Project Manager",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "deutschland",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 56
+  },
+  {
+    "term": "deloitte",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "kundenservice",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "manager",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "monitor",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "kunden",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 2
+  },
+  {
+    "term": "customer",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "strategy",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "transformation",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "spannende",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "aufgaben",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "erwarten",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "dich",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "arbeitest",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "partnern",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "zusammen",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "betreibst",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "domain",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 18
+  },
+  {
+    "term": "example",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 11
+  },
+  {
+    "term": "this",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 7
+  },
+  {
+    "term": "documentation",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 7
+  },
+  {
+    "term": "examples",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 7
+  },
+  {
+    "term": "without",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 7
+  },
+  {
+    "term": "needing",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 7
+  },
+  {
+    "term": "permission",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 7
+  },
+  {
+    "term": "avoid",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 7
+  },
+  {
+    "term": "operations",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 7
+  },
+  {
+    "term": "learn",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 7
+  },
+  {
+    "term": "more",
+    "role": "Unbekannt",
+    "context": "segmented",
+    "count": 7
+  },
+  {
+    "term": "jobs",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 432
+  },
+  {
+    "term": "vorstellungsgespräch",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 34
+  },
+  {
+    "term": "nach",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 35
+  },
+  {
+    "term": "finden",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 25
+  },
+  {
+    "term": "bewerbung",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 16
+  },
+  {
+    "term": "lebenslauf",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 9
+  },
+  {
+    "term": "suchen",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 19
+  },
+  {
+    "term": "gehalt",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 9
+  },
+  {
+    "term": "login",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 10
+  },
+  {
+    "term": "menu",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 10
+  },
+  {
+    "term": "schritt",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 10
+  },
+  {
+    "term": "aktiv",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 10
+  },
+  {
+    "term": "neuen",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 10
+  },
+  {
+    "term": "mehr",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 10
+  },
+  {
+    "term": "verdienen",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 10
+  },
+  {
+    "term": "verkäufer",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 8
+  },
+  {
+    "term": "quereinsteiger",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 6
+  },
+  {
+    "term": "management",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 5
+  },
+  {
+    "term": "manager",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 5
+  },
+  {
+    "term": "fahrzeugglas",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "bürokraft",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "servicemitarbeiter",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "gebrauchtwagenankauf",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "filialverantwortlicher",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "kfz-monteur",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "vertretung",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "ersten",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "kraft",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "kundenservice",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "verraten",
+    "role": "Architect",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "verkäufer",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 7
+  },
+  {
+    "term": "fahrzeugglas",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "quereinsteiger",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "bürokraft",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "servicemitarbeiter",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "gebrauchtwagenankauf",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "filialverantwortlicher",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 4
+  },
+  {
+    "term": "kfz-monteur",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "teilzeit",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "vertretung",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "ersten",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "kraft",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "kundenservice",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "postbote",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "zusteller",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "pakete",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "briefe",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "fachkraft",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "technischer",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "mitarbeiter",
+    "role": "Consultant",
+    "context": "segmented",
+    "count": 3
+  },
+  {
+    "term": "suchen",
+    "role": "Assistenz & Office",
+    "context": "segmented",
+    "count": 1
+  },
+  {
+    "term": "assistenz",
+    "role": "Assistenz & Office",
+    "context": "segmented",
+    "count": 1
+  }
+]

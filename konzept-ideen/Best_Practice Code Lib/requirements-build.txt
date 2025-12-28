@@ -1,0 +1,13 @@
+# requirements-build.txt (Schwere Pakete)
+spacy                               # Das größte NLP-Paket
+sentence-transformers               # Semantisches Matching
+scikit-learn                        # ML-Metriken
+python-Levenshtein                  # Fuzzy-Matching
+
+# Komplexe Parser (OCR und PDF-Heavy-Lifting)
+PyMuPDF==1.23.2                     # fitz - Schnelle PDF-Extraktion
+pdf2image                           # PDF/Bild-Konvertierung
+pytesseract                         # OCR-Engine
+
+# DB-Treiber
+mysqlclient                         # MySQL-Treiber für STRATO

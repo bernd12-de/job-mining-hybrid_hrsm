@@ -1,0 +1,9 @@
+filename,company,role,location,tools_raw,tools_norm,tools_types,methods_raw,methods_norm,methods_types,frameworks,soft_skills,experience_years,languages,platforms,raw_text_chars
+nttdata_ucd_consultant.txt,NTT DATA Services,"ser-Centered Design Consultant in Bloomington, IL, United States.
+Serves as UCD consu",Bloomington,sketch; axure; salesforce; salesforce lightning,sketch; axure; salesforce; salesforce lightning,Design Tool; Prototyping Tool; Platform; Platform,prototyping; wireframes; design thinking; ucd,prototyping; wireframes; design thinking; ucd,UX Method; UX Deliverable; UX Method; UX Method,,,3+ years,,,537
+avanade_ux_architect.txt,,"Als User Experience Architect (Frankfurt) übersetzen Sie Nutzerbedürfnisse in sinnvolle Nutzererfahrungen.
+Sie erstelle",Frankfurt,,,,wireframes; personas; user stories; user centered design; ucd,wireframes; personas; user stories; user centered design; ucd,UX Deliverable; UX Deliverable; Product Method; UX Method; UX Method,agile,,,,,361
+porsche_ui_designer.txt,Porsche Digital,"rsche Digital sucht UI Designer (San Francisco). Erstellen von Rapid Prototypes, User Stories, Concept Sketches, Storyboar",San Francisco,sketch; photoshop; framer; jira,sketch; photoshop; framer; jira,Design Tool; Design Tool; Prototyping Tool; Project Tool,user stories; storyboards,user stories; storyboards,Product Method; UX Deliverable,,,4+ years,,mobile; wearable; in-car,301
+finleap_senior_ux_researcher.txt,FinLeap,"inLeap sucht Senior UX Researcher (Berlin). Aufbau eines UX Labs. Entwickle Research-Strategien.
+Führe Interviews du",Berlin,,,,ux research; card sorting,ux research; card sorting,UX Method; Research Method,,,,Deutsch,,288
+sportscheck_ux_manager.txt,,Usability/UX Manager (Unterhaching/München). Verantwortest Weiterentwicklung von Prozessen der Webshops & Apps.,Unterhaching,,,,journey mapping; user journey mapping,journey mapping; user journey mapping,UX Method; UX Method,scrum; agile,,2 Jahre,,,348

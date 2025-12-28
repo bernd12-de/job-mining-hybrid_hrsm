@@ -1,0 +1,12 @@
+{
+  "job_id": null,
+  "title": "Titel: Senior Software Entwickler",
+  "job_role": "Software Engineer",
+  "region": "Deutschland",
+  "industry": "Finanzen",
+  "posting_date": "2024-01-01",
+  "raw_text": "Titel: Senior Software Entwickler (m/w/d)\nStandort: Wiesbaden\n\nIhre Aufgaben:\n* Entwicklung von Python Backends mit FastAPI.\n* Anbindung von PostgreSQL Datenbanken.\n\nIhr Profil:\n* Erfahrung mit NLP und Spacy.\n* Kenntnisse in Kotlin und Spring Boot.\n* Teamfähigkeit und Motivation.\n",
+  "raw_text_hash": "fbee8602e698341afcfde6961b833812e801d00adda7492cab4dc25fec3b25e1",
+  "is_segmented": true,
+  "competences": []
+}

@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/job-mining-kotlin-python.iml" filepath="$PROJECT_DIR$/.idea/job-mining-kotlin-python.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/kotlin-api.test.iml" filepath="$PROJECT_DIR$/.idea/modules/kotlin-api.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/python-backend/python-backend.iml" filepath="$PROJECT_DIR$/python-backend/python-backend.iml" />
     </modules>
   </component>

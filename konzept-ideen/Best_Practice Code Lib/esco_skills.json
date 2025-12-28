@@ -1,0 +1,28 @@
+{
+  "skills": [
+    {
+      "preferredLabel": "Python",
+      "category": "Programming",
+      "skillType": "language",
+      "conceptUri": "http://data.europa.eu/esco/skill/python-001",
+      "code": "PY001",
+      "altLabels": ["Python Programming", "Python Language"]
+    },
+    {
+      "preferredLabel": "JavaScript",
+      "category": "Programming",
+      "skillType": "language",
+      "conceptUri": "http://data.europa.eu/esco/skill/js-001",
+      "code": "JS001",
+      "altLabels": ["JS", "ECMAScript"]
+    },
+    {
+      "preferredLabel": "SQL",
+      "category": "Database",
+      "skillType": "language",
+      "conceptUri": "http://data.europa.eu/esco/skill/sql-001",
+      "code": "SQL001",
+      "altLabels": ["Structured Query Language"]
+    }
+  ]
+}

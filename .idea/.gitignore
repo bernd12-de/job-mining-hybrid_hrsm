@@ -8,3 +8,30 @@
 /dataSources.local.xml
 # Editor-based HTTP Client requests
 /httpRequests/
+#intellij
+# IntelliJ
+.idea/
+*.iml
+
+# Kotlin / Gradle
+build/
+out/
+.gradle/
+
+# Spring Boot
+logs/
+*.log
+
+# Python
+__pycache__/
+*.pyc
+python-backend/.venv/
+python-backend/venv/
+.env
+
+# OS
+.DS_Store
+
+# docker
+*.pid
+/dataSources.xml
