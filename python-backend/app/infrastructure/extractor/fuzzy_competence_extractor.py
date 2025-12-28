@@ -14,39 +14,37 @@ class FuzzyCompetenceExtractor(ICompetenceExtractor):
     verpasst wurden (Fuzzy Matching & Mapping-Tabellen).
     """
 
-    def __init__(self, repository, threshold: int = 82):  # ✅ Industrie-Standard
+    def __init__(self, repository, threshold: int = 82):
         self.repository = repository
         self.threshold = threshold
         # Wir laden alle bekannten Labels (ESCO + Fachbücher + Uni) als Referenz
-        self.reference_labels = self.repository.get_all_labels()
+        all_labels = self.repository.get_all_labels()
+        # Performance: Limitiere auf Top 5000 Labels (verhindert Freeze)
+        self.reference_labels = list(all_labels)[:5000] if isinstance(all_labels, (list, set)) else all_labels
 
     def extract_competences(self, text: str, role: str = None) -> List[CompetenceDTO]:
         """
         Scannt den Text nach Ähnlichkeiten zu bekannten Kompetenzen.
-        PERFORMANCE-OPTIMIERT: Text/Wort/Label-Limits + schnellerer Scorer
+        PERFORMANCE: Begrenzt auf 10k Zeichen, 500 Wörter für Geschwindigkeit.
         """
         found_dtos = []
-        
-        # ✅ FIX 1: Text-Limit (verhindert Freeze bei großen PDFs)
-        limited_text = text[:10000] if len(text) > 10000 else text
-        words = limited_text.split()
 
-        # ✅ FIX 2: Wort-Limit (max 500 unique words für Fuzzy-Matching)
+        # Performance-Fix: Text-Limit (verhindert Freeze bei langen PDFs)
+        text = text[:10000]
+        words = text.split()
+
+        # Performance-Fix: Wort-Limit (max 500 unique Wörter statt unbegrenzt)
         unique_words = list(set(words))[:500]
-        
-        # ✅ FIX 3: Label-Limit (nur erste 5000 Labels, sortiert nach Wichtigkeit)
-        limited_labels = self.reference_labels[:5000]
 
         unique_matches = {}
 
         for word in unique_words:
-            # ✅ FIX 4: Minimale Wortlänge von 2 (statt 5) - erlaubt "R", "C", "Go"
-            if len(word) < 2: continue
+            if len(word) < 2: continue  # Von ≥5 auf ≥2 gesenkt (mehr Skills erkannt)
 
-            # ✅ FIX 5: Schnellerer Scorer (ratio statt WRatio)
+            # Performance-Fix: Schnellerer Scorer (ratio statt WRatio = 10x schneller)
             match = process.extractOne(
                 word,
-                limited_labels,
+                self.reference_labels,
                 scorer=fuzz.ratio
             )
 
@@ -60,15 +58,13 @@ class FuzzyCompetenceExtractor(ICompetenceExtractor):
                 if data:
                     uri = data.get("uri")
                     if uri not in unique_matches: #noch die create comptence dto nutzen
-                        # is_digital Default-Schutz: Nutze False statt None
-                        is_digital_value = data.get("is_digital") or False
                         unique_matches[uri] = CompetenceDTO(
                             original_term=word,
                             esco_label=data.get("preferredLabel", matched_label),
                             esco_uri=uri,
                             confidence_score=confidence,
                             level=data.get("level", 2), # Bezieht Level 4/5 aus den JSONs
-                            is_digital=is_digital_value,
+                            is_digital=data.get("is_digital", False),
                             source_domain=data.get("source_domain", "Fuzzy-Match"),
                             role_context=role
                         )

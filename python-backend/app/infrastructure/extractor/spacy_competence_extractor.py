@@ -1,6 +1,3 @@
-import os
-import time
-import logging
 import spacy
 from spacy.matcher import PhraseMatcher
 from typing import List, Optional
@@ -9,8 +6,6 @@ from app.domain.models import CompetenceDTO
 # NEU: Importiere die Factory statt den Manager
 from app.application.factories.analysis_result_factory import AnalysisResultFactory
 from app.interfaces.interfaces import ICompetenceExtractor
-
-logger = logging.getLogger(__name__)
 
 class SpaCyCompetenceExtractor(ICompetenceExtractor):
 
@@ -60,26 +55,6 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
             if not is_package(MODEL_NAME):
                 spacy.cli.download(MODEL_NAME)
             self.nlp = spacy.load(MODEL_NAME)
-        
-        # ✅ BEST PRACTICE: Disable unused pipes for faster processing
-        # We only need tokenizer + PhraseMatcher, not tagger/parser/ner
-        disabled_pipes = []
-        for pipe_name in ['tagger', 'parser', 'ner']:
-            if pipe_name in self.nlp.pipe_names:
-                disabled_pipes.append(pipe_name)
-        
-        if disabled_pipes:
-            self.nlp.disable_pipes(*disabled_pipes)
-            logger.info(f"⚡ spaCy Performance: Disabled pipes {disabled_pipes}")
-
-        # ✅ Modell- und Pipeline-Infos einmalig loggen
-        try:
-            model_name = getattr(self.nlp, 'meta', {}).get('name', MODEL_NAME)
-            model_version = getattr(self.nlp, 'meta', {}).get('version', 'unknown')
-            logger.info(f"🧠 spaCy Model: {model_name} v{model_version}")
-            logger.info(f"🧩 Active pipes: {list(self.nlp.pipe_names)}")
-        except Exception:
-            pass
 
         # Kompatibilitäts-Alias: 'extract' wird in der Pipeline erwartet
         def _extract_alias(doc_or_text):
@@ -96,44 +71,18 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
         # Patterns aus dem Repository laden (SSoT)
         labels = self.repository.get_all_identifiable_labels()
         if labels:
-            # Nur Labels verwenden, die mindestens 2 Zeichen sind und keine zu generischen Wörter sind
-            generic_words = {
-                # Deutsche Stopwords
-                'und', 'oder', 'der', 'die', 'das', 'den', 'des', 'dem', 'ein', 'eine', 'einen', 
-                'einer', 'einem', 'eines', 'von', 'zu', 'im', 'am', 'ist', 'sind', 'war', 'waren',
-                # Englische Stopwords (verhindert LinkedIn-UI-Extraktion)
-                'the', 'a', 'an', 'of', 'in', 'on', 'at', 'for', 'with', 'is', 'are', 'was', 'were',
-                'be', 'been', 'being', 'our', 'your', 'their', 'this', 'that', 'these', 'those',
-                'to', 'from', 'by', 'as', 'or', 'and', 'but', 'if', 'so', 'we', 'you', 'they',
-                # UI-Fragmente (LinkedIn-Artifact-Prevention)
-                'button', 'click', 'menu', 'link', 'page', 'site', 'firm', 'interaction', 'position'
-            }
-            filtered_labels = [l for l in labels if len(l) >= 2 and l.lower() not in generic_words]  # ✅ Erlaubt R, C, Go
-            
-            # PhraseMatcher Chunking: Verarbeite alle Skills in Batches
-            # spaCy PhraseMatcher hat kein hartes 10k Limit mehr in neueren Versionen,
-            # aber wir chunken trotzdem für bessere Performance
-            CHUNK_SIZE = 5000
-            total_patterns = 0
-            num_chunks = 0
-            for i in range(0, len(filtered_labels), CHUNK_SIZE):
-                chunk = filtered_labels[i:i+CHUNK_SIZE]
-                patterns = [self.nlp.make_doc(l) for l in chunk]
-                # Verwende eindeutige IDs für chunks
-                chunk_id = f"KNOWLEDGE_BASE_{i//CHUNK_SIZE}"
-                self.matcher.add(chunk_id, patterns)
-                total_patterns += len(patterns)
-                num_chunks += 1
-            
-            # ✅ DETAILLIERTES LOGGING (für objektiven Nachweis des Chunking)
-            logger.info(f"✅ spaCy Extractor geladen:")
-            logger.info(f"   📊 Labels total: {len(labels)}")
-            logger.info(f"   🔍 Nach Filter: {len(filtered_labels)}")
-            logger.info(f"   📦 Chunks: {num_chunks}")
-            logger.info(f"   ✅ Patterns geladen: {total_patterns}")
-            logger.info(f"   💡 Chunk-Größe: {CHUNK_SIZE}")
+            # Nur Labels verwenden, die mindestens 3 Zeichen sind und keine zu generischen Wörter sind
+            generic_words = {'und', 'oder', 'der', 'die', 'das', 'den', 'des', 'dem', 'ein', 'eine', 'einen', 
+                           'einer', 'einem', 'eines', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+                           'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'}
+            filtered_labels = [l for l in labels if len(l) >= 3 and l.lower() not in generic_words]
+
+            # Erzeuge Patterns OHNE zu viele Varianten (verhindert Explosionen)
+            patterns = [self.nlp.make_doc(l) for l in filtered_labels[:15000]]  # Erhöht von 10k auf 15k für mehr Skills
+            self.matcher.add("KNOWLEDGE_BASE", patterns)
+            print(f"✅ spaCy Extractor geladen mit {len(patterns)} Begriffen (gefiltert von {len(labels)} Gesamt).")
         else:
-            logger.warning("⚠️ spaCy Extractor Warnung: Repository ist leer!")
+            print("⚠️ spaCy Extractor Warnung: Repository ist leer!")
 
     def extract_competences(self, text: str, role: str = None) -> List[CompetenceDTO]:
         """
@@ -147,22 +96,8 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
         # Role-Context für Gewichtung vorbereiten (Ebene 6: roleContext)
         role_context = role or "Unbekannt"
 
-        # ✅ Konfigurierbares Text-Limit (Default 10k) + Timing
-        try:
-            default_limit = 10000
-            env_limit = os.getenv('SPACY_TEXT_LIMIT')
-            text_limit = int(env_limit) if (env_limit and env_limit.isdigit()) else default_limit
-        except Exception:
-            text_limit = 10000
-
-        # Log Request Start
-        logger.info(f"extract_competences: Input {len(text)}->{text_limit} chars, Role={role_context}")
-        
-        t0 = time.perf_counter()
-        doc = self.nlp(text[:text_limit])
-        t1 = time.perf_counter()
+        doc = self.nlp(text[:100000]) # Limit protection
         matches = self.matcher(doc)
-        t2 = time.perf_counter()
         results = []
         seen = set()
 
@@ -201,7 +136,7 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
             term_lower = term.lower().strip()
 
             # Einfache Filter: zu kurze Tokens oder keine Buchstaben ignorieren
-            if len(term_lower) < 2 or not any(c.isalpha() for c in term_lower):  # ✅ Erlaubt R, C
+            if len(term_lower) < 3 or not any(c.isalpha() for c in term_lower):
                 continue
 
             # Prüfe auf exakten Kandidaten (oder kompakte Variante ohne Leerzeichen)
@@ -308,18 +243,12 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
             except Exception:
                 pass
 
-            # is_digital Default-Schutz: Fallback zu False wenn None
-            try:
-                is_digital_value = self.repository.is_digital_skill(term) or False
-            except Exception:
-                is_digital_value = False
-            
             dto = AnalysisResultFactory.create_competence(
                 original_term=term,
                 esco_label=esco_label,
                 esco_uri=esco_uri,
                 level=self.repository.get_level(term),
-                is_digital=is_digital_value,
+                is_digital=self.repository.is_digital_skill(term),
                 collections=collections,
                 role_context=role_context,  # Nutze vorbereitetete role_context (Ebene 6)
                 confidence=1.0
@@ -331,9 +260,9 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
 
             results.append(dto)
 
-        # ✅ Fallback: Läuft IMMER (nicht nur bei len=0), um zusätzliche Skills zu finden
-        fallback_results = []
-        try:
+        # Fallback: Verwende einfachen Fuzzy/Substrings-Abgleich über n-grams, falls nichts gefunden wurde
+        if not results:
+            try:
                 from rapidfuzz import fuzz
 
                 labels = self.repository.get_all_identifiable_labels()
@@ -420,11 +349,9 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
                                 found = True
                                 break
                             # Fuzzy-Check (strenger Threshold um False-Positives zu vermeiden)
-                            # ✅ FIX: token_set_ratio statt partial_ratio (verhindert Substring-Explosion)
-                            # ✅ FIX: Minimum 40% der Label-Länge (verhindert "ing" matches "Engineering")
-                            if len(joined) >= 4 and len(joined) >= len(label) * 0.4:
-                                score = fuzz.token_set_ratio(joined, norm_label)
-                                if score >= 85:
+                            if len(joined) >= 3:
+                                score = fuzz.partial_ratio(norm_label, joined)
+                                if score >= 90:
                                     dto = AnalysisResultFactory.create_competence(
                                         original_term=' '.join(gram),
                                         esco_label=label,
@@ -440,42 +367,8 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
                                     break
                         if found:
                             break
-        
-                # ✅ Kombiniere Hauptresultate + Fallback
-                results.extend(fallback_results)
-        
-        except Exception:
-            pass
+            except Exception:
+                pass
 
-        # ✅ DAUERHAFTES PERFORMANCE & RESULT LOGGING
-        try:
-            t3 = time.perf_counter()
-            total_time = t3 - t0
-
-            # IMMER loggen (für Debugging & Performance-Tracking)
-            logger.info("=" * 60)
-            logger.info("📊 EXTRACTION REPORT:")
-            logger.info(f"   📄 Input: {len(text)} chars (limit: {text_limit})")
-            logger.info(f"   🎯 Role: {role_context}")
-            logger.info(f"   🧩 Tokens: {len(doc)}")
-            logger.info(f"   🧷 Matcher Hits: {len(matches)}")
-            logger.info(f"   ✅ Results: {len(results)} competences")
-            logger.info(f"   🔍 Unique: {len(seen)} (Deduplicated)")
-            logger.info(f"   ⏱️  Total Time: {total_time:.3f}s")
-            logger.info(f"   ⚡ Breakdown: nlp={t1-t0:.3f}s | match={t2-t1:.3f}s | post={t3-t2:.3f}s")
-
-            # WARNUNG bei zu vielen Kompetenzen (Performance-Problem!)
-            if len(results) > 100:
-                logger.warning(f"⚠️  PERFORMANCE WARNING: {len(results)} competences extracted (expected: 20-50)")
-                logger.warning(f"   → Possible cause: Fuzzy matching too aggressive or duplicates not filtered")
-
-            # WARNUNG bei langsamer Verarbeitung
-            if total_time > 5.0:
-                logger.warning(f"⚠️  SLOW EXTRACTION: {total_time:.1f}s (expected: <2s)")
-                logger.warning(f"   → Check text length ({len(text)} chars) and matcher patterns ({len(matches)} hits)")
-
-        except Exception as e:
-            logger.error(f"Error in logging: {e}")
-
-        logger.info("=" * 60)
+        return results
         return results
