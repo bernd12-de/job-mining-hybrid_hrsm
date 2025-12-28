@@ -1,7 +1,8 @@
 import json
 import os
+import re
 import requests
-from typing import List, Dict, Set
+from typing import List, Dict, Set, Optional, Any, Pattern
 
 # Imports
 from app.interfaces.interfaces import ICompetenceRepository
@@ -41,6 +42,9 @@ class HybridCompetenceRepository(ICompetenceRepository):
         self._labels_cache: List[str] = None
         self._identifiable_labels_cache: List[str] = None
 
+        # ✅ PERFORMANCE: Pre-compile regex patterns für digital skills
+        self._digital_patterns = self._compile_digital_patterns()
+
         # Initial laden
         self._load_data()
         # Baue Index für schnellen Lookup
@@ -57,7 +61,27 @@ class HybridCompetenceRepository(ICompetenceRepository):
         self._load_custom_skills()
         self._load_dynamic_blacklist()
 
-    def _load_digital_skills(self):
+    def _compile_digital_patterns(self) -> List[Pattern]:
+        """Pre-kompiliert Regex-Patterns für digitale Skills (Performance-Optimierung)."""
+        digital_keywords = [
+            'software', 'digital', 'programm', 'data science', 'daten',
+            'cloud', 'machine learning', 'python', 'java', 'javascript',
+            'c++', 'c#', 'ruby', 'php', 'swift', 'kotlin', 'typescript',
+            'api', 'rest', 'graphql', 'microservices', 'backend', 'frontend',
+            'database', 'datenbank', 'nosql', 'mongodb', 'postgresql',
+            'web development', 'mobile development', 'app development',
+            'coding', 'automation', 'automatisierung', 'agile', 'scrum',
+            'devops', 'sap', 'erp', 'crm', 'excel', 'power bi', 'tableau',
+            'sql', 'html', 'css', 'react', 'angular', 'vue', 'docker',
+            'kubernetes', 'aws', 'azure', 'gcp', 'ki ', 'ai '
+        ]
+
+        return [
+            re.compile(r'\b' + re.escape(kw.strip()) + r'\b', re.IGNORECASE)
+            for kw in digital_keywords
+        ]
+
+    def _load_digital_skills(self) -> None:
         """Markiert Skills aus ESCO 'digital' Collection als digital."""
         digital_uri = "http://data.europa.eu/esco/concept-scheme/digital"
         count = 0
@@ -68,21 +92,31 @@ class HybridCompetenceRepository(ICompetenceRepository):
                     count += 1
         print(f"✅ {count} digitale Skills aus ESCO Collections markiert.")
 
-    def _load_data(self):
+    def _load_data(self) -> None:
         """Holt Daten von Kotlin mit Caching. FIX: Tolerant gegen fehlende Keys."""
         cache_manager = get_cache_manager()
         cache_key = "esco_data_from_kotlin"
 
         # ✅ OPTIMIZATION: Versuche aus Cache zu laden (max 24h alt)
-        def fetch_from_kotlin():
+        def fetch_from_kotlin() -> Optional[List[Dict[str, Any]]]:
             """Helper: Lädt Daten frisch von Kotlin"""
             try:
                 # URL holen oder Default
                 base_url = getattr(self.rule_client, 'base_url', 'http://kotlin-api:8080')
+
+                # SSRF Protection: Validiere URL
+                from urllib.parse import urlparse
+                parsed = urlparse(base_url)
+                allowed_hosts = {'kotlin-api', 'localhost', '127.0.0.1'}
+
+                if parsed.hostname and parsed.hostname not in allowed_hosts:
+                    print(f"❌ Sicherheitsfehler: Host nicht erlaubt: {parsed.hostname}")
+                    return None
+
                 endpoint = f"{base_url}/api/v1/rules/esco-full"
 
                 print(f"📡 Lade ESCO-Daten von {endpoint}...")
-                response = requests.get(endpoint, timeout=15)
+                response = requests.get(endpoint, timeout=15, verify=True, allow_redirects=False)
                 print(f"   -> HTTP-Status: {response.status_code}")
 
                 if response.status_code == 200:
@@ -154,7 +188,7 @@ class HybridCompetenceRepository(ICompetenceRepository):
 
         print(f"✅ {count} Skills erfolgreich geladen (aus Cache oder Kotlin).")
 
-    def _load_custom_skills(self):
+    def _load_custom_skills(self) -> None:
         if os.path.exists(self.CUSTOM_JSON_PATH):
             try:
                 with open(self.CUSTOM_JSON_PATH, 'r', encoding='utf-8') as f:
@@ -171,7 +205,7 @@ class HybridCompetenceRepository(ICompetenceRepository):
             except Exception as e:
                 print(f"⚠️ Custom Skills Fehler: {e}")
 
-    def _load_data_from_local_esco(self):
+    def _load_data_from_local_esco(self) -> None:
         """Lädt ESCO-Daten aus lokalen CSV-Dateien im Ordner `data/esco` als Fallback.
         Erwartet Spalten: preferredLabel, conceptUri oder conceptUri/skillType
         """
@@ -194,10 +228,11 @@ class HybridCompetenceRepository(ICompetenceRepository):
                     added += 1
         print(f"✅ Lokaler ESCO-Fallback: {added} Begriffe geladen.")
 
-    def _load_dynamic_blacklist(self):
+    def _load_dynamic_blacklist(self) -> None:
         try:
             self._blacklist = self.rule_client.fetch_blacklist()
-        except:
+        except (AttributeError, ConnectionError, TimeoutError, Exception) as e:
+            print(f"⚠️ Blacklist konnte nicht geladen werden: {e}")
             self._blacklist = set()
 
     # Interface Implementierung
@@ -492,24 +527,10 @@ class HybridCompetenceRepository(ICompetenceRepository):
             if self.esco_data[t].get('is_digital', False):
                 return True
         
-        # 2) Keyword-basierte Heuristik für digitale Skills
-        # WICHTIG: Verwende Wortgrenzen, um False Positives zu vermeiden
-        digital_keywords = [
-            'software', 'digital', 'programm', 'data science', 'daten',
-            'cloud', 'machine learning', 'python', 'java', 'javascript',
-            'web', 'cyber', 'algorithmus', 'api', 'datenbank', 'database',
-            'coding', 'automation', 'automatisierung', 'agile', 'scrum',
-            'devops', 'sap', 'erp', 'crm', 'excel', 'power bi', 'tableau',
-            'sql', 'html', 'css', 'react', 'angular', 'vue', 'docker',
-            'kubernetes', 'aws', 'azure', 'gcp', 'ki ', 'ai '
-        ]
-        
-        # Verwende Wortgrenzen für genauere Erkennung
-        import re
-        for keyword in digital_keywords:
-            # Exakte Matches mit Wortgrenzen
-            pattern = r'\b' + re.escape(keyword.strip()) + r'\b'
-            if re.search(pattern, t):
+        # 2) Keyword-basierte Heuristik für digitale Skills (mit pre-compiled patterns)
+        # PERFORMANCE: Patterns wurden in __init__ vorkompiliert
+        for pattern in self._digital_patterns:
+            if pattern.search(t):
                 return True
         
         # 3) Substring-Match in bekannten digitalen ESCO Skills
