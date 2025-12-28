@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch-Progress Live Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .progress-section {
+            margin-bottom: 30px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+        
+        .status-badge.idle {
+            background: #e0e0e0;
+            color: #666;
+        }
+        
+        .status-badge.running {
+            background: #4CAF50;
+            color: white;
+            animation: pulse 1s infinite;
+        }
+        
+        .status-badge.completed {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .status-badge.cancelled {
+            background: #f44336;
+            color: white;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .progress-bar-container {
+            background: #f0f0f0;
+            border-radius: 10px;
+            height: 12px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+        
+        .info-item {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 6px;
+        }
+        
+        .info-label {
+            color: #666;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .info-value {
+            color: #333;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        
+        .current-file {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+        
+        .current-file-label {
+            color: #856404;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .current-file-name {
+            color: #333;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+        }
+        
+        .progress-visual {
+            font-size: 16px;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-start {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-start:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-start:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-stop {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-stop:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(244, 67, 54, 0.3);
+        }
+        
+        .btn-stop:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .stat {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 11px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        
+        .stat-value {
+            color: #333;
+            font-size: 18px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .eta {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+        
+        .eta-label {
+            color: #1565c0;
+            font-weight: 600;
+        }
+        
+        .eta-value {
+            color: #333;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .log {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            margin-top: 20px;
+        }
+        
+        .log-entry {
+            color: #666;
+            margin-bottom: 6px;
+            word-break: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Batch-Progress Live</h1>
+        <p class="subtitle">Asynchrone Batch-Verarbeitung mit SSE-Streaming (kein Browser-Freeze)</p>
+        
+        <div class="progress-section">
+            <div class="status-badge idle" id="statusBadge">Idle</div>
+            
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-label">Bearbeitet</div>
+                    <div class="stat-value"><span id="processed">0</span>/<span id="total">0</span></div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Prozent</div>
+                    <div class="stat-value"><span id="percentage">0</span>%</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Fehler</div>
+                    <div class="stat-value"><span id="failed">0</span>/<span id="skipped">0</span></div>
+                </div>
+            </div>
+            
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            
+            <div class="progress-visual" id="progressVisual">░░░░░░░░░░</div>
+            
+            <div class="current-file" id="currentFileContainer" style="display: none;">
+                <div class="current-file-label">📄 Bearbeite gerade:</div>
+                <div class="current-file-name" id="currentFile"></div>
+            </div>
+            
+            <div class="eta" id="etaContainer" style="display: none;">
+                <div class="eta-label">⏱️ Geschätzte verbleibende Zeit:</div>
+                <div class="eta-value" id="etaValue">-- min --</div>
+            </div>
+            
+            <div class="progress-info">
+                <div class="info-item">
+                    <div class="info-label">Start:</div>
+                    <div class="info-value" id="startTime">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Ende:</div>
+                    <div class="info-value" id="endTime">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="buttons">
+            <button class="btn-start" id="startBtn" onclick="startBatch()">▶ Starten</button>
+            <button class="btn-stop" id="stopBtn" onclick="stopBatch()" disabled>⏹ Stoppen</button>
+        </div>
+        
+        <div class="log" id="log"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api/v1/jobs';
+        let eventSource = null;
+        let isRunning = false;
+
+        function log(msg) {
+            const logEl = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            logEl.appendChild(entry);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        async function startBatch() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            
+            log('🚀 Batch gestartet...');
+            
+            try {
+                // 1. POST /batch-analyze (startet async)
+                const response = await fetch(`${API_BASE}/batch-analyze`, {
+                    method: 'POST'
+                });
+                
+                if (!response.ok) {
+                    log('❌ Fehler beim Start: ' + response.statusText);
+                    isRunning = false;
+                    return;
+                }
+                
+                log('✅ Server hat Batch angenommen, verbinde zu Progress-Stream...');
+                
+                // 2. GET /batch-progress-stream (SSE)
+                connectToStream();
+                
+            } catch (e) {
+                log('❌ Fehler: ' + e.message);
+                isRunning = false;
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+            }
+        }
+
+        function connectToStream() {
+            eventSource = new EventSource(`${API_BASE}/batch-progress-stream`);
+            
+            eventSource.addEventListener('progress', (e) => {
+                const data = JSON.parse(e.data);
+                updateUI(data);
+            });
+            
+            eventSource.addEventListener('completed', (e) => {
+                const data = JSON.parse(e.data);
+                updateUI(data);
+                log('✅ Batch abgeschlossen!');
+                eventSource.close();
+                isRunning = false;
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+            });
+            
+            eventSource.onerror = (e) => {
+                if (eventSource.readyState === EventSource.CLOSED) {
+                    log('⚠️ Stream geschlossen');
+                } else {
+                    log('❌ Stream-Fehler: ' + e.message);
+                }
+                eventSource.close();
+                isRunning = false;
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+            };
+        }
+
+        function updateUI(data) {
+            // Status
+            const badge = document.getElementById('statusBadge');
+            badge.className = 'status-badge ' + (data.status || 'idle');
+            badge.textContent = data.status.toUpperCase();
+            
+            // Progress
+            document.getElementById('processed').textContent = data.processed || 0;
+            document.getElementById('total').textContent = data.total || 0;
+            document.getElementById('percentage').textContent = data.percentage || 0;
+            
+            // Bar
+            const bar = document.getElementById('progressBar');
+            bar.style.width = (data.percentage || 0) + '%';
+            
+            // Visual
+            const filled = Math.round((data.percentage || 0) / 10);
+            const empty = 10 - filled;
+            document.getElementById('progressVisual').textContent = 
+                '█'.repeat(filled) + '░'.repeat(empty) + ' ' + (data.percentage || 0) + '%';
+            
+            // Fehler/Skipped
+            document.getElementById('failed').textContent = data.failed_count || 0;
+            document.getElementById('skipped').textContent = data.skipped_count || 0;
+            
+            // Current file
+            if (data.current_file) {
+                document.getElementById('currentFileContainer').style.display = 'block';
+                document.getElementById('currentFile').textContent = data.current_file;
+            }
+            
+            // ETA
+            if (data.estimated_seconds_remaining > 0) {
+                const mins = Math.floor(data.estimated_seconds_remaining / 60);
+                const secs = data.estimated_seconds_remaining % 60;
+                document.getElementById('etaContainer').style.display = 'block';
+                document.getElementById('etaValue').textContent = 
+                    `${mins} min ${Math.round(secs)} sec`;
+            }
+            
+            // Times
+            if (data.startedAt) {
+                document.getElementById('startTime').textContent = 
+                    new Date(data.startedAt).toLocaleTimeString();
+            }
+            if (data.finishedAt) {
+                document.getElementById('endTime').textContent = 
+                    new Date(data.finishedAt).toLocaleTimeString();
+            }
+        }
+
+        async function stopBatch() {
+            if (!isRunning) return;
+            
+            log('⏹️ Sende Stop-Signal...');
+            
+            try {
+                const response = await fetch(`${API_BASE}/batch-progress`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                if (response.ok) {
+                    log('✅ Batch gestoppt: ' + result.message);
+                } else {
+                    log('⚠️ ' + result.error);
+                }
+                
+                if (eventSource) {
+                    eventSource.close();
+                }
+                isRunning = false;
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+            } catch (e) {
+                log('❌ Fehler beim Stoppen: ' + e.message);
+            }
+        }
+
+        // Initial UI
+        log('📝 Demo bereit. Klicke "Starten" um Batch-Verarbeitung zu beginnen.');
+    </script>
+</body>
+</html>

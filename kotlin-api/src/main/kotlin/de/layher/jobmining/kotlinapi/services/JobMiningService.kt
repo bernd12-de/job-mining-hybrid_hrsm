@@ -178,7 +178,8 @@ class JobMiningService(
     }
 
     /**
-     * Asynchrone Batch-Verarbeitung mit einfachem Fortschritts-Tracking.
+     * Asynchrone Batch-Verarbeitung mit erweitertem Fortschritts-Tracking,
+     * Cancellation-Support und detaillierter Fehler/Skipped-Zählung.
      */
     @org.springframework.scheduling.annotation.Async
     fun processJobDirectoryBatchAsync(progress: BatchProgressService) {
@@ -194,39 +195,69 @@ class JobMiningService(
             val jobPostingsToSave = mutableListOf<JobPosting>()
             val seenHashesInBatch = mutableSetOf<String>()
             var processedCount = 0
+            var failedCount = 0
+            var skippedCount = 0
 
             resultsDto.forEach { resultDto ->
+                // 🛑 CANCELLATION CHECK
+                if (progress.isCancellationRequested()) {
+                    println("--- ⛔ BATCH ABGEBROCHEN: User hat Stop geklickt nach $processedCount von ${resultsDto.size} Dateien.")
+                    return@forEach
+                }
+
                 processedCount++
                 val percentage = if (resultsDto.isNotEmpty()) (processedCount * 100) / resultsDto.size else 100
                 val bar = "█".repeat(percentage / 10) + "░".repeat(10 - (percentage / 10))
-                progress.update(processedCount, percentage, bar)
+                
+                // Dateinamen aus Title extrahieren (fallback auf Index)
+                val displayName = resultDto.title.take(50) // Kurzer Dateiname anzeigen
+                
+                progress.update(
+                    processedCount,
+                    percentage,
+                    bar,
+                    currentFile = displayName,
+                    failedCount = failedCount,
+                    skippedCount = skippedCount
+                )
 
-                val hash = resultDto.rawTextHash
-                if (repository.findByRawTextHash(hash).firstOrNull() == null && !seenHashesInBatch.contains(hash)) {
-                    seenHashesInBatch.add(hash)
+                try {
+                    val hash = resultDto.rawTextHash
+                    if (repository.findByRawTextHash(hash).firstOrNull() == null && !seenHashesInBatch.contains(hash)) {
+                        seenHashesInBatch.add(hash)
 
-                    val cleanUrl = resultDto.sourceUrl?.let { url -> url.substringBefore('?').take(2000) }
-                    val jobPosting = JobPosting(
-                        title = resultDto.title.take(1000),
-                        jobRole = resultDto.jobRole,
-                        rawTextHash = resultDto.rawTextHash,
-                        rawText = resultDto.rawText,
-                        postingDate = LocalDate.parse(resultDto.postingDate),
-                        region = resultDto.region,
-                        industry = resultDto.industry.take(500),
-                        isSegmented = resultDto.is_segmented,
-                        sourceUrl = cleanUrl
-                    )
+                        val cleanUrl = resultDto.sourceUrl?.let { url -> url.substringBefore('?').take(2000) }
+                        val jobPosting = JobPosting(
+                            title = resultDto.title.take(1000),
+                            jobRole = resultDto.jobRole,
+                            rawTextHash = resultDto.rawTextHash,
+                            rawText = resultDto.rawText,
+                            postingDate = LocalDate.parse(resultDto.postingDate),
+                            region = resultDto.region,
+                            industry = resultDto.industry.take(500),
+                            isSegmented = resultDto.is_segmented,
+                            sourceUrl = cleanUrl
+                        )
 
-                    jobPosting.competences = resultDto.competences.map { dto ->
-                        mapDtoToEntity(dto, jobPosting)
-                    }.toMutableSet()
+                        jobPosting.competences = resultDto.competences.map { dto ->
+                            mapDtoToEntity(dto, jobPosting)
+                        }.toMutableSet()
 
-                    jobPostingsToSave.add(jobPosting)
+                        jobPostingsToSave.add(jobPosting)
+                    } else {
+                        skippedCount++
+                    }
+                } catch (e: Exception) {
+                    failedCount++
+                    println("--- ⚠️ FEHLER bei Datei '${resultDto.title}': ${e.message}")
                 }
             }
 
-            repository.saveAll(jobPostingsToSave)
+            // Speichern aller gültigen Jobs
+            if (jobPostingsToSave.isNotEmpty()) {
+                repository.saveAll(jobPostingsToSave)
+                println("--- ✅ BATCH ERFOLGREICH: ${jobPostingsToSave.size} Jobs gespeichert, $skippedCount übersprungen, $failedCount Fehler.")
+            }
         } finally {
             progress.finish()
         }

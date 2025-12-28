@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import de.layher.jobmining.kotlinapi.presentation.CompetenceReportDTO
 import org.springframework.http.ResponseEntity
 import de.layher.jobmining.kotlinapi.adapters.PythonAnalysisClient
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 
 // Modell für den URL-Input vom Frontend
 data class URLRequest(val url: String)
@@ -80,6 +81,69 @@ class JobController(
 
     @GetMapping("/batch-status")
     fun getBatchStatus(): ResponseEntity<*> = ResponseEntity.ok(batchProgress.snapshot())
+
+    @Operation(
+        summary = "Batch-Progress Streaming (SSE)",
+        description = "Abonniert den Live-Fortschritt der Batch-Verarbeitung als Server-Sent Events (keine Polling nötig, Browser bleibt flüssig)."
+    )
+    @GetMapping("/batch-progress-stream", produces = ["text/event-stream"])
+    fun batchProgressStream(): ResponseEntity<*> {
+        val emitter = SseEmitter(300_000L)
+
+        // Async-Thread der Progress-Updates pushed
+        Thread {
+            try {
+                var lastSnapshot = batchProgress.snapshot()
+                while (lastSnapshot.status == "running" && !Thread.currentThread().isInterrupted) {
+                    val currentSnapshot = batchProgress.snapshot()
+                    if (currentSnapshot != lastSnapshot) {
+                        emitter.send(
+                            SseEmitter.event()
+                                .id(currentSnapshot.processed.toString())
+                                .name("progress")
+                                .data(currentSnapshot)
+                                .reconnectTime(500) // 500ms zwischen updates
+                        )
+                        lastSnapshot = currentSnapshot
+                    }
+                    Thread.sleep(500) // Check every 500ms
+                }
+                // Final event wenn fertig
+                emitter.send(
+                    SseEmitter.event()
+                        .id("done")
+                        .name("completed")
+                        .data(batchProgress.snapshot())
+                )
+                emitter.complete()
+            } catch (e: Exception) {
+                emitter.completeWithError(e)
+            }
+        }.start()
+
+        return ResponseEntity.ok(emitter)
+    }
+
+    @Operation(
+        summary = "Batch-Verarbeitung stoppen",
+        description = "Sendet Stop-Signal an laufende Batch-Verarbeitung. Browser-Freeze wird vermieden durch asynchrone Verarbeitung."
+    )
+    @DeleteMapping("/batch-progress")
+    fun stopBatch(): ResponseEntity<*> {
+        val currentProgress = batchProgress.snapshot()
+        if (currentProgress.status == "running") {
+            batchProgress.cancel()
+            return ResponseEntity.ok(mapOf(
+                "status" to "cancelled",
+                "message" to "Batch-Verarbeitung wurde gestoppt",
+                "processed" to currentProgress.processed,
+                "total" to currentProgress.total
+            ))
+        }
+        return ResponseEntity.badRequest().body(mapOf(
+            "error" to "Keine laufende Batch-Verarbeitung (Status: ${currentProgress.status})"
+        ))
+    }
 
     @Operation(
         summary = "ADMIN: Datenbank bereinigen",
