@@ -445,16 +445,35 @@ class SpaCyCompetenceExtractor(ICompetenceExtractor):
         except Exception:
             pass
 
-        # Optionales Timing-Log
-        if os.getenv('LOG_NLP_TIMINGS') == '1':
-            try:
-                t3 = time.perf_counter()
-                logger.info("⏱️ NLP Timing:")
-                logger.info(f"   🔤 Text-Limit: {text_limit}")
-                logger.info(f"   🧩 Tokens: {len(doc)}")
-                logger.info(f"   🧷 Matches: {len(matches)}")
-                logger.info(f"   ⏳ nlp(): {t1 - t0:.3f}s, matcher(): {t2 - t1:.3f}s, post: {t3 - t2:.3f}s")
-            except Exception:
-                pass
+        # ✅ DAUERHAFTES PERFORMANCE & RESULT LOGGING
+        try:
+            t3 = time.perf_counter()
+            total_time = t3 - t0
 
+            # IMMER loggen (für Debugging & Performance-Tracking)
+            logger.info("=" * 60)
+            logger.info("📊 EXTRACTION REPORT:")
+            logger.info(f"   📄 Input: {len(text)} chars (limit: {text_limit})")
+            logger.info(f"   🎯 Role: {role_context}")
+            logger.info(f"   🧩 Tokens: {len(doc)}")
+            logger.info(f"   🧷 Matcher Hits: {len(matches)}")
+            logger.info(f"   ✅ Results: {len(results)} competences")
+            logger.info(f"   🔍 Unique: {len(seen)} (Deduplicated)")
+            logger.info(f"   ⏱️  Total Time: {total_time:.3f}s")
+            logger.info(f"   ⚡ Breakdown: nlp={t1-t0:.3f}s | match={t2-t1:.3f}s | post={t3-t2:.3f}s")
+
+            # WARNUNG bei zu vielen Kompetenzen (Performance-Problem!)
+            if len(results) > 100:
+                logger.warning(f"⚠️  PERFORMANCE WARNING: {len(results)} competences extracted (expected: 20-50)")
+                logger.warning(f"   → Possible cause: Fuzzy matching too aggressive or duplicates not filtered")
+
+            # WARNUNG bei langsamer Verarbeitung
+            if total_time > 5.0:
+                logger.warning(f"⚠️  SLOW EXTRACTION: {total_time:.1f}s (expected: <2s)")
+                logger.warning(f"   → Check text length ({len(text)} chars) and matcher patterns ({len(matches)} hits)")
+
+        except Exception as e:
+            logger.error(f"Error in logging: {e}")
+
+        logger.info("=" * 60)
         return results

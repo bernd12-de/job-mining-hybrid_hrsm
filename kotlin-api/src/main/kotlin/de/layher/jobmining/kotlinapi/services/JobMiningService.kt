@@ -67,12 +67,27 @@ class JobMiningService(
             sourceUrl = cleanUrl
         )
 
+        // ✅ LOGGING: Python Response
+        println("--- 📊 PYTHON RESPONSE:")
+        println("    Received DTO with ${resultDto.competences.size} competences from Python")
+
         jobPosting.competences = resultDto.competences.map { dto ->
             mapDtoToEntity(dto, jobPosting)
         }.toMutableSet()
 
+        println("    Mapped to ${jobPosting.competences.size} entities")
+
         val saved = repository.save(jobPosting)
+
+        // ✅ DETAILLIERTES ERFOLG-LOG
         println("--- ✅ ERFOLG: Job '${saved.title}' mit ${saved.competences.size} Kompetenzen gespeichert (ID: ${saved.id}).")
+
+        // ⚠️ WARNUNG bei zu vielen Kompetenzen
+        if (saved.competences.size > 100) {
+            println("    ⚠️  WARNING: ${saved.competences.size} competences saved (expected: 20-50)")
+            println("    → Possible issue in Python extraction or duplicate mapping")
+        }
+
         return saved
     }
 
@@ -107,12 +122,26 @@ class JobMiningService(
             sourceUrl = cleanUrl
         )
 
+        // ✅ LOGGING: Python Response
+        println("--- 📊 PYTHON RESPONSE:")
+        println("    Received DTO with ${resultDto.competences.size} competences from Python")
+
         jobPosting.competences = resultDto.competences.map { dto ->
             mapDtoToEntity(dto, jobPosting)
         }.toMutableSet()
 
+        println("    Mapped to ${jobPosting.competences.size} entities")
+
         val saved = repository.save(jobPosting)
-        println("--- ✅ ERFOLG: Web-Anzeige '${saved.title}' erfolgreich indexiert.")
+
+        println("--- ✅ ERFOLG: Web-Anzeige '${saved.title}' erfolgreich indexiert (${saved.competences.size} Kompetenzen).")
+
+        // ⚠️ WARNUNG bei zu vielen Kompetenzen
+        if (saved.competences.size > 100) {
+            println("    ⚠️  WARNING: ${saved.competences.size} competences saved (expected: 20-50)")
+            println("    → Possible issue in Python extraction or duplicate mapping")
+        }
+
         return saved
     }
 
