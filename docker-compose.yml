@@ -39,6 +39,7 @@ services:
       # NLP Logging & Limits (können später wieder entfernt werden)
       LOG_NLP_TIMINGS: "1"
       SPACY_TEXT_LIMIT: "4000"
+      PLAYWRIGHT_AUTO_INSTALL: "true"
     # Wichtig: Bindet den lokalen Datenordner in den Container ein (für ESCO-Dateien)
     volumes:
       - ./python-backend/data:/app/data

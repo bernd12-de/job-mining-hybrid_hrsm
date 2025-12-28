@@ -4,6 +4,7 @@ import logging
 import uvicorn
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from typing import List, Dict
+import subprocess
 
 # --- 1. KORREKTE IMPORTE (Mit 'app.' Prefix) ---
 from app.domain.models import AnalysisResultDTO
@@ -544,4 +545,24 @@ def clear_candidates():
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+# =========================================================
+# ADMIN: Playwright Installation
+# =========================================================
+@app.post("/internal/admin/install-playwright")
+def install_playwright():
+    """
+    Versucht die Playwright-Installation (Python-Paket + Chromium mit Abhängigkeiten) durchzuführen.
+    Nutzt apt-get über '--with-deps'. Läuft nur im Container sinnvoll.
+    """
+    try:
+        # Installiere Python-Paket
+        subprocess.run(["python3","-m","pip","install","playwright"], check=True)
+        # Installiere Browser und System-Abhängigkeiten
+        subprocess.run(["playwright","install","chromium","--with-deps"], check=True)
+        return {"status":"installed"}
+    except subprocess.CalledProcessError as e:
+        raise HTTPException(status_code=500, detail=f"Installation fehlgeschlagen: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unerwarteter Fehler: {e}")
 

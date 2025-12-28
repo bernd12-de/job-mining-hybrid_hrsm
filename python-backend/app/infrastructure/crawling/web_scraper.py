@@ -13,6 +13,8 @@ Features:
 import re
 import time
 import logging
+import os
+import subprocess
 from typing import Optional, Dict, Any
 from urllib.parse import urlparse, urlunparse
 from dataclasses import dataclass
@@ -207,7 +209,18 @@ class WebScraper:
         try:
             from playwright.sync_api import sync_playwright
         except ImportError:
-            raise ImportError("Playwright nicht installiert. Bitte 'pip install playwright' ausführen.")
+            # Optionaler Auto-Install bei gesetzter Env-Variablen
+            auto_install = os.environ.get("PLAYWRIGHT_AUTO_INSTALL", "false").lower() in {"1","true","yes"}
+            if auto_install:
+                try:
+                    warnings.append("Playwright fehlt – versuche Auto-Install")
+                    subprocess.run(["python3","-m","pip","install","playwright"], check=True)
+                    subprocess.run(["playwright","install","chromium","--with-deps"], check=True)
+                    from playwright.sync_api import sync_playwright  # retry import
+                except Exception as e:
+                    raise ImportError(f"Playwright Auto-Install fehlgeschlagen: {e}")
+            else:
+                raise ImportError("Playwright nicht installiert. Bitte 'pip install playwright' ausführen.")
         
         start_ms = int(time.time() * 1000)
         
