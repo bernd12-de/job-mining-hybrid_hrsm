@@ -50,3 +50,12 @@ Thumbs.db
 # Environment
 .env
 .env.local
+# ignore documents everywhere...
+*.pdf
+*.doc
+*.docx
+
+# ...except everything under python-backend/data
+!python-backend/data/
+!python-backend/data/**
+konzept-ideen/
